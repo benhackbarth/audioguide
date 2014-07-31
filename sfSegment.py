@@ -31,7 +31,28 @@ parser.add_option("-l", "--maximum", action="store", dest="MAXIMUM_SEG", type="f
 parser.add_option("-f", "--file", action="store", dest="OUTPUT_FILE", type="str", help="set the name of the output file.  by default it is the soundfile name + '.txt'")
 
 
+
+
 (options, args) = parser.parse_args()
+###########################################
+## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
+###########################################
+import sys, os, platform
+import numpy as np
+concatescript_path = os.path.dirname(__file__)
+audioguide_dir_path = os.path.join(concatescript_path, 'audioguide')
+if sys.maxsize > 2**32: bits = 64
+else: bits = 32
+compiledLibDir = 'pylib%i.%i-%s-%i'%(sys.version_info[0], sys.version_info[1], platform.system().lower(), bits)
+# lib dur for PRECOMPILED MODULES
+sys.path.append(compiledLibDir)
+# import the rest of audioguide's submodules
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, UserClasses
+from UserClasses import TargetOptionsEntry as tsf
+#from UserClasses import CorpusOptionsEntry as csf
+from UserClasses import SingleDescriptor as d
+from UserClasses import SearchPassOptionsEntry as spass
+#from UserClasses import SuperimpositionOptionsEntry as si
 
 
 for file in args:
@@ -46,88 +67,120 @@ for file in args:
 	if not isValidSoundfile:
 		#print("\n\n%s is not a valid soundfile!!!!\n\n"%(file))
 		continue
-	opsData = '''CORPUS = []
-TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = %f
-TARGET_SEGMENT_OFFSET_DB_REL_THRESH = %f
-TARGET_ONSET_ENVELOPE = 'orig'
-TARGET_OFFSET_ENVELOPE = 'orig'
-CSOUND_SCORE_FILEPATH = None
-CSOUND_RENDER_FILEPATH = None
-MIDI_FILEPATH = None
-TARGET_SEGMENT_LABELS_FILEPATH = None
-SUPERIMPOSITION_LABEL_FILEPATH = None
-VERBOSITY = 0
-USE_PROGRESS_BAR = False
 
-SEARCH = [spass(d('power'))]
-'''%(options.ABS_DB_OFFSET_THRESH, options.REL_DB_OFFSET_BOOST)
-	if options.GRAIN_SIZE == None: 
-		opsData += 'TARGET = tsf("%s", thresh=%f, rise=%f, minSegLen=%f, maxSegLen=%f)'%(file, options.THRESHOLD, options.RISE, options.MINIMUM_SEG, options.MAXIMUM_SEG)
-	else: # granular
-		opsData += 'TARGET = tsf("%s", thresh=%f, rise=%f, minSegLen=0.01, maxSegLen=10000)'%(file, options.THRESHOLD, options.RISE)
-	tmpOpsPath = os.path.join(agPath, 'segmentationops.txt')
-	fh = open(tmpOpsPath, 'w')
-	fh.write(opsData+'\n')
-	fh.close()
+	print options, file
+	#{'REL_DB_OFFSET_BOOST': 12, 'MINIMUM_SEG': 0.05, 'ABS_DB_OFFSET_THRESH': -80, 'GRAIN_OVERLAP': 1, 'grainRange': None, 'MAXIMUM_SEG': 4, 'GRAIN_SIZE': None, 'THRESHOLD': -40, 'exhaustive': False, 'OUTPUT_FILE': ''} /Users/ben/Documents/audioguide1.1/examples/heatsink.aiff
+
+	agopts = {
+	'TARGET': eval("tsf('%s', thresh=%f, rise=%f)"%(file, options.THRESHOLD, options.RISE)),
+	'SEARCH': [spass('closest', d('power'))],
+	'TARGET_SEGMENT_OFFSET_DB_ABS_THRESH': options.ABS_DB_OFFSET_THRESH,
+	'TARGET_SEGMENT_OFFSET_DB_REL_THRESH': options.REL_DB_OFFSET_BOOST,
+	}
+
+
+
+	print agopts
+	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=os.path.join(audioguide_dir_path, 'defaults.py'), scriptpath=concatescript_path)
+	p = userinterface.printer(concatescript_path, "/tmp/agsegmentationlog.txt")
+	SdifInterface = ops.createSdifInterface(p)
 	
-	ag = audioguide.main(os.path.dirname(os.path.realpath(__file__)), "defaults.py", loadOptionsFromFile=tmpOpsPath, printName="Segment Soundfile")
-	ag.init(printConfig=False)
-	print("\tCreating segmentation label file for %s..."%file)
-	ag.loadTarget()
-	print("\tThreshold dB: %f\t\trise: %f\tOffset dB: %f"%(options.THRESHOLD, options.RISE, audioguide.utilities.ampToDb(audioguide.ag.powerOffsetValue)))
+	
+	############
+	## TARGET ##
+	############
+	tgt = sfSegment.target(ops.TARGET)
+	tgt.initAnal(SdifInterface, ops, p)
 	if options.OUTPUT_FILE == '':
-		segFile = audioguide.tgt.filename+'.txt'
+		segFile = file+'.txt'
 	else:
 		segFile = os.path.abspath(options.OUTPUT_FILE)
-	if options.GRAIN_SIZE == None and options.grainRange == None: 
-		audioguide.tgt.writeSegLabelsToDisk(segFile, audioguide.tgt.segs, audioguide.ops.TEMPO_CHANGE)
-		SEGS = audioguide.tgt.segs
-		print("\n\tAudioGuide found %i segments\n"%len(audioguide.tgt.segs))
-	elif type(options.GRAIN_SIZE) in [float, int]:
-		SEGS = []
-		print("\tSilcing target segments into grains of %f seconds with an overlap of %f"%(options.GRAIN_SIZE, options.GRAIN_OVERLAP))
-		out = open(segFile, 'w')
-		numbSegs = 0
-		for a in audioguide.tgt.segs:
-			print a
-			start = a[0]
-			end = start+a[1]
-			if options.exhaustive:
-				out.write( str(start)+'\t'+str(end) +'\n') # append real segment
-				SEGS.append((start,end-start))
-				numbSegs += 1
+	tgt.writeSegmentationFile(segFile)
+	print( "Wrote target label file %s\n"%segFile )
+	sys.exit()
 
-			#print start, end
-			while end > start:	
-				#print options.exhaustive
-				for multi in [2, 3, 4]:
-					if options.GRAIN_SIZE*multi <= end:
-						#print '\t\t', start+(options.GRAIN_SIZE*multi), end
-						if options.exhaustive:
-							out.write( str(start)+'\t'+str(start+(options.GRAIN_SIZE*multi)) +'\n')
-							SEGS.append((start,end))
-							numbSegs += 1
-			#print '\t', start, start+options.GRAIN_SIZE
-				out.write( str(start)+'\t'+str(start+options.GRAIN_SIZE) +'\n')
-				start += options.GRAIN_SIZE/float(options.GRAIN_OVERLAP)
-				numbSegs += 1
-		print("\n\tAudioGuide found %i grain-segments\n"%numbSegs)
-		out.close()
-	else:
-		out = open(segFile, 'w')
-		range = eval(options.grainRange)
-		time = 0.
-		while True:
-			dur = random.uniform(range[0],range[1])
-			print(time, "for", dur)
-			if time+dur > audioguide.tgt.endSec-0.4: break
-			out.write( str(time)+'\t'+str(time+dur) +'\n')
-			time += dur
-		out.close()
-	triggers = []
-	for key, val in audioguide.tgt.triggerData.iteritems():
-		if key == 'totalWeights': continue
-		triggers.append('"'+key+'": '+audioguide.utilities.trunc(val['initMax'], 2))
+#	opsData = '''CORPUS = []
+#TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = %f
+#TARGET_SEGMENT_OFFSET_DB_REL_THRESH = %f
+#TARGET_ONSET_ENVELOPE = 'orig'
+#TARGET_OFFSET_ENVELOPE = 'orig'
+#CSOUND_SCORE_FILEPATH = None
+#CSOUND_RENDER_FILEPATH = None
+#MIDI_FILEPATH = None
+#TARGET_SEGMENT_LABELS_FILEPATH = None
+#SUPERIMPOSITION_LABEL_FILEPATH = None
+#VERBOSITY = 0
+#USE_PROGRESS_BAR = False
+#
+#SEARCH = [spass(d('power'))]
+#'''%(options.ABS_DB_OFFSET_THRESH, options.REL_DB_OFFSET_BOOST)
+#	if options.GRAIN_SIZE == None: 
+#		opsData += 'TARGET = tsf("%s", thresh=%f, rise=%f, minSegLen=%f, maxSegLen=%f)'%(file, options.THRESHOLD, options.RISE, options.MINIMUM_SEG, options.MAXIMUM_SEG)
+#	else: # granular
+#		opsData += 'TARGET = tsf("%s", thresh=%f, rise=%f, minSegLen=0.01, maxSegLen=10000)'%(file, options.THRESHOLD, options.RISE)
+#	tmpOpsPath = os.path.join(agPath, 'segmentationops.txt')
+#	fh = open(tmpOpsPath, 'w')
+#	fh.write(opsData+'\n')
+#	fh.close()
+#	
+#	ag = audioguide.main(os.path.dirname(os.path.realpath(__file__)), "defaults.py", loadOptionsFromFile=tmpOpsPath, printName="Segment Soundfile")
+#	ag.init(printConfig=False)
+#	print("\tCreating segmentation label file for %s..."%file)
+#	ag.loadTarget()
+#	print("\tThreshold dB: %f\t\trise: %f\tOffset dB: %f"%(options.THRESHOLD, options.RISE, audioguide.utilities.ampToDb(audioguide.ag.powerOffsetValue)))
+#	if options.OUTPUT_FILE == '':
+#		segFile = audioguide.tgt.filename+'.txt'
+#	else:
+#		segFile = os.path.abspath(options.OUTPUT_FILE)
+#	if options.GRAIN_SIZE == None and options.grainRange == None: 
+#		audioguide.tgt.writeSegLabelsToDisk(segFile, audioguide.tgt.segs, audioguide.ops.TEMPO_CHANGE)
+#		SEGS = audioguide.tgt.segs
+#		print("\n\tAudioGuide found %i segments\n"%len(audioguide.tgt.segs))
+#	elif type(options.GRAIN_SIZE) in [float, int]:
+#		SEGS = []
+#		print("\tSilcing target segments into grains of %f seconds with an overlap of %f"%(options.GRAIN_SIZE, options.GRAIN_OVERLAP))
+#		out = open(segFile, 'w')
+#		numbSegs = 0
+#		for a in audioguide.tgt.segs:
+#			print a
+#			start = a[0]
+#			end = start+a[1]
+#			if options.exhaustive:
+#				out.write( str(start)+'\t'+str(end) +'\n') # append real segment
+#				SEGS.append((start,end-start))
+#				numbSegs += 1
+#
+#			#print start, end
+#			while end > start:	
+#				#print options.exhaustive
+#				for multi in [2, 3, 4]:
+#					if options.GRAIN_SIZE*multi <= end:
+#						#print '\t\t', start+(options.GRAIN_SIZE*multi), end
+#						if options.exhaustive:
+#							out.write( str(start)+'\t'+str(start+(options.GRAIN_SIZE*multi)) +'\n')
+#							SEGS.append((start,end))
+#							numbSegs += 1
+#			#print '\t', start, start+options.GRAIN_SIZE
+#				out.write( str(start)+'\t'+str(start+options.GRAIN_SIZE) +'\n')
+#				start += options.GRAIN_SIZE/float(options.GRAIN_OVERLAP)
+#				numbSegs += 1
+#		print("\n\tAudioGuide found %i grain-segments\n"%numbSegs)
+#		out.close()
+#	else:
+#		out = open(segFile, 'w')
+#		range = eval(options.grainRange)
+#		time = 0.
+#		while True:
+#			dur = random.uniform(range[0],range[1])
+#			print(time, "for", dur)
+#			if time+dur > audioguide.tgt.endSec-0.4: break
+#			out.write( str(time)+'\t'+str(time+dur) +'\n')
+#			time += dur
+#		out.close()
+#	triggers = []
+#	for key, val in audioguide.tgt.triggerData.iteritems():
+#		if key == 'totalWeights': continue
+#		triggers.append('"'+key+'": '+audioguide.utilities.trunc(val['initMax'], 2))
 	#print 'TARGET_ONSET_FORCE_MAX = {'+', '.join(triggers)+'}\n'
 	
 #	durations = []

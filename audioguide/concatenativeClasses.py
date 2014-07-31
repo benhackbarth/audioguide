@@ -6,7 +6,7 @@ import numpy as np
 
 
 class parseOptions:
-	def __init__(self, opsfile=None, defaults=None, scriptpath=None):
+	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
 		from UserClasses import TargetOptionsEntry as tsf
 		from UserClasses import CorpusOptionsEntry as csf
 		from UserClasses import SingleDescriptor as d
@@ -17,6 +17,8 @@ class parseOptions:
 			fh = open(opsfile)
 			exec(fh.read(), locals(), usrOptions)
 			fh.close()
+		if optsDict != None:
+			usrOptions.update(optsDict)
 		ops = {}
 		if defaults != None:
 			fh = open(defaults)
@@ -28,7 +30,8 @@ class parseOptions:
 			if not isinstance(v, str): continue
 			if v.lower() == 'none': ops[k] = None
 		ops['SEARCH_PATHS'].append( os.path.split(scriptpath)[0] )
-		ops['SEARCH_PATHS'].append( os.path.split(opsfile)[0] )
+		if opsfile != None:
+			ops['SEARCH_PATHS'].append( os.path.split(opsfile)[0] )
 		# complete paths for output files...
 		for item, val in ops.items():
 			if item.find('_FILEPATH') == -1: continue
