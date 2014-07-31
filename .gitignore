@@ -1,0 +1,9 @@
+# ignore generated python files
+output/*
+*.bbprojectd
+*.rtf
+*.pyc
+examples/*.txt
+.DS_Store*
+
+

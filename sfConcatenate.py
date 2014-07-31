@@ -1,0 +1,325 @@
+#!/usr/bin/env python
+# audioGuide copyright Benjamin Hackbarth, 2011-2014 #
+__author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
+__author_email__ = "b.hackbarth@liv.ac.uk"
+__version__ = "1.1.0"
+
+import sys, os, platform
+import numpy as np
+try:
+	import json as json
+except ImportError:
+	import simplejson as json
+
+
+#######################
+## find options file ##
+#######################
+if len(sys.argv) == 1:
+	print('\nPlease specify an options file as the first argument\n')
+	sys.exit(1)
+opspath = os.path.realpath(sys.argv[1])
+if not os.path.exists(opspath):
+	print('\nCouldn\'t find an options called "%s"\n'%sys.argv[1])
+	sys.exit(1)
+
+concatescript_path = os.path.dirname(__file__)
+audioguide_dir_path = os.path.join(concatescript_path, 'audioguide')
+if sys.maxsize > 2**32: bits = 64
+else: bits = 32
+compiledLibDir = 'pylib%i.%i-%s-%i'%(sys.version_info[0], sys.version_info[1], platform.system().lower(), bits)
+# lib dur for PRECOMPILED MODULES
+sys.path.append(compiledLibDir)
+# import the rest of audioguide's submodules
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics
+
+
+###########################################
+## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
+###########################################
+ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=os.path.join(audioguide_dir_path, 'defaults.py'), scriptpath=concatescript_path)
+p = userinterface.printer(concatescript_path, ops.LOG_FILEPATH)
+SdifInterface = ops.createSdifInterface(p)
+
+############
+## TARGET ##
+############
+p.logsection( "TARGET" )
+tgt = sfSegment.target(ops.TARGET)
+tgt.initAnal(SdifInterface, ops, p)
+
+############
+## CORPUS ##
+############
+p.logsection( "CORPUS" )
+cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, SdifInterface, p)
+cps.evaluatePreConcateLimitations()
+print("CORPUS: Read %i/%i segments (%.0f%%, %.2f min.)"%(cps.data['postLimitSegmentCount'], len(cps.preLimitSegmentList), cps.data['postLimitSegmentCount']/float(len(cps.preLimitSegmentList))*100., cps.data['totalLengthInSeconds']/60.))
+
+
+for dname in ops.ORDER_CORPUS_BY_DESCRIPTOR:
+	sortit = []
+	for cobj in cps.postLimitSegmentNormList:
+		sortit.append( (cobj.desc[dname].get(0, None), cobj) )
+	sortit.sort()
+	#print sortit
+
+
+
+###################
+## NORMALIZATION ##
+###################
+p.logsection( "NORMALISATION" )
+for dobj in SdifInterface.normalizeDescriptors:
+	if dobj.norm == 1:
+		# normalize both together
+		allsegs = tgt.segs + cps.postLimitSegmentNormList
+		tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj)
+		sfSegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
+	elif dobj.norm == 2:
+		# normalize target
+		tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj)
+		sfSegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
+		# normalize corpus
+		cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj)
+		sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
+	p.log( "%s (%i):"%(dobj.name, dobj.norm) )
+	p.log( "\ttarget: mean=%.2f  std=%.2f  corpus: mean=%.2f  std=%.2f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev']) )
+
+
+
+
+
+#########################
+## setup concatenation ##
+#########################
+p.logsection( "CONCATENATION" )
+tgt.setupConcate(SdifInterface)
+distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, SdifInterface, p)
+#p.barOpen('Concatenating Based on %s'%ops.SUPERIMPOSE.searchOrder, len(tgt.segFrames)+1)
+superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
+cps.setupCorpusConcatenationLimitations(tgt, SdifInterface)
+outputEvents = []
+
+#######################################
+### sort segments by power if needed ##
+#######################################
+if ops.SUPERIMPOSE.searchOrder == 'power':
+	import operator
+	tgt.segs = sorted(tgt.segs, key=operator.attrgetter("power"), reverse=True)
+
+
+#########################
+## TARGET SEGMENT LOOP ##
+#########################
+for segidx, tgtseg in enumerate(tgt.segs):
+	segSeek = 0
+	while True:
+		##############################################################
+		## check to see if we are done with this particular segment ##
+		##############################################################
+		if segSeek >= tgtseg.lengthInFrames: break 
+		########################################
+		## run selection superimposition test ##
+		########################################
+		tif = tgtseg.segmentStartFrame + segSeek
+		timeInSec = SdifInterface.f2s(tif)
+		tgtsegdur =  tgtseg.segmentDurationSec - SdifInterface.f2s(segSeek)
+		segidxt = superimp.test('segidx', segidx, ops.SUPERIMPOSE.minSegment, ops.SUPERIMPOSE.maxSegment)
+		overt = superimp.test('overlap', tif, ops.SUPERIMPOSE.minOverlap, ops.SUPERIMPOSE.maxOverlap)
+		onsett = superimp.test('onset', tif, ops.SUPERIMPOSE.minOnset, ops.SUPERIMPOSE.maxOnset)
+		trigVal = tgtseg.thresholdTest(segSeek, ops.TARGET_ONSET_DESCRIPTORS)
+		trig = trigVal >= tgt.segmentationThresh
+		####################################################
+		# skip selecting if some criteria doesn't match!!! #
+		####################################################
+		if 'notok' in [onsett, overt, segidxt]:
+			if segidxt == 'notok':
+				superimp.skip('maximum selections this segment', superimp.cnt['segidx'][segidx], timeInSec)
+			if onsett == 'notok':
+				superimp.skip('maximum onsets at this time', superimp.cnt['onset'][tif], timeInSec)
+			if overt == 'notok':
+				superimp.skip('maximum overlapping selections', superimp.cnt['overlap'][tif], timeInSec)
+			segSeek += ops.SUPERIMPOSE.incr
+			continue # next frame
+		##############################################################
+		## see if a selection should be forced without thresholding ##
+		##############################################################
+		if 'force' not in [onsett, overt, segidxt]: # test for amplitude threshold
+			if not trig:
+				superimp.skip('target too soft', trigVal, timeInSec)
+				segSeek += ops.SUPERIMPOSE.incr
+				continue # not loud enough, next frame
+		##############################
+		## get valid corpus handles ##
+		##############################
+		validSegments = cps.evaluateValidSamples(tif, timeInSec, ops.ROTATE_VOICES, ops.VOICE_PATTERN, superimp)
+		if len(validSegments) == 0:
+			superimp.skip('no corpus sounds made it past restrictions and limitations', None, timeInSec)
+			segSeek += ops.SUPERIMPOSE.incr
+			continue		
+		distanceCalculations.setCorpus(validSegments)
+		################################################
+		## search and see if we find a winning sample ##
+		################################################
+		returnBool = distanceCalculations.executeSearch(tgtseg, segSeek, ops.SEARCH, ops.SUPERIMPOSE, ops.RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION)
+		if not returnBool: # nothing valid, so skip to new frame...
+			superimp.skip('no corpus sounds made it through the search passes', None, timeInSec)
+			segSeek += ops.SUPERIMPOSE.incr
+			continue
+		###################################################
+		## if passing this point, picking a corpus sound ##
+		###################################################
+		superimp.pick(trig, trigVal, onsett, overt, segidxt, timeInSec)
+		selectCpsseg = distanceCalculations.returnSearch()
+		######################################
+		## MODIFY CHOSEN SAMPLES AMPLITUDE? ##
+		######################################
+		minLen = min(tgtseg.lengthInFrames-segSeek, selectCpsseg.lengthInFrames)		
+		if selectCpsseg.postSelectAmpBool:
+			if selectCpsseg.postSelectAmpMethod == "lstsqr":
+				try:
+					leastSqrWholeLine = (np.linalg.lstsq(np.vstack([selectCpsseg.desc['power'][:minLen]]).T, np.vstack([tgtseg.desc['power'][:minLen]]).T)[0][0][0])
+				except np.linalg.linalg.LinAlgError: # in case of incompatible dimensions
+					leastSqrWholeLine = 0
+					pass
+			elif selectCpsseg.postSelectAmpMethod in ["power-seg", "power-mean-seg"]:
+				tgtPower = tgtseg.desc[selectCpsseg.postSelectAmpMethod].get(segSeek, None)
+				cpsPower = selectCpsseg.desc[selectCpsseg.postSelectAmpMethod].get(0, None)
+				sourceAmpScale = tgtPower/cpsPower			
+			###################
+			## fit to limits ##
+			###################
+			if sourceAmpScale < util.dbToAmp(selectCpsseg.postSelectAmpMin):
+				sourceAmpScale = util.dbToAmp(selectCpsseg.postSelectAmpMin)
+			elif sourceAmpScale > util.dbToAmp(selectCpsseg.postSelectAmpMax):
+				sourceAmpScale = util.dbToAmp(selectCpsseg.postSelectAmpMax)
+		else: # nothing
+			sourceAmpScale = 1
+		# apply amp scaling
+		sourceAmpScale *= util.dbToAmp(ops.OUTPUT_GAIN_DB)
+		###################$###########################
+		## subtract power and update onset detection ##
+		###################$###########################
+		if ops.SUPERIMPOSE.calcMethod != None:
+			samplePowers = selectCpsseg.desc['power'][:minLen]
+			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(samplePowers*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
+			# clip it so its above zero
+			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxint)
+			# recalculate onset envelope
+			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
+			for dobj in ComputedDescList:
+				if dobj.describes_energy and dobj.name != 'power':
+					tgtseg.desc[dobj.name] = metrics.DescriptorComputation(dobj, tgtseg, None, None)
+			for d in AveragedDescList:
+				tgtseg.desc[d.name].clear()			
+		#####################################
+		## mix chosen sample's descriptors ##
+		#####################################
+		if ops.SUPERIMPOSE.calcMethod == "mixture":
+			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, segSeek, SdifInterface)
+		#################################
+		## append selected corpus unit ##
+		#################################
+		transposition = util.getTransposition(tgtseg, selectCpsseg)
+		cps.updateWithSelection(selectCpsseg, timeInSec)
+		cpsEffDur = selectCpsseg.desc['effDur-seg'].get(0, None)
+		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
+		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
+
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR) )
+		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText())
+
+
+#p.logsection( "CONCATENATION SUMMARY" )
+#print len(superimp.histogram['select']), superimp.choiceCnt
+#
+#for i in superimp.histogram['select']:
+#	
+#
+#
+#cps.makeSelectionLogicHistogram(outputEvents)
+
+
+#####################################
+## sort outputEvents by start time ##
+#####################################
+p.logsection( "OUTPUT FILES" )
+outputEvents.sort(key=lambda x: x.timeInScore)
+
+
+######################
+## dict output file ##
+######################
+if ops.DICT_OUTPUT_FILEPATH != None or True:
+	output = {}
+	output['target'] = None
+	output['corpus'] = None
+	output['selectedEvents'] = [oe.makeDictOutput() for oe in outputEvents]
+	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
+	json.dump(output, fh)
+	fh.close()
+	p.log( "Wrote JSON dict file %s\n"%ops.DICT_OUTPUT_FILEPATH )
+
+######################
+## midi output file ##
+######################
+if ops.MIDI_FILEPATH != None:
+	import midifile
+	MyMIDI = midifile.MIDIFile(1)
+	MyMIDI.addTrackName(0, 0., "AudioGuide Track")
+	MyMIDI.addTempo(0, 0., 60.)
+	for oe in outputEvents:
+		MyMIDI.addNote(0, 0, oe.midiPitch, oe.timeInScore, oe.duration, oe.midiVelocity)
+	binfile = open(ops.MIDI_FILEPATH, 'wb')
+	MyMIDI.writeFile(binfile)
+	binfile.close()
+	p.log( "Wrote MIDIfile %s\n"%ops.MIDI_FILEPATH )
+
+#################################
+## target segment label output ##
+#################################
+if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
+	tgt.writeSegmentationFile(ops.TARGET_SEGMENT_LABELS_FILEPATH)
+	p.log( "Wrote target label file %s\n"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
+
+###################################
+## superimpose label output file ##
+###################################
+if ops.SUPERIMPOSITION_LABEL_FILEPATH != None:
+	fh = open(ops.SUPERIMPOSITION_LABEL_FILEPATH, 'w')
+	fh.write( ''.join([ oe.makeLabelText() for oe in outputEvents ]) )
+	fh.close()
+	p.log( "Wrote superimposition label file %s\n"%ops.SUPERIMPOSITION_LABEL_FILEPATH )
+
+######################
+## lisp output file ##
+######################
+if ops.LISP_OUTPUT_FILEPATH != None:
+	fh = open(ops.LISP_OUTPUT_FILEPATH, 'w')
+	fh.write('(' + ''.join([ oe.makeLispText() for oe in outputEvents ]) +')')
+	fh.close()
+	p.log( "Wrote lisp output file %s\n"%ops.LISP_OUTPUT_FILEPATH )
+
+########################
+## csound output file ##
+########################
+if ops.CSOUND_CSD_FILEPATH != None:
+	import csoundInterface as csd
+	csSco = ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len)
+	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
+	if ops.CSOUND_RENDER_FILEPATH != None:
+		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents))
+		p.log( "Wrote csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
+
+
+####################
+## close log file ##
+####################
+p.close()
+	
+if ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
+	csd.playFile( ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_PLAYERS )
+		
+	
