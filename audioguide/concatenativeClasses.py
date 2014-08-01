@@ -43,6 +43,8 @@ class parseOptions:
 		# be obtained by writing ops.CORPUS rather than ops.data['CORPUS']
 		for k, v in ops.items():
 			setattr(self, k, v)
+		print self.SEARCH_PATHS
+		sys.exit()
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
