@@ -43,8 +43,6 @@ class parseOptions:
 		# be obtained by writing ops.CORPUS rather than ops.data['CORPUS']
 		for k, v in ops.items():
 			setattr(self, k, v)
-		print self.SEARCH_PATHS
-		sys.exit()
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
@@ -295,7 +293,13 @@ class corpus:
 			cpsSeg = sfSegment.corpusSegment(*corpusSegParams)
 			# add it to the list!
 			self.preLimitSegmentList.append(cpsSeg)
-		p.percentageBarClose()
+		
+		self.evaluatePreConcateLimitations()
+
+		p.percentageBarClose(txt="Read %i/%i segments (%.0f%%, %.2f min.)"%(self.data['postLimitSegmentCount'], len(self.preLimitSegmentList), self.data['postLimitSegmentCount']/float(len(self.preLimitSegmentList))*100., self.data['totalLengthInSeconds']/60.))
+
+
+
 	############################################################################
 	############################################################################
 	def evaluatePreConcateLimitations(self):

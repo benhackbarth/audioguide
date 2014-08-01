@@ -215,7 +215,6 @@ class printer:
 		self.maxNumb = float(total)
 		self.counter = 0
 		self.term = TerminalController()
-		print "\n"
 		self.progress = ProgressBar(self.term, upperLabel, length)
 		self.file = ''
 	###############################################

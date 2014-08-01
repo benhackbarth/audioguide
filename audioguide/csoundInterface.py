@@ -200,7 +200,8 @@ def render(file, totalEvents, printerobj=None):
 		if o[2] == 'giNoteCounter': 
 			if printerobj != None: printerobj.percentageBarNext(lowerLabel="f")
 			eventCounter += 1
-	if printerobj != None: printerobj.percentageBarClose()
+	if printerobj != None: printerobj.percentageBarClose(txt="Rendered %i events."%eventCounter)
+
 
 
 

@@ -311,13 +311,13 @@ class target: # the target
 			lengths.append(SdifInterface.f2s(segLen))
 			f += segLen
 
-		p.startPercentageBar(upperLabel="LOADING TARGET: %s"%self.filename, total=len(self.segmentationInSec))
+		p.startPercentageBar(upperLabel="LOADING TARGET", total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
 			segment = targetSegment(self.filename, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
 			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
 			self.segs.append(segment)
-		p.percentageBarClose()
+		p.percentageBarClose(txt="Found %i segments (threshold=%.1f rise=%.2f)."%(len(self.segs), self.segmentationThresh, self.segmentationRise))
 		# done!
 		p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.segs), np.average(lengths)))
 		if ops.TARGET_MAKE_DESCRIPTOR_PLOTS:

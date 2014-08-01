@@ -319,7 +319,7 @@ def verifyOutputPath(path, scriptPath):
 	''' will use abs path if provided.  if
 	relative, it will be placed in the script's 
 	directory, creating directories as needed'''
-	if os.path.exists(path): return path
+	if os.path.isabs(path): return path
 	relativeJoined = os.path.join(scriptPath, path)
 	# create directory if needed
 	directory = os.path.split(relativeJoined)[0]

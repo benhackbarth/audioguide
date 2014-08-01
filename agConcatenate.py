@@ -43,8 +43,6 @@ tgt.initAnal(SdifInterface, ops, p)
 ############
 p.logsection( "CORPUS" )
 cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, SdifInterface, p)
-cps.evaluatePreConcateLimitations()
-p.pnt("CORPUS: Read %i/%i segments (%.0f%%, %.2f min.)"%(cps.data['postLimitSegmentCount'], len(cps.preLimitSegmentList), cps.data['postLimitSegmentCount']/float(len(cps.preLimitSegmentList))*100., cps.data['totalLengthInSeconds']/60.))
 
 ###################
 ## NORMALIZATION ##
@@ -207,7 +205,10 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR) )
 		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText())
 
-		p.percentageBarNext(lowerLabel="TARGET@%.2f x %i - search passes: %s"%(timeInSec, maxoverlaps+1, distanceCalculations.lengthAtPasses), incr=0)
+		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
+		printLabel += ' '*(24-len(printLabel))
+		printLabel += "search pass lengths: %s"%(distanceCalculations.lengthAtPasses)
+		p.percentageBarNext(lowerLabel=printLabel, incr=0)
 
 #p.logsection( "CONCATENATION SUMMARY" )
 #print len(superimp.histogram['select']), superimp.choiceCnt
@@ -222,7 +223,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 #####################################
 ## sort outputEvents by start time ##
 #####################################
-p.percentageBarClose()
+p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 p.logsection( "OUTPUT FILES" )
 outputEvents.sort(key=lambda x: x.timeInScore)
 
