@@ -2,7 +2,7 @@
 SEARCH_PATHS = [] # additional directories to search for soundfiles
 SOUNDFILE_EXTENSIONS = ['.aiff', '.aif', '.wav', '.au'] # when loading a directory, skip files without these extensions; not case sensative
 RANDOM_SEED = None # None=use timestamp; specify an integer for repeatable pseudo random results
-VERBOSITY = 1 # turn off printing altogether with 0.
+VERBOSITY = 2 # turn off printing altogether with 0.
 USE_PROGRESS_BAR = True # use progress printing bars
 PRINT_LENGTH = 80
 ALERT_ON_ERROR = True # play the system alert sound when exiting with an error.  irritating, but then again you probably deserve it.

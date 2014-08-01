@@ -87,8 +87,10 @@ if ops.SUPERIMPOSE.searchOrder == 'power':
 #########################
 ## TARGET SEGMENT LOOP ##
 #########################
+p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgt.segs)+1)
 for segidx, tgtseg in enumerate(tgt.segs):
 	segSeek = 0
+	p.percentageBarNext()
 	while True:
 		##############################################################
 		## check to see if we are done with this particular segment ##
@@ -205,6 +207,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR) )
 		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText())
 
+		p.percentageBarNext(lowerLabel="TARGET@%.2f x %i - search passes: %s"%(timeInSec, maxoverlaps+1, distanceCalculations.lengthAtPasses), incr=0)
 
 #p.logsection( "CONCATENATION SUMMARY" )
 #print len(superimp.histogram['select']), superimp.choiceCnt
@@ -219,6 +222,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 #####################################
 ## sort outputEvents by start time ##
 #####################################
+p.percentageBarClose()
 p.logsection( "OUTPUT FILES" )
 outputEvents.sort(key=lambda x: x.timeInScore)
 
@@ -285,7 +289,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
-		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents))
+		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		p.log( "Wrote csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 
 

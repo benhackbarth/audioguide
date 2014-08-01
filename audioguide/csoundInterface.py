@@ -12,9 +12,6 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	else:
 		util.error("csdrenderer", "no know render method %s\n"%channelRenderMethod)
 
-	print "CSOUND", channelRenderMethod, nchnls
-
-	
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
@@ -189,12 +186,11 @@ e
 
 
 
-def render(file, totalEvents):
+def render(file, totalEvents, printerobj=None):
 	eventCounter = 0
-	#for rObj in renderObjs: totalEvents += rObj.events
-	#p.barOpen(barString, totalEvents-1)
+	if printerobj != None: printerobj.startPercentageBar(upperLabel="RENDERING with CSOUND", total=totalEvents)
 	csoundCommand = ['ulimit -n 2000 ;', 'csound', file]
-	print('\tRENDER WITH CSOUND --> "' + ' '.join(csoundCommand)+ '"\n')
+	#print('\tRENDER WITH CSOUND --> "' + ' '.join(csoundCommand)+ '"\n')
 	cs = subprocess.Popen(' '.join(csoundCommand), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
 		o = cs.stderr.readline()
@@ -202,10 +198,9 @@ def render(file, totalEvents):
 		o = o.split()
 		if len(o) < 3: continue
 		if o[2] == 'giNoteCounter': 
+			if printerobj != None: printerobj.percentageBarNext(lowerLabel="f")
 			eventCounter += 1
-			#p.post('Note '+str(totalEventCounter)+'/'+str(totalEvents)+".", inc=True, forceInc=totalEventCounter)
-#p.barClose("Done.")
-
+	if printerobj != None: printerobj.percentageBarClose()
 
 
 

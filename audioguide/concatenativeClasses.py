@@ -284,8 +284,6 @@ class corpus:
 			###########################
 			## done with CORPUS loop ##
 			###########################
-
-
 		p.startPercentageBar(upperLabel="LOADING CORPUS", total=len(self.preloadlist))
 		# in a seperate loop for printing...
 		for cidx, corpusSegParams in enumerate(self.preloadlist):

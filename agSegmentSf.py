@@ -65,22 +65,18 @@ for file in args:
 			isValidSoundfile = True
 			break
 	if not isValidSoundfile:
-		#print("\n\n%s is not a valid soundfile!!!!\n\n"%(file))
 		continue
-
-	print options, file
-	#{'REL_DB_OFFSET_BOOST': 12, 'MINIMUM_SEG': 0.05, 'ABS_DB_OFFSET_THRESH': -80, 'GRAIN_OVERLAP': 1, 'grainRange': None, 'MAXIMUM_SEG': 4, 'GRAIN_SIZE': None, 'THRESHOLD': -40, 'exhaustive': False, 'OUTPUT_FILE': ''} /Users/ben/Documents/audioguide1.1/examples/heatsink.aiff
 
 	agopts = {
 	'TARGET': eval("tsf('%s', thresh=%f, rise=%f)"%(file, options.THRESHOLD, options.RISE)),
 	'SEARCH': [spass('closest', d('power'))],
 	'TARGET_SEGMENT_OFFSET_DB_ABS_THRESH': options.ABS_DB_OFFSET_THRESH,
 	'TARGET_SEGMENT_OFFSET_DB_REL_THRESH': options.REL_DB_OFFSET_BOOST,
+	'VERBOSITY': 0,
 	}
 
 
 
-	print agopts
 	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
 	SdifInterface = ops.createSdifInterface(p)
@@ -95,7 +91,8 @@ for file in args:
 	else:
 		segFile = os.path.abspath(options.OUTPUT_FILE)
 	tgt.writeSegmentationFile(segFile)
-	print( "Wrote target label file %s\n"%segFile )
+	print( "\n\tFound %i segments in %s"%(len(tgt.segs), file) )
+	print( "\tWrote target label file %s\n"%segFile )
 	sys.exit()
 
 #	opsData = '''CORPUS = []

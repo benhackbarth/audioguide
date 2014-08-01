@@ -42,7 +42,7 @@ class distanceCalculations:
 	def executeSearch(self, tgtseg, tgtSeek, seach_pass_objs, superimposeObj, randomizeAmpForSimSelection):	
 		self.searchMinMax = []
 		self.logTextOutput = ''
-		passedLengths = [len(self.corpusObjs)] # start with initial size for printing
+		self.lengthAtPasses = '%i'%len(self.corpusObjs) # start with initial size for printing
 		for spidx, spassobj in enumerate(seach_pass_objs):
 			mind = sys.maxint
 			maxd = -1*sys.maxint
@@ -67,7 +67,7 @@ class distanceCalculations:
 					newList.append(c)
 				self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
 				self.corpusObjs = newList
-				passedLengths.append(len(newList))
+				self.lengthAtPasses += ' %i'%(len(newList))
 			else:
 				########################################################
 				## search segmented and timevarying feature distances ##
@@ -118,9 +118,8 @@ class distanceCalculations:
 				self.logTextOutput += "\tdistance calc pass #%i - %s - %i -> %i ( %2.2f <-> %2.2f )\n"%(spidx+1, spassobj.method, len(self.corpusObjs), len(newList), mind, maxd)
 				self.corpusObjs = newList
 				
-				passedLengths.append(len(newList))
+				self.lengthAtPasses += ' %i'%(len(newList))
 		# done with loop
-		print "\tsearch pass output lengths", passedLengths
 		assert len(self.corpusObjs) == 1
 		self.searchResults.append( self.corpusObjs[0] )
 		self.searchMinMax.append( [mind, maxd] )
