@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# audioGuide copyright Benjamin Hackbarth, 2011-2014 #
-__author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
-__author_email__ = "b.hackbarth@liv.ac.uk"
-__version__ = "1.1.0"
-
-import sys, os, platform
+import sys, os, audioguide
+defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
+sys.path.append(libpath)
+# import the rest of audioguide's submodules
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, sdiflinkage
+# import all other modules
 import numpy as np
 try:
 	import json as json
@@ -23,22 +23,12 @@ if not os.path.exists(opspath):
 	print('\nCouldn\'t find an options called "%s"\n'%sys.argv[1])
 	sys.exit(1)
 
-concatescript_path = os.path.dirname(__file__)
-audioguide_dir_path = os.path.join(concatescript_path, 'audioguide')
-if sys.maxsize > 2**32: bits = 64
-else: bits = 32
-compiledLibDir = 'pylib%i.%i-%s-%i'%(sys.version_info[0], sys.version_info[1], platform.system().lower(), bits)
-# lib dur for PRECOMPILED MODULES
-sys.path.append(compiledLibDir)
-# import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics
-
 
 ###########################################
 ## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
 ###########################################
-ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=os.path.join(audioguide_dir_path, 'defaults.py'), scriptpath=concatescript_path)
-p = userinterface.printer(concatescript_path, ops.LOG_FILEPATH)
+ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 SdifInterface = ops.createSdifInterface(p)
 
 ############
@@ -54,17 +44,7 @@ tgt.initAnal(SdifInterface, ops, p)
 p.logsection( "CORPUS" )
 cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, SdifInterface, p)
 cps.evaluatePreConcateLimitations()
-print("CORPUS: Read %i/%i segments (%.0f%%, %.2f min.)"%(cps.data['postLimitSegmentCount'], len(cps.preLimitSegmentList), cps.data['postLimitSegmentCount']/float(len(cps.preLimitSegmentList))*100., cps.data['totalLengthInSeconds']/60.))
-
-
-for dname in ops.ORDER_CORPUS_BY_DESCRIPTOR:
-	sortit = []
-	for cobj in cps.postLimitSegmentNormList:
-		sortit.append( (cobj.desc[dname].get(0, None), cobj) )
-	sortit.sort()
-	#print sortit
-
-
+p.pnt("CORPUS: Read %i/%i segments (%.0f%%, %.2f min.)"%(cps.data['postLimitSegmentCount'], len(cps.preLimitSegmentList), cps.data['postLimitSegmentCount']/float(len(cps.preLimitSegmentList))*100., cps.data['totalLengthInSeconds']/60.))
 
 ###################
 ## NORMALIZATION ##
@@ -85,14 +65,10 @@ for dobj in SdifInterface.normalizeDescriptors:
 		sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
 	p.log( "%s (%i):"%(dobj.name, dobj.norm) )
 	p.log( "\ttarget: mean=%.2f  std=%.2f  corpus: mean=%.2f  std=%.2f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev']) )
-
-
-
-
-
-#########################
-## setup concatenation ##
-#########################
+	
+##############################
+## initialise concatenation ##
+##############################
 p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, SdifInterface, p)
@@ -107,7 +83,6 @@ outputEvents = []
 if ops.SUPERIMPOSE.searchOrder == 'power':
 	import operator
 	tgt.segs = sorted(tgt.segs, key=operator.attrgetter("power"), reverse=True)
-
 
 #########################
 ## TARGET SEGMENT LOOP ##

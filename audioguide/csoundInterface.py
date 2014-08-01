@@ -3,9 +3,7 @@ import subprocess, platform, sys, os, util
 
 
 def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength):
-
-	
-	if channelRenderMethod == "mix":
+	if channelRenderMethod in ["mix", None]:
 		nchnls = 2 # mono of stereo depending on corpus sf
 	elif channelRenderMethod == "oneChannelPerVoice":
 		nchnls = cpsLength
@@ -14,8 +12,7 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	else:
 		util.error("csdrenderer", "no know render method %s\n"%channelRenderMethod)
 
-	print channelRenderMethod, nchnls
-
+	print "CSOUND", channelRenderMethod, nchnls
 
 	
 	fh = open(outputCsdPath, 'w')
@@ -136,6 +133,30 @@ instr 1
 	
 ;	print iOutCh1, iOutCh2
 ;	outch     int(iOutCh1), asnd1, int(iOutCh2), asnd2
+	outs asnd1, asnd2
+	giNoteCounter = giNoteCounter+1 ; increment note counter
+endin
+
+
+
+
+
+instr 2 ; simple player
+	iDur = p3
+	SCpsFile   strget   p4
+	iStartRead = p5
+	
+	iFileChannels   filenchnls   SCpsFile
+	print giNoteCounter ; used by audioguide for its printed progress bar
+
+	; get input sound for this corpus segment	
+	if (iFileChannels == 2) then ; STEREO
+		asnd1, asnd2  diskin2 SCpsFile, 1, iStartRead
+	elseif (iFileChannels == 1) then ; MONO
+		asnd1         diskin2 SCpsFile, 1, iStartRead
+		asnd2 = asnd1 ; equal balance between L and R
+	endif 
+
 	outs asnd1, asnd2
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin

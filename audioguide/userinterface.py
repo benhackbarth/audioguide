@@ -36,7 +36,7 @@ def lady_print(string):
 
 
 class printer:
-	def __init__(self, optionsPath, pathtologfile):
+	def __init__(self, verbosity, optionsPath, pathtologfile):
 		if pathtologfile == None:
 			self.loghandle = None
 		else:
@@ -78,6 +78,9 @@ class printer:
 	###############################################
 	def percentageBarClose(self):
 		print "\n"
+	###############################################
+	def pnt(*args):
+		print args[1:]
 
 #for i in range(21):
 #    sys.stdout.write('\n')

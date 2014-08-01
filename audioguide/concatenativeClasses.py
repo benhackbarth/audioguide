@@ -32,6 +32,8 @@ class parseOptions:
 		ops['SEARCH_PATHS'].append( os.path.split(scriptpath)[0] )
 		if opsfile != None:
 			ops['SEARCH_PATHS'].append( os.path.split(opsfile)[0] )
+		if scriptpath != None:
+			ops['SEARCH_PATHS'].append( scriptpath )
 		# complete paths for output files...
 		for item, val in ops.items():
 			if item.find('_FILEPATH') == -1: continue
@@ -44,8 +46,7 @@ class parseOptions:
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
-		ircamDescriptorBinaryPath = os.path.join(os.path.dirname(__file__), 'ircamdescriptor-2.8.6')
-		linkage = sdiflinkage.SdifInterface(ircamDescriptorBinaryPath, pm2_bin=None, supervp_bin=None, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, numbPeaks=self.SUPERVP_NUMB_PEAKS, numbClust=self.CLUSTERANAL_NUMB_CLUSTS, clustDescriptDict=self.CLUSTERANAL_DESCRIPTOR_DIM, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, validSfExtensions=self.SOUNDFILE_EXTENSIONS, searchPaths=self.SEARCH_PATHS, p=p)
+		linkage = sdiflinkage.SdifInterface(pm2_bin=None, supervp_bin=None, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, numbPeaks=self.SUPERVP_NUMB_PEAKS, numbClust=self.CLUSTERANAL_NUMB_CLUSTS, clustDescriptDict=self.CLUSTERANAL_DESCRIPTOR_DIM, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, validSfExtensions=self.SOUNDFILE_EXTENSIONS, searchPaths=self.SEARCH_PATHS, p=p)
 		linkage.getDescriptorLists(self)
 		return linkage
 ##########################################################

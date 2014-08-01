@@ -37,17 +37,17 @@ parser.add_option("-f", "--file", action="store", dest="OUTPUT_FILE", type="str"
 ###########################################
 ## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
 ###########################################
-import sys, os, platform
-import numpy as np
-concatescript_path = os.path.dirname(__file__)
-audioguide_dir_path = os.path.join(concatescript_path, 'audioguide')
-if sys.maxsize > 2**32: bits = 64
-else: bits = 32
-compiledLibDir = 'pylib%i.%i-%s-%i'%(sys.version_info[0], sys.version_info[1], platform.system().lower(), bits)
-# lib dur for PRECOMPILED MODULES
-sys.path.append(compiledLibDir)
+import audioguide
+defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
+sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, UserClasses
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, sdiflinkage
+# import all other modules
+import numpy as np
+try:
+	import json as json
+except ImportError:
+	import simplejson as json
 from UserClasses import TargetOptionsEntry as tsf
 #from UserClasses import CorpusOptionsEntry as csf
 from UserClasses import SingleDescriptor as d
@@ -81,11 +81,10 @@ for file in args:
 
 
 	print agopts
-	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=os.path.join(audioguide_dir_path, 'defaults.py'), scriptpath=concatescript_path)
-	p = userinterface.printer(concatescript_path, "/tmp/agsegmentationlog.txt")
+	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
 	SdifInterface = ops.createSdifInterface(p)
-	
-	
+
 	############
 	## TARGET ##
 	############

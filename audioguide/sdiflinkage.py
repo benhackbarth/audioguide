@@ -11,8 +11,8 @@ except ImportError:
 
 
 class SdifInterface:
-	def __init__(self, ircamdescriptor_bin, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, validSfExtensions=['.aiff', '.wav', '.aif'], searchPaths=[]):	
-		self.ircamdescriptor_bin = ircamdescriptor_bin
+	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, validSfExtensions=['.aiff', '.wav', '.aif'], searchPaths=[]):	
+		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6' )
 		self.pm2_bin = pm2_bin
 		self.supervp_bin = supervp_bin
 		self.forceAnal = forceAnal
@@ -50,16 +50,16 @@ class SdifInterface:
 		for b in range(self.numbMfccs):
 			self.agDescriptToSdif['mfcc%i'%b] = ('descriptors', False, True, '1DSC', '1MFC', b, 0)
 		# peaks
-		for p in range(self.numbPeaks):
-			self.agDescriptToSdif['peakfrq%i'%p] = ('peaks', False, False, '1PIC', '1PIC', p, 0)
-			self.agDescriptToSdif['peakamp%i'%p] = ('peaks', False, False, '1PIC', '1PIC', p, 1)
+		#for p in range(self.numbPeaks):
+		#	self.agDescriptToSdif['peakfrq%i'%p] = ('peaks', False, False, '1PIC', '1PIC', p, 0)
+		#	self.agDescriptToSdif['peakamp%i'%p] = ('peaks', False, False, '1PIC', '1PIC', p, 1)
 		# partials
-		for p in range(self.maxpartials):
-			self.agDescriptToSdif['partialfrq%i'%p] = ('partials', False, False, '1TRC', '1TRC', p, 1)
-			self.agDescriptToSdif['partialamp%i'%p] = ('partials', False, False, '1TRC', '1TRC', p, 2)
+		#for p in range(self.maxpartials):
+		#	self.agDescriptToSdif['partialfrq%i'%p] = ('partials', False, False, '1TRC', '1TRC', p, 1)
+		#	self.agDescriptToSdif['partialamp%i'%p] = ('partials', False, False, '1TRC', '1TRC', p, 2)
 		# cluster centroids
-		for p in range(len(self.clustDescriptDict)):
-			self.agDescriptToSdif['cluster_cent%i'%p] = ('cluster', False, True, '1CLT', '1CSD', 0, p+1)
+		#for p in range(len(self.clustDescriptDict)):
+		#	self.agDescriptToSdif['cluster_cent%i'%p] = ('cluster', False, True, '1CLT', '1CSD', 0, p+1)
 
 		self.rawData = {} # file, descriptdict
 		descriptors = ['SignalZeroCrossingRate', 'AutoCorrelation', 'TotalEnergy', 'SpectralCentroid', 'SpectralSpread', 'SpectralSkewness', 'SpectralKurtosis', 'SpectralSlope', 'SpectralDecrease', 'SpectralRolloff', 'SpectralVariation', 'Loudness', 'Spread', 'Sharpness', 'PerceptualSpectralCentroid', 'PerceptualSpectralSpread', 'PerceptualSpectralSkewness', 'PerceptualSpectralKurtosis', 'PerceptualSpectralSlope', 'PerceptualSpectralDecrease', 'PerceptualSpectralRolloff', 'PerceptualSpectralVariation', 'PerceptualSpectralDeviation', 'PerceptualOddToEvenRatio', 'PerceptualTristimulus', 'MFCC', 'SpectralFlatness', 'SpectralCrest', 'FundamentalFrequency', 'NoiseEnergy', 'Noisiness', 'Inharmonicity', 'HarmonicEnergy', 'HarmonicSpectralCentroid', 'HarmonicSpectralSpread', 'HarmonicSpectralSkewness', 'HarmonicSpectralKurtosis', 'HarmonicSpectralSlope', 'HarmonicSpectralDecrease', 'HarmonicSpectralRolloff', 'HarmonicSpectralVariation', 'HarmonicSpectralDeviation', 'HarmonicOddToEvenRatio', 'HarmonicTristimulus', 'Chroma']
@@ -107,6 +107,15 @@ TextureWindowsFrames = -1
 TextureWindowsHopFrames = -1
 
 %s'''%(self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.numbMfccs, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, dlist, self.winLengthSec, self.hopLengthSec, edlist)
+		# make a list of all possible descriptor objects
+		self.allDescriptors = []
+		from UserClasses import SingleDescriptor as d
+		for desc in self.agDescriptToSdif:
+			dobj = d(desc)
+			self.allDescriptors.append( dobj )
+			if not dobj.seg:
+				segmented = d(desc+'-seg')
+				self.allDescriptors.append( segmented )
 	#############################
 	def addDescriptorIfNeeded(self, dobjToCheck, ops, addParents=False):
 		from UserClasses import SingleDescriptor as d
@@ -137,9 +146,11 @@ TextureWindowsHopFrames = -1
 		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops)
-		# add others
-		for dname in ops.ORDER_CORPUS_BY_DESCRIPTOR:
-			self.addDescriptorIfNeeded(d(dname, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
+		# add ordering by descriptor
+		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR, ops.ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH]:
+			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
+		for dname, weight in ops.TARGET_ONSET_DESCRIPTORS.items():
+			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
 		# add internal mectrics if not already used
 		internalDescriptorNames = ['power', 'peakTime-seg', 'power-seg', 'power-mean-seg', 'effDur-seg', 'f0-seg', 'MIDIPitch-seg']
 		for dname in internalDescriptorNames:
@@ -282,7 +293,7 @@ TextureWindowsHopFrames = -1
 			# supervp is fucked up and streams A LOT of data to stderr.  why would those mofos do something like that?
 	########################################################
 	########################################################
-	def ClusterIdAnalysis(self, sffile):
+#	def ClusterIdAnalysis(self, sffile):
 #		import numpy as np
 #		ops = self.ops
 #
@@ -320,49 +331,49 @@ TextureWindowsHopFrames = -1
 #		# done target
 #		for sf in ag.preLimitCpsHandles:
 #			print sf.name
-		
-		
-
-		# alter target and corpus entries so that they include full paths.
-		allOps = {}
-		outputFile = '/tmp/ag-sdifanal.config.py'
-		# make full paths for corpus and target entries so that we find the right file on an outboard analysis
-		allOps.update(self.ops.userOps)
-		del allOps['AG_PATH']
-		del allOps['DEFAULT_PATH']
-		del allOps['OPS_PATH']
-		del allOps['SCRIPT_PATH']
-		allOps['SEARCH'] = []
-		for anal in self.ops.CLUSTERANAL_DESCRIPTOR_DIM:
-			allOps['SEARCH'].append('d("%s", weight=1)'%(anal))
-		allOps['SEARCH'] = '[spass("closest", %s)]'%', '.join(allOps['SEARCH'])
-		allOps['VERBOSITY'] = 0
-		allOps['LOG_FILEPATH'] = None
-		allOps['TARGET_SEGMENT_LABELS_FILEPATH'] = None
-		checksumlist = []
-		outputh = open(outputFile, 'w')
-		for k, v in allOps.iteritems():
-			checksumlist.extend((k, str(v)))
-			if type(v) == str and k != 'SEARCH':
-				outputh.write('%s = "%s"\n'%(k, v))
-			else:
-				outputh.write('%s = %s\n'%(k, v))
-		outputh.close()
-		
-		manual_checksum = listToCheckSum([checksumlist])
-
-		analfile = self.getSdifFileName('cluster', sffile, manualCheck=manual_checksum)
-		if os.path.exists(analfile) and not self.forceAnal: return analfile
-		print "\n\nMAKING A CLUSTER-ID SDIF ANALYSIS"
-		print "\tTARGET: %s"%self.ops.userOps['TARGET'].name
-		#print "\tCORPUS: %s"%self.ops.userOps['CORPUS']
-		print "\tCLUSTER DIMENSIONS: %s"%self.ops.CLUSTERANAL_DESCRIPTOR_DIM
-		print "\tNUMBER OF CLUSTERS: %s\n\n"%self.ops.CLUSTERANAL_NUMB_CLUSTS
-		command = '%s %s %s %s'%(os.path.join(self.ops.userOps['AG_PATH'], 'scripts', 'make_clusterid_sdif.py'), self.ops.userOps['AG_PATH'], outputFile, manual_checksum)
-		print command
-		self.logcommand(command)
-		executeCommand(command)
-		return analfile
+#		
+#		
+#
+#		# alter target and corpus entries so that they include full paths.
+#		allOps = {}
+#		outputFile = '/tmp/ag-sdifanal.config.py'
+#		# make full paths for corpus and target entries so that we find the right file on an outboard analysis
+#		allOps.update(self.ops.userOps)
+#		del allOps['AG_PATH']
+#		del allOps['DEFAULT_PATH']
+#		del allOps['OPS_PATH']
+#		del allOps['SCRIPT_PATH']
+#		allOps['SEARCH'] = []
+#		for anal in self.ops.CLUSTERANAL_DESCRIPTOR_DIM:
+#			allOps['SEARCH'].append('d("%s", weight=1)'%(anal))
+#		allOps['SEARCH'] = '[spass("closest", %s)]'%', '.join(allOps['SEARCH'])
+#		allOps['VERBOSITY'] = 0
+#		allOps['LOG_FILEPATH'] = None
+#		allOps['TARGET_SEGMENT_LABELS_FILEPATH'] = None
+#		checksumlist = []
+#		outputh = open(outputFile, 'w')
+#		for k, v in allOps.iteritems():
+#			checksumlist.extend((k, str(v)))
+#			if type(v) == str and k != 'SEARCH':
+#				outputh.write('%s = "%s"\n'%(k, v))
+#			else:
+#				outputh.write('%s = %s\n'%(k, v))
+#		outputh.close()
+#		
+#		manual_checksum = listToCheckSum([checksumlist])
+#
+#		analfile = self.getSdifFileName('cluster', sffile, manualCheck=manual_checksum)
+#		if os.path.exists(analfile) and not self.forceAnal: return analfile
+#		print "\n\nMAKING A CLUSTER-ID SDIF ANALYSIS"
+#		print "\tTARGET: %s"%self.ops.userOps['TARGET'].name
+#		#print "\tCORPUS: %s"%self.ops.userOps['CORPUS']
+#		print "\tCLUSTER DIMENSIONS: %s"%self.ops.CLUSTERANAL_DESCRIPTOR_DIM
+#		print "\tNUMBER OF CLUSTERS: %s\n\n"%self.ops.CLUSTERANAL_NUMB_CLUSTS
+#		command = '%s %s %s %s'%(os.path.join(self.ops.userOps['AG_PATH'], 'scripts', 'make_clusterid_sdif.py'), self.ops.userOps['AG_PATH'], outputFile, manual_checksum)
+#		print command
+#		self.logcommand(command)
+#		executeCommand(command)
+#		return analfile
 	########################################################
 	########################################################
 	def loadDescriptorSdifData(self, sffile, descriptList):
@@ -386,9 +397,9 @@ TextureWindowsHopFrames = -1
 			self.PartialAnalysis(sffile)
 		if self.rawData[sffile]['neededfiles'].has_key('peaks'): # need supervp analysis!
 			self.PeakAnalysis(sffile)
-		if self.rawData[sffile]['neededfiles'].has_key('cluster'): # need supervp analysis!
-			customnamed = self.ClusterIdAnalysis(sffile)
-			customNames['cluster'] = customnamed
+#		if self.rawData[sffile]['neededfiles'].has_key('cluster'): # need supervp analysis!
+#			customnamed = self.ClusterIdAnalysis(sffile)
+#			customNames['cluster'] = customnamed
 
 		# loop over needed files
 		for filetype in self.rawData[sffile]['neededfiles']:
@@ -480,9 +491,9 @@ agDescriptToSdif = {
 ## descriptorname : sdif-Id, isAmp?, isMixable?, sdifFrame, sdifMatrix, matrixCol, matrixRow ##
 ###############################################################################################
 # cluster_cents get automatically added here based on numbClust
-"clusterid":                     ('cluster',     False, True,  '1CLT', '1CSD', 0, 0),
-"clusterlen":                    ('cluster',     False, True,  '1CLT', '1CSD', 0, 1),
-"clustercendist":                ('cluster',     False, True,  '1CLT', '1CSD', 0, 2),
+#"clusterid":                     ('cluster',     False, True,  '1CLT', '1CSD', 0, 0),
+#"clusterlen":                    ('cluster',     False, True,  '1CLT', '1CSD', 0, 1),
+#"clustercendist":                ('cluster',     False, True,  '1CLT', '1CSD', 0, 2),
 # mfccs get automatically added here based on numbBands
 # peakfrqs get automatically added here based on numbPeaks
 # peakamps get automatically added here based on numbPeaks
@@ -575,9 +586,9 @@ agDescriptToSdif = {
 "skewness":                      ('descriptors', False, True,  '1DSC', '1SSK', 0, 0),
 "slope":                         ('descriptors', False, True,  '1DSC', '1SSL', 0, 0),
 "spread":                        ('descriptors', False, True,  '1DSC', '1SSP', 0, 0),
-"temporalCentroid-seg":          ('descriptors', False, True,  '1TCN', '1EEV', 0, 0),
-"temporalDecrease-seg":          ('descriptors', False, True,  '1TDE', '1EEV', 0, 0),
-"temporalIncrease-seg":          ('descriptors', False, True,  '1TIN', '1EEV', 0, 0),
+#"temporalCentroid-seg":          ('descriptors', False, True,  '1TCN', '1EEV', 0, 0),
+#"temporalDecrease-seg":          ('descriptors', False, True,  '1TDE', '1EEV', 0, 0),
+#"temporalIncrease-seg":          ('descriptors', False, True,  '1TIN', '1EEV', 0, 0),
 "variation":                     ('descriptors', False, True,  '1DSC', '1SVA', 0, 0),
 "zeroCross":                     ('descriptors', False, False, '1DSC', '1ZCR', 0, 0),
 #'logAttackTime-seg': ('descriptors', '1LAT', 'IDSC', 0, 0),

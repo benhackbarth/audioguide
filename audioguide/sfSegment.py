@@ -8,7 +8,7 @@ import numpy as np
 
 
 class SfSegment:
-	def __init__(self, filename, startSec, endSec, SdifInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01, synthesisParameters=None):
+	def __init__(self, filename, startSec, endSec, descriptors, SdifInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01, synthesisParameters=None):
 		self.filename = util.verifyPath(filename, SdifInterface.searchPaths)
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.soundfileTotalDuration, self.soundfileChns = SdifInterface.validateSdifResource(self.filename)
@@ -65,7 +65,7 @@ class SfSegment:
 		###############################
 		## initalise descriptor data ##
 		###############################
-		self.desc = descriptorData.container(SdifInterface.requiredDescriptors, self) # for storing descriptor values from disk
+		self.desc = descriptorData.container(descriptors, self) # for storing descriptor values from disk
 		# tells us which descriptors are:
 		#	SdifDescList - loaded from SDIF analyses
 		#	ComputedDescList - transformed from loaded descriptor data - delta, deltadelta, odf, etc.
@@ -124,7 +124,7 @@ class corpusSegment(SfSegment):
 	used uniquely by corpus segments.'''
 	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, synthesisParameters):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, synthesisParameters=synthesisParameters)
+		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, synthesisParameters=synthesisParameters)
 		# additional corpus-specific data
 		self.userCpsStr = userCpsStr
 		self.concatFileName = concatFileName
@@ -194,7 +194,7 @@ class targetSegment(SfSegment):
 	used uniquely by target segments.'''
 	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, midiPitchMethod):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 	###################################################
@@ -259,7 +259,7 @@ class target: # the target
 		# Start by loading the entire target as an 
 		# sfSegment to get the whole amplitude envelope.
 		self.filename = util.verifyPath(self.filename, SdifInterface.searchPaths)
-		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface)
+		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface)
 		self.whole.midiPitchMethod = self.midiPitchMethod
 		self.lengthInFrames = self.whole.lengthInFrames
 		self.segmentationMinLenFrames = SdifInterface.s2f(self.segmentationMinLenSec, self.filename, minimum=1)
@@ -332,7 +332,6 @@ class target: # the target
 			json.dump(self.whole.desc.getdict(), fh)
 			fh.close()
 			p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
-
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')

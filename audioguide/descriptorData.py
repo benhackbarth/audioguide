@@ -56,6 +56,7 @@ class container:
 	def getdict(self):
 		output = {}
 		for name, obj in self.nameToObjMap.items():
+			print name
 			if name.find('-seg') != -1:
 				obj.get(0, self.len) # force a seg calc for output
 				writable = {}

@@ -2,7 +2,7 @@
 SEARCH_PATHS = [] # additional directories to search for soundfiles
 SOUNDFILE_EXTENSIONS = ['.aiff', '.aif', '.wav', '.au'] # when loading a directory, skip files without these extensions; not case sensative
 RANDOM_SEED = None # None=use timestamp; specify an integer for repeatable pseudo random results
-VERBOSITY = 2 # turn off printing altogether with 0.
+VERBOSITY = 1 # turn off printing altogether with 0.
 USE_PROGRESS_BAR = True # use progress printing bars
 PRINT_LENGTH = 80
 ALERT_ON_ERROR = True # play the system alert sound when exiting with an error.  irritating, but then again you probably deserve it.
@@ -45,8 +45,7 @@ LISP_OUTPUT_FILEPATH = 'output/output.lisp.txt'
 #PARAM_SCORE_FILEPATH = None #'output/paramscore.txt'
 DICT_OUTPUT_FILEPATH = 'output/output.json'
 TARGET_DESCRIPTORS_FILEPATH = 'output/targetdescriptors.json'
-ORDER_CORPUS_BY_DESCRIPTOR = []
-
+ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH = 'output/orderedCorpus.aiff'
 
 
 ############  CSOUND  ############
@@ -66,10 +65,12 @@ TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = -80.
 TARGET_SEGMENT_OFFSET_DB_REL_THRESH = +18
 TARGET_LOAD_SEGMENTS_FILEPATH = None
 
-##########  CORPUS TEMPORAL RESTRICTIONS   #######
+##########  CORPUS   #######
+SEARCH = []
 CORPUS_GLOBAL_ATTRIBUTES = {}
 VOICE_PATTERN = []
 ROTATE_VOICES = False
+ORDER_CORPUS_BY_DESCRIPTOR = 'centroid-seg'
 
 #######  CONCATENATE SELECTION  #######
 SUPERIMPOSE = si()

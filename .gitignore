@@ -3,9 +3,10 @@ output/*
 *.bbprojectd
 *.rtf
 *.pyc
+docs/*
 audioguide/data_json/*
 audioguide/data_sdif/*
-
+release.py
 examples/*.txt
 .DS_Store*
 
