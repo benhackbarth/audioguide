@@ -22,7 +22,7 @@ class TargetOptionsEntry:
 
 
 class CorpusOptionsEntry:
-	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], hasParams=False, includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.1,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0,  wholeFile=False, MWinstrName=None,  MWtext=None, MWnotehead='.'):
+	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], hasParams=False, includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.1,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False):
 		self.name = name
 		self.start = start
 		self.end = end
@@ -55,10 +55,6 @@ class CorpusOptionsEntry:
 		self.superimposeRule = superimposeRule
 		self.transMethod = transMethod
 		self.transQuantize = transQuantize
-		self.MWinstrName = MWinstrName
-		self.MWnotehead = MWnotehead
-		self.MWtext = MWtext
-		 
 
 		
 

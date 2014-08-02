@@ -43,9 +43,10 @@ stringstyle=\color[rgb]{0.627,0.126,0.941},
 \centering
 \includegraphics[width=#2\textwidth]{#1}
 \end{figure}}
-\newcommand{\ag}{AudioGuide}
 
 \newcommand{\optEntry}[4]{\textbf{#1} (type=#2, default=#3) #4\hspace{0.5em}\\}
+\newcommand{\ag}{audioguide1.1 }
+\newcommand{\Ag}{Audioguide1.1 }
 
 \usepackage[table]{xcolor}
 \begin{document}
@@ -62,13 +63,12 @@ Copyright Ben Hackbarth, 2011-2013.
 
 
 \section{Installation}
-Here is a list of the resources that AudioGuide requires on your computer.  If you run OSX 10.6 or higher\footnote{python2.7 comes with numpy and this AudioGuide distribution comes with a precompiled pysdif.  So you will only need the IRCAmn binary and csound.}.
+For the moment \ag only works on OS X.  More recent versions of OS X  (after 10.5) come with python2.7 that automatically has numpy installed.  This distribution of \ag comes with a precompiled version of pysdif for 64-bit python and, on more current machines, should run out of the box.  Here is a complete list of the resources that \ag requires on your computer:
 \begin{description}
-\item[ircamdescriptors] AudioGuide uses IRCAM's \href{http://www.ircam.fr/1041.html?&L=1}{descriptor analysis binary} (Please note, I am not permitted to distribute this binary).  When you run Audioguide the first time, a nice lady will ask you to enter the path of the descriptor binary.
-%\figurewrap{readme0a.png}{0.7}
-\item[pysdif] First download the \href{http://sourceforge.net/projects/sdif/files/sdif/}{sdif library} and configure, make and install.  Then download my patched version of the \href{http://crca.ucsd.edu/\textasciitilde ben/audioGuide/pysdif-0.1.4-patch.zip}{pysdif module}.  `cd' into the directory when unzipped and run: `python2.7 setup.py install'.  You're now setup to use pysdif in python2.7.
+\item[ircamdescriptors] \Ag uses IRCAM's \href{http://www.ircam.fr/1041.html?&L=1}{descriptor analysis binary}.  It is included this distribution.
+\item[pysdif] To compile install download the \href{http://sourceforge.net/projects/sdif/files/sdif/}{sdif library} and configure, make and install.  Then download my patched version of the \href{http://www.benhackbarth.com/\ag/pysdif-0.1.4-patch.zip}{pysdif module}.  `cd' into the directory when unzipped and run: `python2.7 setup.py install'.  You're now setup to use pysdif in python2.7.
 \item[numpy] Most python2.7 installations come with numpy, a numerical computation module.  Upgrading to the latest python2.7 should get you there.  If you don't have it, you can download the source code or a binary installer \href{http://www.scipy.org/install.html}{here}.
-\item[csound] Needed only if you would like Audioguide to automatically render concatenations (which you probably do).  Download an installer from \href{http://www.csounds.com/downloads}{here}.
+\item[csound] Needed only if you would like \ag to automatically render concatenations (which you probably do).  Download an installer from \href{http://www.csounds.com/downloads}{here}.
 
 \end{description}
 
@@ -76,90 +76,86 @@ Here is a list of the resources that AudioGuide requires on your computer.  If y
 
 
 \section{Quick Start}
-Using Audioguide comes down to interacting with two python scripts in the audioGuide folder.  One script does segmentation of corpus soundfiles.  The other performs concatenation based on the variables found in a options file.  While you do not need to know how to write Python code in order to use AudioGuide, it is not a bad idea to know some Python basics since the variables in the options file for concatenation is written is Python's syntax.
+Using \ag comes down to interacting with python scripts in the \ag folder.  For soundfile concatenation, one script does segmentation of corpus soundfiles.  A second script performs concatenation based on a variety of variables found in a options file.  While you do not need to know how to write Python code in order to use \ag, it is not a bad idea to know some of Python's basic syntax.
 
-The reason that segmentation and concatenation are separated is that I find is useful to fine-tune the segmentation of corpus sounds \emph{before} using them in a concatenation.  Sound segmentation is a difficult technical problem and should remain conceptually and aesthetically open-ended.  I have yet to find an algorithm that does not require adjustments based on the nature of the sound in question and the intended result.  
+The reason that segmentation and concatenation are separated into discrete steps that I find is useful to fine-tune the segmentation of corpus sounds \emph{before} using them in a concatenation.  Soundfile segmentation is a difficult technical problem and should remain conceptually and aesthetically open-ended.  I have yet to find an algorithm that does not require adjustments based on the nature of the sound in question and the intention of the user as to what a segment should be.
 
 
 \subsection{Segmenting Corpus Soundfiles}
-\emph{Note}: If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip\footnote{But make sure tell AudioGuide not to search for segmentation textfiles by setting the corpus attribute wholeFIle=True.  See the Manipulating How Directories Are Read subsection of the CORPUS options section for more info.} the \emph{Segmenting Corpus Soundfiles} section and proceed to the concatenation section.
+\emph{Note}: If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip\footnote{But make sure tell \ag not to search for segmentation textfiles by setting the corpus attribute wholeFIle=True.  See the Manipulating How Directories Are Read subsection of the CORPUS options section for more info.} the \emph{Segmenting Corpus Soundfiles} section and proceed to the concatenation section.
 
-The script you use to segment your corpus files with a script called `segmentSf.py'.  The output of segmentSf.py is a textfile which denotes the start and stop times of autonomous sound segments in a continuous audiofile.  Once you find a segmentation that you're happy with, you don't need to keep running this script.
-Whats more, you do not \emph{need} to use `segmentSf.py' if you do not want to -- instead you could:
+The script you use to segment your corpus files with a script called `agSegmentSf.py'.  The output of agSegmentSf.py is a textfile which denotes the start and stop times of autonomous sound segments in a continuous audiofile.  Once you find a segmentation that you're happy with, you don't need to keep running this script.
+Whats more, you do not \emph{need} to use `agSegmentSf.py' if you do not want to -- instead you could:
 \begin{enumerate}
 \item use whole soundfiles as segments
 \item create segmentation files by hand
-\item create segmentation files with other software as long the textfile is written in the same format as AudioGuide's.
+\item create segmentation files with other software as long the textfile is written in the same format as \ag's.
 \end{enumerate}
 
-To segment a corpus file, `cd' into the audioGuide-1.02 folder and run the following command:
+To segment a corpus file, `cd' into the \ag folder and run the following command:
 
 \begin{lstlisting}[language=python]
-$ > ./segmentSf.py examples/lachenmann.aiff
+$ > python2.7 agSegmentSf.py examples/lachenmann.aiff
 \end{lstlisting}
 
-Audioguide will think for a second, and then output the following data detailing the segmentation of this audiofile:
+\ag will think for a second, and then output the following data detailing the segmentation of this audiofile:
 
 \begin{lstlisting}[language=python]
--------------------------- Segment Soundfile ---------------------------
-	Creating segmentation label file for lachenmann.aiff...
-               Evaluating Target lachenmann.aiff from 0.00 sec -> 64.65 sec               
- 100% [================================================================]
-	Done.                                                                                     
+------------------- \ag SEGMENT SOUNDFILE -------------------
 
-	Threshold dB: -40.000000		rise: 1.300000	Offset dB: -54.619647
 
-	AudioGuide found 132 segments
+	Found 86 segments in /Users/ben/Desktop/\ag-1.1.0/examples/lachenmann.aiff
+	Wrote target label file /Users/ben/Desktop/\ag-1.1.0/examples/lachenmann.aiff.txt
 \end{lstlisting}
 
-As a result of running this python script, Audioguide wrote a textfile called examples/lachenmann.aiff.txt.  In it are 132 segments obtained using a triggering threshold of -40 dB, a rise ratio of 1.3 and a offset dB value of -54 (you can read more about how to alter these values and their effect in the subsequent section).
+As a result of running this python script, \ag wrote a textfile called examples/lachenmann.aiff.txt.  In it are 86 segments obtained using a triggering threshold of -40 dB, a rise ratio of 1.3 and a offset dB value of -54 (you can read more about how to alter these values and their effect in the subsequent section).
 
 \subsection{Concatenating}
-Next you call the concatenate script concatenateSf.py with an AudioGuide options file as the first (and only) argument.  
+Next you call the concatenate script agConcatenate.py with an \ag options file as the first (and only) argument.  
 
-To run one of the examples in the examples directory, run the following command inside the audioGuide-1.02 directory:
+To run one of the examples in the examples directory, run the following command inside the \ag directory:
 \begin{lstlisting}[language=python]
-./concatenateSf.py examples/01-simpleSelection.py
+python2.7 agConcatenate.py examples/01-simplest.py
 \end{lstlisting}
 
-..which will use the options contained in `examples/01-simpleSelection.py' to parameterize the concatenative algorithm.  In this file you specify the target sound, the corpus sounds, and lots of other options that parameterize the concatenative process.  The `concatenateSf.py' script will perform the following operations in order:
+..which will use the options contained in `examples/01-simplest.py' to parameterize the concatenative algorithm.  In this file you specify the target sound, the corpus sounds, and perhaps lots of other options that parameterize the concatenative process.  The `agConcatenate.py' script will perform the following operations:
 \begin{enumerate}
-\item Run an ircamdescriptor analysis of the soundfile in the \ref{target} TARGET variable\footnote{An SDIF analysis is only done once -- subsequent usages of a soundfile simply read SDIF data from disk.  Analysis files are stored in a directory called `data\_json/' in the audioguide folder.  This directory can become quite large since these SDIF files are quite large in size.  Removing this folder will cause all SDIF files to be recomputed.}.  
-\item Segment the target sound according to your options file.  An Audacity-style labels file is created in a file called `tgtLabels.txt' in the output directory.
+\item Run an ircamdescriptor analysis of the soundfile in the \ref{target} TARGET variable\footnote{An SDIF analysis is only done once -- subsequent usages of a soundfile simply read SDIF data from disk.  Analysis files are stored in a directory called `\ag/data\_json/' in the \ag folder.  This directory can become quite large since these SDIF files are quite large in size.  Removing this folder will cause all SDIF files to be recomputed.}.  
+\item Segment the target sound according to your options file.  An Audacity-style label file is created in a file called `output/tgtLabels.txt' in the output directory.
 \item Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
 \item (If you've specified them) Remove corpus segment according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
-\item Normalize target and corpus descriptor data according to you options file.
+\item Normalise target and corpus descriptor data according to your options file.
 \item Go through each target segment one by one.  Select corpus segment(s) to match each target segment according to the descriptors and search passes in the SEARCH variable of your options file.  Control over the layering and superimposition of corpus sounds is specified in the SUPERIMPOSE variable.
-\item Write selected segments to a sound score called `csoundScore.txt' in the output directory.
-\item If you have csound, `csoundScore.txt' is rendered with audioguide/scripts/csoundRender.orc orchestra to create an audiofile called `output/output.aiff'.
-\item If you have csound, automatic playback of `output.aiff' at the command line.  Works on OS X (afplay) and Linux (aplay).
+\item Write selected segments to a sound score called `output/output.csd' in the output directory.  There are many other types of outputs which you can read about in the output file subsection \ref{outputfiles} in the last part of this document.
+\item If you have csound, `output/output.csd' is rendered with csound to create an audiofile called `output/output.aiff'.
+\item If you have csound, automatic playback of `output/output.aiff' at the command line.
 \end{enumerate}
 
 
 \section{Corpus Segmentation}
-Audioguide uses a labeling format identical to that of the soundfile editor Audacity.  So, to examine your segments, open lachenmann.aiff in Audcaity, then import labels and select `examples/lachenmann.aiff.txt'.
+`agSegmentSf.py' uses a segmentation labeling format identical to that of the soundfile editor Audacity.  So, to examine your segments, open lachenmann.aiff in Audacity, then import labels and select `examples/lachenmann.aiff.txt'.
 
 \figurewrap{image1.png}{1}
 
-These segmentation textfiles document one segment per line. here is an example line: `1.50 2.13 onset -12.9 offset rise 1.33'.
+Segmentation textfiles document one segment per line. here is an example line: `1.50 2.13 onset -12.9 offset rise 1.33'.
 
-Everything after startSec and endSec is not required by AudioGuide, but give you information about the segmentation logic.  These fields correspond to: startSec endSec onset thresholdValue offset offsetMethod methodValue.
+Everything after startSec and endSec is not required by \ag, but give you information about the segmentation logic.  These fields correspond to: startSec endSec onset thresholdValue offset offsetMethod methodValue.
 
 .. and indicate ..
 
 \subsection{Onset Detection}
-thresholdValue: the value of the threshold which triggered this segment's onset. it is in negative dB where -100 dB is very soft and -6 dB is very loud. you can change the threshold level that triggers onsets by passing the segmentSf.py script a `-t' flag:
+thresholdValue: the value of the threshold which triggered this segment's onset. it is in negative dB where -100 dB is very soft and -6 dB is very loud. you can change the threshold level that triggers onsets by passing the agSegmentSf.py script a `-t' flag:
 \begin{lstlisting}[language=python]
-./segmentSf.py -t -30 soundfilename.wav
+./agSegmentSf.py -t -30 soundfilename.wav
 \end{lstlisting}
 ...sets the threshold to -30. it will produce less onsets then -40 (the default).
 
 \subsection{Offset Detection}
-AudioGuide's soundfile segmentation uses two methods for creating an offset (an offset means to end a currently active sound segment).  
+\ag's soundfile segmentation uses two methods for creating an offset (an offset means to end a currently active sound segment).  
 The first method is simple -- if the amplitude of a segment drops below a certain dB threshold, called `drop' and can be changed from its default value using the `-d' flag.
 
 \begin{lstlisting}[language=python]
-./segmentSf.py -d 4 soundfilename.wav
+python2.7 agSegmentSf.py -d 4 soundfilename.wav
 \end{lstlisting}
 
 ... which changes the drop dB value to 4 dB above the minimum amplitude found in the entire soundfile.
@@ -167,14 +163,14 @@ The first method is simple -- if the amplitude of a segment drops below a certai
 The second method is more complicated: if the amplitude of the sound is louder that the previous value and the ratio of the current value over the previous value is above the `rise ratio'.  This is a very useful construct: imagine that you are in a current sound segment, but the soundfile suddenly gets much louder, and you'd like to end the current segment so that you may start a new one which reflects this change.  You can override the default rise ratio (1.1) using the `-r' flag:
 
 \begin{lstlisting}[language=python]
-./segmentSf.py -r 4 soundfilename.wav
+python2.7 agSegmentSf.py -r 4 soundfilename.wav
 \end{lstlisting}
 
 ...a value of 1.1 will be quite sensitive to changes in amplitude.  A value of 4 will be less sensitive - a larger crescendo is needed to turn off a currently active segment.
 
 Note that to segment a whole directory of soundfiles, you may use wildcard characters in the bash shell, as in:
 \begin{lstlisting}[language=python]
-./segmentSf.py mydir/*.aiff # create a segmentation file for each aiff file located in mydir/
+python2.7 agSegmentSf.py mydir/*.aiff # create a segmentation file for each aiff file located in mydir/
 \end{lstlisting}
 
 
@@ -182,7 +178,7 @@ Note that to segment a whole directory of soundfiles, you may use wildcard chara
 The options file used by the concatenate script if a python file that defines a bunch of variables.  Most variables are changed with simple assignments using the `=' symbol.  For instance, to change the path of the csound output sound file, write the following in your options.py file:
 \begin{lstlisting}
 CSOUND_RENDER_FILEPATH = '/path/to/the/file/i/want.aiff' # sets the path of the csound output aiff file
-LOG_FILEPATH = None # None tells AudioGuide to not make a log.txt file.
+LOG_FILEPATH = None # None tells \ag not to make a log output file.
 \end{lstlisting}
 
 
@@ -192,7 +188,7 @@ However, there are five objects that are written into the options file as well -
 The TARGET variable is written as a `tsf' object which requires the path to a soundfile and also takes the following optional keyword arguments:
 
 \begin{lstlisting}[language=python]
-tsf('path', start=0, end=file-length, thresh=-20, rise=1.3, scaleDb=0, minSegLen=0.05, maxSegLen=4)
+tsf('path', start=0, end=file-length, thresh=-40, rise=1.5, scaleDb=0, minSegLen=0.05, maxSegLen=1000, midiPitchMethod='composite', stretch=1)
 \end{lstlisting}
 
 \begin{description}
@@ -200,11 +196,11 @@ tsf('path', start=0, end=file-length, thresh=-20, rise=1.3, scaleDb=0, minSegLen
 \item[end] The time in seconds to stop reading the target soundfile.  
 \item[scaleDb] Applies an amplitude change to the target sound. by default, it is 0, yielding no change. -6 = twice as soft.  The target's amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composted to approximate it energy.
 \item[thresh] Set the threshold for segmentation: a value in negative dB.  The lower the value the soft the target's amplitude can be in order to trigger a selection from the corpus.  So, -12 yields fewer corpus selections that -24.
-\item[rise] 
-
+\item[rise] undocumented !  sorry.
 \item[minSegLen] The minimum duration in seconds of a target segment.
 \item[maxSegLen] The maximum duration in seconds of a target segment.
-
+\item[midiPitchMethod] undocumented !  sorry.
+\item[stretch] undocumented !  sorry.
 \end{description}
 
 \begin{lstlisting}[language=python]
@@ -217,7 +213,7 @@ TARGET = tsf('cage.aiff', start=5, end=7, scaleDb=6) # only use seconds 5-7 of c
 The CORPUS variable is defined as a list of `csf' objects which require a path to a soundfile OR a directory.  File paths and/or directory paths may be full paths or relative paths to the location of the options file you're using.  A `csf' object takes the following optional keyword arguments:
 
 \begin{lstlisting}[language=python]
-csf('path', start=0, end=file-length, includeTimes=[], excludeTimes=[], limit=[], wholeFile=False, recursive=True, includeStr=None, excludeStr=None, onsetLen=0.01, offsetLen=30, transMethod=None, transQuantize=0, allowRepetition=True, restrictRepetition=0.1, restrictOverlaps=None, restrictInTime=None, scaleDb=0, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
+csf('pathToFileOrDirectoryOfFiles', allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], hasParams=False, includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30\%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.1,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0,  wholeFile=False, MWinstrName=None,  MWtext=None, MWnotehead='.')
 \end{lstlisting}
 
 
@@ -272,9 +268,9 @@ csf('lachenmann.aiff', limit['power-seg < 50%', 'power-seg > 10%']) # only use s
 \subsubsection{Manipulating How Directories Are Read}
 The following keyword arguments are useful when dealing with directories of files.
 \begin{description}
-\item[wholeFile] (False): if True audioguide will use this soundfile as one single segment.  If False, audioguide will search for a segmnetation file made with segmentSf.py.
+\item[wholeFile] (False): if True \ag will use this soundfile as one single segment.  If False, \ag will search for a segmnetation file made with agSegmentSf.py.
 
-\item[recursive] (True): if True audioguide will include sounds in all subfolders of a given directory.
+\item[recursive] (True): if True \ag will include sounds in all subfolders of a given directory.
 \end{description}
 
 \begin{lstlisting}
@@ -350,7 +346,7 @@ csf('piano/', restrictRepetition=2.5) # Each segment is invalid to be picked if 
 
 \subsubsection{Miscellaneous}
 \begin{description}
-\item[segmentationFile] Manually specify the segmentation text file. By default, AudioGuide automatically looks for a file with the same name as the soundfile plus the extension '.txt'. You may specify a string, or a list of strings to include multiply segmentation files which all use the same soundfile.
+\item[segmentationFile] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension '.txt'. You may specify a string, or a list of strings to include multiply segmentation files which all use the same soundfile.
 
 \item[segmentationExtension] Manually specify the segmentation text file extension.
 \end{description}
@@ -376,7 +372,7 @@ CORPUS_GLOBAL_ATTRIBUTES = {'scaleDb': -6}
 
 
 \subsection{The SEARCH Variable}
-the SEARCH variable specifies how Audioguide pick corpus segments to match target segments.  The idea here is make a \emph{very} flexible searching structure where the user can create multiple search passes on different criteria.
+the SEARCH variable specifies how \ag pick corpus segments to match target segments.  The idea here is make a \emph{very} flexible searching structure where the user can create multiple search passes on different criteria.
 
 
 \subsection{SEARCH and spass objects}
@@ -397,7 +393,7 @@ Note that the first argument is the type of search performed -- in this case, se
 SEARCH = [spass('closest', d('centroid'), d('effDur-seg'))] # will search all corpus segments and select the one with the `closest' centroid and effective duration compared to the target segment.
 \end{lstlisting}
 
-Ok, great.  As you can probably imagine, the first argument, `closest', tells AudioGuide to pick the closest sound.  But, there are also other possibilities:
+Ok, great.  As you can probably imagine, the first argument, `closest', tells \ag to pick the closest sound.  But, there are also other possibilities:
 
 \begin{lstlisting}
 SEARCH = [spass('farthest', d('centroid'))] # return the worst matching segment.
@@ -407,7 +403,7 @@ SEARCH = [spass('closest_percent', d('centroid'), percent=20)] # return the top 
 SEARCH = [spass('farthest_percent', d('centroid'), percent=20)] # return the worst 20 percent of matches.
 \end{lstlisting}
 
-If you use `closest\_percent' or `farthest\_percent' as the one and only spass object in the SEARCH variable, AudioGuide will select a corpus segment randomly among the final candidates.  However, you can also chain spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:
+If you use `closest\_percent' or `farthest\_percent' as the one and only spass object in the SEARCH variable, \ag will select a corpus segment randomly among the final candidates.  However, you can also chain spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:
 
 \begin{lstlisting}
 SEARCH = [
@@ -459,7 +455,7 @@ SEARCH= [spass('closest', d('centroid', distance='pearson'))] # uses a pearson c
 \section{Examples}
 \subsection{Example 1}
 
-\lstinputlisting{/Users/ben/Documents/audioGuide/examples/01-singleSelection.py}
+\lstinputlisting{/Users/ben/Documents/audioguide1.1/examples/01-simplest.py}
 
 
 
@@ -491,20 +487,36 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 \item[calcMethod] A string which denotes how to calculate overlapping corpus sounds.  None does nothing -- each corpus selection is unaware of previous selections.  `subtract' subtracts the energy of a selected corpus sound from the target's amplitude so that future selections might be later in time and softer.  `mixture' subtracts the amplitude and then attempts to mix the descriptors of simultaneous sounds together.  Note that some descriptors are not algorithmically mixable, such as f0, zeroCross, and peak descriptors.
 \end{description}
 
+
+
 \section{Other Options}
-%\rowcolors{2}{white}{gray!10}
-%\begin{longtable}{|p{3.5cm}| p{1cm}| p{1cm} | p{7cm}|}
-%\hline
-%Name & Type & Default Value & Description\\
+\subsection{Descriptor Computation Parameters}
+\optEntry{DESCRIPTOR\_FORCE\_ANALYSIS}{bool}{False}{if True forces \ag to remake SDIF analysis, even if previously made.}
 
-\subsection{Printing/Interaction}
-\optEntry{ALERT\_ON\_ERROR}{bool}{False}{will attempt to play the system alert sound when exiting with an error.  Pretty irritating, but then again you probably deserve it.}
+\optEntry{DESCRIPTOR\_WIN\_SIZE\_SEC}{float}{0.04643990929708}{the FFT window size of descriptor analysis in seconds.  0.046 seconds = 2048 @ 44.1 kHz}
 
-\optEntry{VERBOSITY}{int}{2}{affects the amount of information audioguide prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
+\optEntry{DESCRIPTOR\_HOP\_SIZE\_SEC}{float}{0.01160997732427}{the FFT window overlaps of descriptor analysis in seconds.  Important, as it effectively sets of temporal resolution of \ag.}
 
-\optEntry{PRINT\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.}
+\optEntry{IRCAMDESCRIPTOR\_RESAMPLE\_RATE}{int}{12500}{see ircamdescriptor documentation for details.}
 
-\optEntry{PRINT\_SIM\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus overlapping selection after concatenation.  If false (the default) will add this information to the log file, if used.}
+\optEntry{IRCAMDESCRIPTOR\_WINDOW\_TYPE}{string}{blackman}{see ircamdescriptor documentation for details.}
+
+\optEntry{IRCAMDESCRIPTOR\_NUMB\_MFCCS}{int}{13}{sets the number of MFCCs to make.  \emph{Doesn't seem to work} in this release, as 13 is all I can ever seem to get out of the library.}
+
+\optEntry{IRCAMDESCRIPTOR\_F0\_MAX\_ANALYSIS\_FREQ}{float}{5000}{see ircamdescriptor documentation for details.}
+
+\optEntry{IRCAMDESCRIPTOR\_F0\_MIN\_FREQUENCY}{float}{20}{minimum possible f0 frequency.}
+
+\optEntry{IRCAMDESCRIPTOR\_F0\_MAX\_FREQUENCY}{float}{5000}{maximum possible f0 frequency.}
+
+\optEntry{IRCAMDESCRIPTOR\_F0\_QUALITY}{float}{0.1}{see ircamdescriptor documentation for details.}
+
+\optEntry{SUPERVP\_STRETCH\_FLAGS}{string}{-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td\_thresh 1.2 -td\_G 2.5 -td\_band 0,22050 -td\_nument 10 -td\_minoff 0.02s -td\_mina 9.9999997e-06 -td\_minren 0 -td\_evstre 1 -td\_ampfac 1.5 -td\_relax 100 -td\_relaxto 1 -FCombineMul -shape 1 -Vuf -4}{flags used for time stretching target sounds with supervp.  I wouldn't try to change this...}
+
+\optEntry{SUPERVP\_BIN}{string/None}{None}{}
+
+\optEntry{PM2\_BIN}{string/None}{None}{}
+
 
 \subsection{Concatenation}
 \optEntry{RANDOM\_SEED}{int/None}{None}{sets the pseudo-random seed for random unit selection.  By default a value of None will use the system's timestamp.  Setting an integer will create repeatable random results.}
@@ -515,9 +527,40 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{OUTPUT\_TIME\_ADD}{float}{0.}{offset the start time of selected events by a value in seconds.}
 
-%SEARCH_PATHS = [] # additional directories to search for soundfiles
+\subsection{Output Files}\label{outputfiles}
+For each of the following *\_FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, \ag will create the file relative to the location o the agConcatenate.py script.
 
-%\end{longtable}
+\optEntry{CSOUND\_CSD\_FILEPATH}{string/None}{output/output.csd}{creates an output csd file for rendering the resulting concatenation with csound.}
+
+\optEntry{CSOUND\_RENDER\_FILEPATH}{string/None}{output/output.aiff}{sets the sound output file in the CSOUND\_CSD\_FILEPATH file.  This is the name of csound's output soundfile and will be created at the end of concatenation.}
+
+\optEntry{LOG\_FILEPATH}{string/None}{output/log.txt}{a log file with lots of information from the concatenation algorithm.}
+
+\optEntry{MIDI\_FILEPATH}{string/None}{output/output.mid}{a midi file of the concatenation with pitches chosen according to midiPitchMethod from each corpus entry.}
+
+\optEntry{TARGET\_SEGMENT\_LABELS\_FILEPATH}{string/None}{output/tgtLabels.txt}{Audacity-style labels showing how the target sound was segmented.}
+
+\optEntry{SUPERIMPOSITION\_LABEL\_FILEPATH}{string/None}{output/superimpositionLabels.txt}{Audacity-style labels showing the selected corpus sounds and how they overlap.}
+
+\optEntry{LISP\_OUTPUT\_FILEPATH}{string/None}{output/output.lisp.txt}{a textfile containing selected corpus events as a lisp-style list.}
+
+%\optEntry{PARAM\_SCORE\_FILEPATH}{string/None}{output/paramscore.txt}{.}
+\optEntry{DICT\_OUTPUT\_FILEPATH}{string/None}{output.json}{a textfile containing selected corpus events in json fotmat.}
+
+\optEntry{TARGET\_DESCRIPTORS\_FILEPATH}{string/None}{targetdescriptors.json}{saves the loaded target descriptors to a json dictionary.}
+%\optEntry{ORDER\_CORPUS\_BY\_DESCRIPTOR\_FILEPATH}{string/None}{0.}{.}
+%\optEntry{TARGET\_MAKE\_DESCRIPTOR\_PLOTS}{string/None}{0.}{.}
+
+
+\subsection{Printing/Interaction}
+\optEntry{ALERT\_ON\_ERROR}{bool}{False}{will attempt to play the system alert sound when exiting with an error.  Pretty irritating, but then again you probably deserve it.}
+
+\optEntry{VERBOSITY}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
+
+\optEntry{PRINT\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.}
+
+\optEntry{PRINT\_SIM\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus overlapping selection after concatenation.  If false (the default) will add this information to the log file, if used.}
+
 
 
 \end{spacing}

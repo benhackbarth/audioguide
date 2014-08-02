@@ -40,9 +40,8 @@ class parseOptions:
 			if val == None: continue
 			ops[item] = util.verifyOutputPath(val, scriptpath)
 		# assign dict to this classes' attributes so that values may
-		# be obtained by writing ops.CORPUS rather than ops.data['CORPUS']
-		for k, v in ops.items():
-			setattr(self, k, v)
+		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
+		for k, v in ops.items(): setattr(self, k, v)
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
