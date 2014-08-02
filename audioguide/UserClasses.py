@@ -6,7 +6,7 @@ import numpy as np
 
 
 class TargetOptionsEntry:
-	def __init__(self, filename, start=None, end=None, thresh=-40, rise=1.5, scaleDb=0, minSegLen=0.05, maxSegLen=1000, midiPitchMethod='composite'):
+	def __init__(self, filename, start=None, end=None, thresh=-40, rise=1.5, scaleDb=0, minSegLen=0.05, maxSegLen=1000, midiPitchMethod='composite', stretch=1):
 		self.filename = filename
 		self.start = start
 		self.end = end
@@ -16,7 +16,7 @@ class TargetOptionsEntry:
 		self.maxSegLen = maxSegLen
 		self.scaleDb = scaleDb
 		self.midiPitchMethod = midiPitchMethod
-
+		self.stretch = stretch
 
 
 

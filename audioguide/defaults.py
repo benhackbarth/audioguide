@@ -23,6 +23,7 @@ IRCAMDESCRIPTOR_F0_AMP_THRESHOLD = 30
 IRCAMDESCRIPTOR_F0_QUALITY = 0.1
 # supervp
 SUPERVP_NUMB_PEAKS = 12 
+SUPERVP_STRETCH_FLAGS = '-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'
 # clusteranal
 CLUSTERANAL_DESCRIPTOR_DIM = ['mfcc1', 'mfcc2', 'mfcc3']
 CLUSTERANAL_NUMB_CLUSTS = 8 
@@ -58,8 +59,6 @@ CSOUND_CHANNEL_RENDER_METHOD = "mix" # mix | oneChannelPerVoice | oneChannelPerO
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 
 ############ TARGET  ############
-TARGET_STRETCH_TIME = 1 # uses ircam supervp
-TARGET_STRETCH_FLAGS = '-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'
 TARGET_ONSET_DESCRIPTORS = {'power-odf-7': 1}
 TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = -80.
 TARGET_SEGMENT_OFFSET_DB_REL_THRESH = +18

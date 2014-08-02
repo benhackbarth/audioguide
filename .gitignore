@@ -3,9 +3,12 @@ output/*
 *.bbprojectd
 *.rtf
 *.pyc
-docs/*
-audioguide/data_json/*
-audioguide/data_sdif/*
+# latex stuff
+*.aux
+*.log
+*.out
+*.toc
+audioguide/data_*
 release.py
 examples/*.txt
 .DS_Store*

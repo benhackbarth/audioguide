@@ -254,11 +254,22 @@ class target: # the target
 		self.segmentationMaxLenSec = userOptsTargetObject.maxSegLen
 		self.envDb = userOptsTargetObject.scaleDb
 		self.midiPitchMethod = userOptsTargetObject.midiPitchMethod
+		self.stretch = userOptsTargetObject.stretch
+	########################################
+	def timeStretch(self, SdifInterface, ops, p):
+		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, ops.SUPERVP_STRETCH_FLAGS, p=p)
+		print self.filename
+		self.startSec = 0
+		self.endSec = None
 	########################################
 	def initAnal(self, SdifInterface, ops, p):
 		# Start by loading the entire target as an 
 		# sfSegment to get the whole amplitude envelope.
 		self.filename = util.verifyPath(self.filename, SdifInterface.searchPaths)
+		# see if we need to time stretch the target file...
+		if self.stretch != 1:
+			self.timeStretch(SdifInterface, ops, p)
+		# analise the whole target sound!
 		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface)
 		self.whole.midiPitchMethod = self.midiPitchMethod
 		self.lengthInFrames = self.whole.lengthInFrames
