@@ -80,7 +80,7 @@ for file in args:
 	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
 	SdifInterface = ops.createSdifInterface(p)
-
+	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	############
 	## TARGET ##
 	############
@@ -93,7 +93,6 @@ for file in args:
 	tgt.writeSegmentationFile(segFile)
 	print( "\n\tFound %i segments in %s"%(len(tgt.segs), file) )
 	print( "\tWrote target label file %s\n"%segFile )
-	sys.exit()
 
 #	opsData = '''CORPUS = []
 #TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = %f

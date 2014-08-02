@@ -147,43 +147,12 @@ class TerminalController:
         if s == '$$': return s
         else: return getattr(self, s[2:-1])
 
-audioguide_lady = '''
-          ,)(8)).
-        (()))())()).
-       (()"````"::= )
-       )| _    _ ::= )
-      (()(o)/ (o) ?(/)
-       )(  c    ( :(/)   --> 
-      (( \ .__, ;,/(/)
-        ) `.___,'/ (/)
-           |    | (/)
-         _.'    ,\(/)__
-     _.-"   `AG'   (/) ".
-   ,"               ^    \\
-  /                      |
-'''
-  
-def lady_print(string):
-	global audioguide_lady
-	string = string.split()
-	audioguide_lady_pieces = audioguide_lady.split('\n')
-	cnt = 0
-	i_cnt = 0
-	while cnt < len(audioguide_lady_pieces):
-		print audioguide_lady_pieces[cnt], ' '*(29-len(audioguide_lady_pieces[cnt])),
-		if cnt > 2:
-			text = ''
-			while len(string) > i_cnt and len(text) < 40:
-				text += string[i_cnt]+' '
-				i_cnt += 1
-			print text
-		else:
-			print
-		cnt += 1
+
 
 
 class printer:
-	def __init__(self, verbosity, optionsPath, pathtologfile):
+	def __init__(self, verbosity, optionsPath, pathtologfile, length=68):
+		self.updateLength = length
 		self.term = TerminalController()
 		if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
 			raise ValueError("Terminal isn't capable enough -- you should use a simpler progress dispaly.")
@@ -192,6 +161,7 @@ class printer:
 			self.loghandle = None
 		else:
 			self.loghandle = open(pathtologfile, 'w')
+		self.term = TerminalController()
 	###############################################
 	def log(self, *args):
 		if self.loghandle == None: return
@@ -210,20 +180,24 @@ class printer:
 	def pnt(self, *args):
 		if self.v >= 2: print args
 	###############################################
-	def startPercentageBar(self, upperLabel='', total=100, length=68):
-		self.updateLength = length
+	def startPercentageBar(self, upperLabel='', total=100):
+		if self.v == 1 and upperLabel != '':
+			print(upperLabel + '...')
+			return
+		elif self.v == 0: return
 		self.maxNumb = float(total)
 		self.counter = 0
-		self.term = TerminalController()
-		self.progress = ProgressBar(self.term, upperLabel, length)
+		self.progress = ProgressBar(self.term, upperLabel, self.updateLength)
 		self.file = ''
 	###############################################
 	def percentageBarNext(self, lowerLabel='', incr=1):
+		if self.v < 2: return
 		outText = lowerLabel+(' '*(self.updateLength-len(lowerLabel)))
 		self.progress.update(self.counter/(self.maxNumb-1), outText)
 		self.counter += incr
 	###############################################
 	def percentageBarClose(self, txt="Done."):
+		if self.v < 2: return
 		self.up(txt)
 		self.progress.clear()
 		print "\n"
@@ -232,7 +206,12 @@ class printer:
 		txt = txt+(' '*(self.updateLength-len(txt)))
 		self.progress.update(self.counter/(self.maxNumb-1), txt)
 		print "\n"
-
+	###############################################
+	def middleprint(self, string, force=False): # MIDDLE print call
+		if self.v == 0 and not force: return
+		string = str(string)
+		outsides = int(((self.updateLength-len(string)-2)/2.0))*"-"
+		print(self.term.render('${BOLD}${CYAN}'+outsides+" "+string+" "+outsides+'${NORMAL}\n'))
 
 
 

@@ -31,3 +31,6 @@ SdifInterface = sdiflinkage.SdifInterface(winLengthSec=ops.DESCRIPTOR_WIN_SIZE_S
 handle = sfSegment.SfSegment(sys.argv[1], None, None, SdifInterface.allDescriptors, SdifInterface)
 
 print handle.desc.getdict()
+
+# or you can same to a json dict:
+#json.dump(handle.desc.getdict(), open('mydict.json'))

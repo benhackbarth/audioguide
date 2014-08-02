@@ -1,14 +1,12 @@
 ###############  SETUP  ##############
 SEARCH_PATHS = [] # additional directories to search for soundfiles
 SOUNDFILE_EXTENSIONS = ['.aiff', '.aif', '.wav', '.au'] # when loading a directory, skip files without these extensions; not case sensative
-RANDOM_SEED = None # None=use timestamp; specify an integer for repeatable pseudo random results
 VERBOSITY = 2 # turn off printing altogether with 0.
-USE_PROGRESS_BAR = True # use progress printing bars
-PRINT_LENGTH = 80
 ALERT_ON_ERROR = True # play the system alert sound when exiting with an error.  irritating, but then again you probably deserve it.
 PRINT_SELECTION_HISTO = False
 PRINT_SIM_SELECTION_HISTO = True
-PRINT_ELAPSED_TIMES = True
+
+
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################
 DESCRIPTOR_FORCE_ANALYSIS = False # force SDIF computation
@@ -28,6 +26,8 @@ SUPERVP_NUMB_PEAKS = 12
 # clusteranal
 CLUSTERANAL_DESCRIPTOR_DIM = ['mfcc1', 'mfcc2', 'mfcc3']
 CLUSTERANAL_NUMB_CLUSTS = 8 
+SUPERVP_BIN = None
+PM2_BIN = None
 
 
 
@@ -46,6 +46,7 @@ LISP_OUTPUT_FILEPATH = 'output/output.lisp.txt'
 DICT_OUTPUT_FILEPATH = 'output/output.json'
 TARGET_DESCRIPTORS_FILEPATH = 'output/targetdescriptors.json'
 ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH = 'output/orderedCorpus.aiff'
+TARGET_MAKE_DESCRIPTOR_PLOTS = False
 
 
 ############  CSOUND  ############
@@ -59,7 +60,6 @@ CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 ############ TARGET  ############
 TARGET_STRETCH_TIME = 1 # uses ircam supervp
 TARGET_STRETCH_FLAGS = '-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'
-TARGET_MAKE_DESCRIPTOR_PLOTS = False
 TARGET_ONSET_DESCRIPTORS = {'power-odf-7': 1}
 TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = -80.
 TARGET_SEGMENT_OFFSET_DB_REL_THRESH = +18
@@ -76,6 +76,7 @@ ORDER_CORPUS_BY_DESCRIPTOR = 'centroid-seg'
 SUPERIMPOSE = si()
 ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS = False
 RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION = False
+RANDOM_SEED = None
 
 ################  CONCATENATE TIME MANIPULATION  ################
 OUTPUT_GAIN_DB = 0.

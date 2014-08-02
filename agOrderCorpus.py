@@ -30,6 +30,7 @@ if not os.path.exists(opspath):
 ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 SdifInterface = ops.createSdifInterface(p)
+p.middleprint('AUDIOGUIDE ORDER CORPUS SOUNDS BY DESCRIPTOR')
 
 cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, SdifInterface, p)
 cps.evaluatePreConcateLimitations()

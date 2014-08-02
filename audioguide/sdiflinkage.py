@@ -10,11 +10,25 @@ except ImportError:
 	import simplejson as json
 
 
+def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.join(os.getenv("HOME"), 'Applications')]):
+	if userstring != None and os.path.isabs(userstring) and os.path.exists(userstring): return userstring
+	elif userstring != None and os.path.exists(userstring): return os.path.abspath(userstring)
+	for possibledir in searchdirectories:
+		attempt = os.path.join(possibledir, filehead)
+		if os.path.exists(attempt): return os.path.abspath(attempt)
+	# didn't find anything
+	return None	
+	
 class SdifInterface:
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, validSfExtensions=['.aiff', '.wav', '.aif'], searchPaths=[]):	
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6' )
-		self.pm2_bin = pm2_bin
-		self.supervp_bin = supervp_bin
+		
+		# check for other bin files #
+		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')
+		self.supervp_bin = findbin(supervp_bin, 'AudioSculpt3.0b7/Kernels/supervp')
+		print self.pm2_bin, self.supervp_bin
+		
+		# other stuff
 		self.forceAnal = forceAnal
 		self.p = p
 		# anal
@@ -256,6 +270,7 @@ TextureWindowsHopFrames = -1
 			if self.p != None:
 				self.p.log("SDIF DATA: creating SDIF FILE '%s'"%command)
 			self.rawData[sffile]['info'] = util.popen_execute_command(command, stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)})
+			
 			self.rawData[sffile]['info']['lengthsec'] = self.rawData[sffile]['info']['lengthsamples']/float(self.rawData[sffile]['info']['sr'])
 			jh = open(infofile, 'w')
 			json.dump(self.rawData[sffile]['info'], jh)

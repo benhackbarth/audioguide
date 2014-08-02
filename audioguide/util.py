@@ -1,6 +1,42 @@
 from math import log10, log
 import sys, os, subprocess, random
 
+audioguide_lady = '''
+          ,)(8)).
+        (()))())()).
+       (()"````"::= )
+       )| _    _ ::= )
+      (()(o)/ (o) ?(/)
+       )(  c    ( :(/)   --> 
+      (( \ .__, ;,/(/)
+        ) `.___,'/ (/)
+           |    | (/)
+         _.'    ,\(/)__
+     _.-"   `AG'   (/) ".
+   ,"               ^    \\
+  /                      |
+'''
+  
+def ladytext(string):
+	global audioguide_lady
+	string = string.split()
+	audioguide_lady_pieces = audioguide_lady.split('\n')
+	cnt = 0
+	i_cnt = 0
+	output = ''
+	while cnt < len(audioguide_lady_pieces):
+		output += audioguide_lady_pieces[cnt]+' '*(29-len(audioguide_lady_pieces[cnt]))
+		if cnt > 2:
+			text = ''
+			while len(string) > i_cnt and len(text) < 40:
+				text += string[i_cnt]+' '
+				i_cnt += 1
+			output += text + '\n'
+		else:
+			output += '\n'
+		cnt += 1
+	return output
+	
 
 def exit(*args):
 	ALERT_ON_ERROR = True
@@ -11,9 +47,9 @@ def exit(*args):
 	sys.exit(1)
 
 
-def error(errorType, errorData):
-	print("\n\n\n%s ERROR: %s"%(bold(errorType.upper()), errorData))
-	exit(5)
+def error(errorType, errorData, exitcode=1):
+	print(ladytext("%s ERROR: %s"%(bold(errorType.upper()), errorData)))
+	exit(exitcode)
 
 
 def bold(string):
@@ -336,8 +372,7 @@ def verifyPath(path, searchPathList):
 		possiblepath = os.path.join(root, path)
 		tried.append(possiblepath)
 		if os.path.exists(possiblepath): return possiblepath
-	print("\n\nERROR: Couldn't find a file called %s\n\n"%tried)
-	sys.exit(1)
+	error("FILENAME", "Couldn't find a file called %s"%' or '.join(tried))
 
 
 

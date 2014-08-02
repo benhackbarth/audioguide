@@ -1,4 +1,4 @@
-import sys, random, operator
+import sys, operator
 import numpy as np
 import metrics, sfSegment, util
 
@@ -22,7 +22,9 @@ class BreakIt(Exception):
 	pass
 
 class distanceCalculations:
-	def __init__(self, superimposeObj, SdifInterface, p):
+	def __init__(self, superimposeObj, randomseed, SdifInterface, p):
+		import random
+		random.seed(randomseed)
 		self.p = p
 		self.searchResults = []
 		self.paramScore = []

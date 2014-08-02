@@ -30,6 +30,8 @@ if not os.path.exists(opspath):
 ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 SdifInterface = ops.createSdifInterface(p)
+p.middleprint('AUDIOGUIDE CONCATENATE SOUNDFILE')
+
 
 ############
 ## TARGET ##
@@ -69,7 +71,7 @@ for dobj in SdifInterface.normalizeDescriptors:
 ##############################
 p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
-distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, SdifInterface, p)
+distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
 #p.barOpen('Concatenating Based on %s'%ops.SUPERIMPOSE.searchOrder, len(tgt.segFrames)+1)
 superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
 cps.setupCorpusConcatenationLimitations(tgt, SdifInterface)

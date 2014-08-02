@@ -268,7 +268,7 @@ class target: # the target
 		minPower = min(self.whole.desc['power'])
 		if minPower < util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH): # use absolute threshold
 			self.powerOffsetValue = util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH)
-			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(ag.powerOffsetValue))
+			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH))
 		else:
 			self.powerOffsetValue = minPower*util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_REL_THRESH)
 			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using TARGET_SEGMENT_OFFSET_DB_REL_THRESH dB below the minimum found power -- a value of %f dB."%(self.filename, ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH, util.ampToDb(self.powerOffsetValue)))
@@ -319,6 +319,9 @@ class target: # the target
 			self.segs.append(segment)
 		p.percentageBarClose(txt="Found %i segments (threshold=%.1f rise=%.2f)."%(len(self.segs), self.segmentationThresh, self.segmentationRise))
 		# done!
+	
+		if len(self.segs) == 0:
+			util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(self.filename))
 		p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.segs), np.average(lengths)))
 		if ops.TARGET_MAKE_DESCRIPTOR_PLOTS:
 			self.plotMetrics(SdifInterface, p)
@@ -332,6 +335,8 @@ class target: # the target
 			json.dump(self.whole.desc.getdict(), fh)
 			fh.close()
 			p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
+
+	
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')

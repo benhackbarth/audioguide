@@ -46,7 +46,7 @@ class parseOptions:
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
-		linkage = sdiflinkage.SdifInterface(pm2_bin=None, supervp_bin=None, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, numbPeaks=self.SUPERVP_NUMB_PEAKS, numbClust=self.CLUSTERANAL_NUMB_CLUSTS, clustDescriptDict=self.CLUSTERANAL_DESCRIPTOR_DIM, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, validSfExtensions=self.SOUNDFILE_EXTENSIONS, searchPaths=self.SEARCH_PATHS, p=p)
+		linkage = sdiflinkage.SdifInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, numbPeaks=self.SUPERVP_NUMB_PEAKS, numbClust=self.CLUSTERANAL_NUMB_CLUSTS, clustDescriptDict=self.CLUSTERANAL_DESCRIPTOR_DIM, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, validSfExtensions=self.SOUNDFILE_EXTENSIONS, searchPaths=self.SEARCH_PATHS, p=p)
 		linkage.getDescriptorLists(self)
 		return linkage
 ##########################################################
@@ -219,10 +219,11 @@ class corpus:
 				#######################
 				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, SdifInterface.validSfExtensions)
 				cobj.segmentationFile = None # don't print it
+				print files
 				for file in files:
 					segFileTest = file+cobj.segmentationExtension
 					if not cobj.wholeFile and not os.path.isfile(segFileTest):
-						util.error('segmentation file', "Cannot find segmentation file '%s'.  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(cobj.segmentationFile, cobj.name))
+						util.error('segmentation file', "Cannot find segmentation file '%s'.  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(segFileTest, cobj.name))
 					if os.path.exists(segFileTest):
 						times = util.readAudacityLabelFile(segFileTest)
 					else:
@@ -287,8 +288,11 @@ class corpus:
 		p.startPercentageBar(upperLabel="LOADING CORPUS", total=len(self.preloadlist))
 		# in a seperate loop for printing...
 		for cidx, corpusSegParams in enumerate(self.preloadlist):
-			print cidx,
-			p.percentageBarNext(lowerLabel="%s@%.2f-%.2f"%(corpusSegParams[0], corpusSegParams[1], corpusSegParams[2]))
+			start=corpusSegParams[1]
+			stop=corpusSegParams[2]
+			if start == None: start=0
+			if stop == None: stop=100
+			p.percentageBarNext(lowerLabel="%s@%.2f-%.2f"%(corpusSegParams[0], start, stop))
 			# make the obj
 			cpsSeg = sfSegment.corpusSegment(*corpusSegParams)
 			# add it to the list!
@@ -566,6 +570,7 @@ class outputEvent:
 		self.rmsSeg = util.ampToDb(self.powerSeg)
 		self.midiVelocity = self.rmsSeg+127
 		if self.midiVelocity > 127: self.midiVelocity = 127
+		if self.midiVelocity < 10: self.midiVelocity = 10
 		# tgt stuff
 		self.tgtsegdur = tgtsegdur
 		self.tgtsegnumb = tgtsegnumb
