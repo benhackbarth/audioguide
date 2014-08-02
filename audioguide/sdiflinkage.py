@@ -21,7 +21,7 @@ def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.jo
 	
 class SdifInterface:
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, validSfExtensions=['.aiff', '.wav', '.aif'], searchPaths=[]):	
-		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6' )
+		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		
 		# check for other bin files #
 		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')

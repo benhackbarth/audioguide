@@ -1,0 +1,497 @@
+								          V 1.1
+                Usage of the IrcamDescriptor command line tool
+
+================================================================================
+1. Introduction
+================================================================================
+--------------------------------------------------------------------------------
+1.1 Requirements
+--------------------------------------------------------------------------------
+
+This documentation applies to ircamdescriptor 2.5.2
+
+--------------------------------------------------------------------------------
+1.2 What can be computed
+--------------------------------------------------------------------------------
+
+The tool can compute istantaneous values for the requested descriptors, and
+also temporal modeling values. The formers can be computed over the
+whole duration of the file, or over N istantaneous consecutive frames, where N
+is user specified through the Temporal Windows options. Both the computation of
+istantaneous descriptors and temporal modelings can be activated at descriptor
+level through the configuration file.
+
+The temporal modelings that are included in the tool are:
+ 
+MeanAndDeviation = mean value and standard deviation weighted by the loudnes of
+the signal. 
+Delta = fisrt derivative of the descriptor
+DeltaDelta = second derivative of the descriptor
+Median = median of the descriptor over a user selectable number of frames
+
+--------------------------------------------------------------------------------
+1.3. The configuration file
+--------------------------------------------------------------------------------
+
+A template configuration file can be generated issuing the command
+
+ircamdescriptor -writeconfig configFile
+
+where configFile is the path where you want it to be written.
+
+The configuration text file is divided in 3 sections, each one beginning with a
+title between square brackets. Every option in a section is specific to that
+section only, so it won't be parsed if put in a different section.
+The configuration parameters use the syntax 'Parameter = value' and alter the
+program's runtime behaviour in the following way:
+- they set up global analysis options
+- they alter the parameters of a single descriptor
+- they alter the parameters of a whole class of descriptors
+- they alter the parameters of a temporal modeling descriptor
+- they trigger the computation of a whole class of descriptors. The only
+  parameter with this behaviour is DynamicMorfologicFeatures.  
+
+Every configuration parameter can be required or optional, and when is optional
+has a default value.
+Lines starting with ';' are comments and are not parsed.
+
+================================================================================
+2. Options syntax
+================================================================================
+--------------------------------------------------------------------------------
+2.1 Syntax for the options
+--------------------------------------------------------------------------------
+
+To explain the characteristics of an option, the following syntax will be used. 
+
+ParameterName [Optionality [Default]] [DataType] [Range] [DescriptorGroup(s)]
+Description
+
+*Optionality*
+ -'Req' when the option is required
+ -'Opt' when the option is optional; the default value is also indicated
+
+*DataType*
+ - I  for an integer value
+ - B for a boolean value, specified with 0 (false) or 1 (true)
+ - F  for a floating point value. The separator between the integer and the
+   decimal is always a point '.'
+ - S  for string
+ - A  appended to any other dataType symbol, indicates that multiple values
+   are supported. They have to be inserted using a space between every value.
+
+*Range*
+Is the working range of the parameter, note that in some cases it's
+specified as 1-N but not reasonable values haven't been tested.
+
+*DescriptorGroup(s)*
+The group(s) of descriptors this option applies to. When "All", it means
+that is a preprocessing option and will apply to the signal when it is read
+from disk, so affects every descriptor; "Std" applies to all the
+descriptors of the [StandardDescriptors] section.
+
+--------------------------------------------------------------------------------
+2.2 Options of the section [Parameters]
+--------------------------------------------------------------------------------
+
+2.2.1 Analysis/general parameters
+
+* ResampleTo [Req] [I] [11025-44100] [All]
+The internal sampling rate of the program.
+
+* NormalizeSignal [Opt 1] [B] [0-1] [All]
+Apply normalization to the input file
+
+* WindowType [Opt blackman] [S] [hanning blackman hamming hanning2] [Std]
+The window applied to every frame
+
+* MaxFrequency [Opt ResampleTo/2] [I] [1 - ResamplingTo/2] [Fft]
+Max frequency used in the analysis. Every spectrum based descriptor will be
+affected by this parameter
+
+* FFTPadding [Opt 1] [I] [1-N] [Fft]
+How many times the the first power of two bigger than the window size
+will be multiplied by 2 to obtain the fft size. Example:
+WindowSize = 0.06 sec, FFTPadding = 2, ResampleTo = 22050
+WindowSize * ResampleTo = 1323 samples every window
+Next power of two = 2048 samples
+FFT size = 2048 * FFTPadding = 4096
+
+* SaveShortTermTMFeatures [Req] [B] [0-1] [All]
+Saves or not the short time temporal features.
+
+* SubtractMean [Opt false] [B] [0-1] [All]
+Enables the DC offset removal frame by frame.
+
+-------------------------------------------------------------------------------
+2.2.2 Spectral descriptors parameters
+
+* AutoCorrelationCoeffs [Opt 12] [I] [1-N] [Auto]
+Max lag to compute the autocorrelation. Is also the size of the output
+descriptor.
+
+* ReducedBands [Opt 4] [I] [1-4] [FftRed]
+Number of frequency bands used for Spectral Flatness and Spectral Crest. The
+limits of the frequency bands for the computation will be multiples of 1000 Hz,
+that is if 2 is specified the first band will be from 0 to 1k Hz and the 2nd
+from 1k to 2k Hz. 
+
+-------------------------------------------------------------------------------
+2.2.3 Perceptual descriptors parameters
+
+* PerceptualBands [Opt 24] [I] [10-24] [Perc]
+Number of Mel Bands
+
+* MFCCs [Opt 13] [I] [1-N] [Perc]
+Number of MFCCs
+
+-------------------------------------------------------------------------------
+2.2.4 Harmonic descriptors parameters (use Pm2)
+
+* Harmonics [Opt 20] [I] [1-N] [Harm]
+Max number of harmonics for harmonic analysis
+
+* F0MaxAnalysisFreq [Opt 3000] [I] [1 - ResamplingTo/2] [Harm]
+Cutoff frequency for F0 estimation
+
+* F0MinFrequency [Opt 200] [I] [1 - ResamplingTo/2] [Harm]
+Minimum detected F0 frequency
+
+* F0MaxFrequency [Opt 1000] [I] [F0MinFrequency - ResamplingTo/2] [Harm]
+Maximum detected F0 frequency
+
+* F0AmpThreshold [Opt 1] [I] [1 - N] [Harm]
+Thresholding of the spectrum in F0 detection.
+
+* F0AmplitudeModulation [Opt 0] [B] [0-1] [Harm]
+Trigger the computation of the F0 modulation descriptor.
+
+-------------------------------------------------------------------------------
+2.2.5 Parameters that can apply to more than one descriptor
+
+* RolloffThreshold [Opt 0.95] [F] [0.0-1.0] [Thld1]
+The percentage of energy used by the rolloff descriptors.
+
+* DeviationStopBand [Opt 10] [I] [1-Harmonics/MFCC] [Dev]
+Used by HarmonicSpectralDeviation and PerceptualSpectralDeviation, max number
+of bands (harmonics or MFCC) to use in the deviation computation.
+
+-------------------------------------------------------------------------------
+2.2.6 Energy descriptors parameters
+
+* DecreaseThreshold [Opt 0.4] [F] [0.0-1.0] [Thld2]
+Percentage of the maximum value of the loudness (or energy).
+
+* NoiseThreshold [Opt 0.15] [F] [0.0-1.0] [Thld3]
+Percentage of the maximum value of the loudness (or energy).
+
+-------------------------------------------------------------------------------
+2.2.7 Chroma descriptors parameters
+
+* ChromaFreqMinHz [Opt 77] [F] [1-ChromaFreqMax] [Chrm]
+The minimum F0 for chroma
+
+* ChromaFreqMinHz [Opt 1500] [F] [ChromaFreqMin-ResampleTo/2] [Chrm]
+The maximum F0 for Chroma
+
+* ChromaResolution [Opt 1] [F] [0.0001 - 12] [Chrm]
+The resolution of Chroma in semitones
+
+* ChromaNormmax [Opt 1] [I] [0-1] [Chrm]
+Wether to normalize or not the chroma result
+
+-------------------------------------------------------------------------------
+2.2.8 Temporal modeling parameters
+
+* MedianFilterOrder [Opt 5] [I] [1-N (odd)]
+If any descriptor has median turned on, this is the size of the median filter.
+
+* MedianFilterNormalize [Opt 1] [B] [0-1]
+Normalization of the median filter
+
+* TemporalFilterWindowSize [Opt 0] [B] [0-N]
+
+
+* TemporalFilterHopSize [Opt 0] [I] [0-TemporalFilterWindowSize]
+
+
+* TemporalFilterBank [Opt [5 10 15 20]] [AI] [0-N]
+
+-------------------------------------------------------------------------------
+2.2.9 Parameters that trigger the computation of a group of descriptors
+
+* DynamicMorfologicFeatures [Opt 0] [B] [0-1]
+Triggers the computation of attack, decrease and other descriptors based on
+Loudness.
+
+--------------------------------------------------------------------------------
+2.2.10 Legacy / low level / experimental parameters
+
+Normal users won't normally care about these options. They are exposed for
+performance tweaking or have been introduced to try alternativ versions of the
+algorithms.
+
+* IOBufferSize [Opt 4096] [I] [256-8196]
+The buffer used to read the input file from disk.
+
+* GroupMatrices [Opt 1] [B] [0-1]
+Shrinks the file of the SDIF file using one single frame for all the
+descriptors computed for the same instant and belonging to the same family
+
+* OutputFormat [Opt sdif] [S] [sdif raw sdifdata]
+The output format, normally SDIF
+
+* PersistentPartials [Opt 0] [B] [0-1] [Harm]
+Legacy parameter
+
+* ChromaAmFftNormmax [Opt 1] [B] [0-1] [Chrm]
+Turn on or off specctrum normalization in Chroma
+
+* ChromaAmplEnerLog [Opt ener] [S] [ampl ener logTCN] [Chrm]
+Sets the filter scale of Chroma
+
+* ChromaAmFftThreshold [Opt 0.001] [F] [0.0-1.0] [Chrm]
+Thresholds the fft in chroma detection
+
+* ChromaPeakPickingLagHz [Opt 0.0] [F] [0.0-ChromaFreqMaxHz] [Chrm]
+Sets the tollerance for peak detection respect to the absolute scale in Hertz.
+
+* ChromaSfmThreshold [Opt 0] [F] [0.0-1.0] [Chrm]
+FilterBank threshold
+
+* ChromaSfmBandHz [Opt [100 500 1000 2000 4000]] [AI] [0-ResampleTo/2] [Chrm]
+FilterBank bands
+
+===============================================================================
+3. Sections [StandardDescriptors] and [EnergyDescriptors]
+===============================================================================
+
+In these 2 sections are specified the descriptors that will be computed.
+The ircamdescriptor tool let the user carry on the analysis using two
+different time resolutions, one for normal (mostly spectrum based) descriptors,
+where one could prefer having a large window size to have more spectral
+resolution, and the one related to energy descriptors, where the user could opt
+for a small window to have a better time resolution.
+
+-------------------------------------------------------------------------------
+3.1 Common options
+
+WindowSize [R] [F] [1/ResampleTo - N]
+The length of the window size in seconds, ex 0.06
+
+HopSize [R] [F] [1/ResampleTo - WindowSize]
+The hop step in seconds.
+
+TextureWindowsFrames [Opt -1] [I] [1-N]
+The texture windows offer a way to compute temporal modelings every Nth frame,
+and not only on the whole file. This parameter specifies how many short time
+frames are used to compute a texture window frame. This results in the
+computation of a texture window frame on TextureWindowsFrames *  (HopSize-1) +
+WindowSize seconds. A value of -1 means that this feature is not used.
+
+TextureWindowsHopFrames [Opt -1] [I] [1-TextureWindowsFrames]
+Step size for texture windows specified in number of short time descriptors.
+The step will be of TextureWindowsHopFrames *  HopSize seconds.
+
+-------------------------------------------------------------------------------
+3.2 Syntax for the [StandardDescriptors] section
+
+The syntax used in this manual is
+
+Descriptor [Option1, Option2, ..., OptionN] 
+[Variations]
+
+*Option1...N*
+Refer to the options in the section 3 that interest the computation of the
+descriptor.
+
+*Variations*
+List the meaning of the variations of the descriptor. If no variation is given,
+means that there's just one variation. If a variation name is surronded by
+parenthesis, it means that takes the value of the option between the
+parenthesis.
+
+Every descriptor in the following list can be activated as in the following
+example.
+
+MFCC = ShortTime MeanAndDeviation Delta DeltaDelta Median
+
+where every option in the string is optional, but at least one is needed. If
+anything else besides these 5 deifnitions will be written next to the
+descriptor, an error will be issued.
+
+ShortTime: writes in the output file the istantaneous values for this
+descriptor.
+
+MeanAndDeviation Delta DeltaDelta Median: activates the computation of the
+temporal modelings, refer to section 1.2 for further informations. 
+
+-------------------------------------------------------------------------------
+3.3 List of StandardDescriptors
+
+SignalZeroCrossingRate []
+
+TotalEnergy []
+
+AutoCorrelation [Fft, Auto]
+[(AutoCorrelationCoeffs)]
+
+SpectralCentroid [Fft]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+SpectralSpread [Fft]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+SpectralSkewness [Fft]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+SpectralKurtosis [Fft]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+SpectralSlope [Fft]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+SpectralDecrease [Fft]
+
+SpectralRolloff [Fft, Thld1]
+
+SpectralVariation [Fft]
+
+Loudness [Fft, Perc]
+
+RelativeSpecificLoudness [Fft, Perc]
+[(PerceptualBands)]
+
+Spread [Fft, Perc]
+
+Sharpness [Fft, Perc]
+
+PerceptualSpectralCentroid [Fft, Perc]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+PerceptualSpectralSpread [Fft, Perc]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+PerceptualSpectralSkewness [Fft, Perc]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+PerceptualSpectralKurtosis [Fft, Perc]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+PerceptualSpectralSlope [Fft, Perc]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+PerceptualSpectralDecrease [Fft, Perc, Thld2]
+
+PerceptualSpectralRolloff [Fft, Perc, Thld1]
+
+PerceptualSpectralVariation [Fft, Perc]
+["lin-ampl" "power-ampl" "log-ampl"]
+
+PerceptualSpectralDeviation [Fft, Perc, Dev]
+["lin-ampl" "power-ampl" "log-ampl"]
+
+PerceptualOddToEvenRatio [Fft, Perc]
+["lin-ampl" "power-ampl" "log-ampl"]
+
+PerceptualTristimulus [Fft, Perc]
+["lin-ampl1" "power-ampl1" "log-ampl1"
+ "lin-ampl2" "power-ampl2" "log-ampl2"
+ "lin-ampl3" "power-ampl3" "log-ampl3"]
+ 
+MFCC [Fft, Perc]
+[(MFCCs)]
+
+SpectralFlatness [Fft, FftRed] 
+[(ReducedBands)]
+
+SpectralCrest [Fft, FftRed]
+[(ReducedBands)]
+
+FundamentalFrequency [Fft, Harm, F0]
+
+NoiseEnergy [Fft, Harm]
+
+Noisiness [Fft, Harm]
+
+Inharmonicity [Fft, Harm]
+
+HarmonicEnergy [Fft, Harm]
+
+HarmonicSpectralCentroid [Fft, Harm]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+HarmonicSpectralSpread [Fft, Harm]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+HarmonicSpectralSkewness [Fft, Harm]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+HarmonicSpectralKurtosis [Fft, Harm]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+HarmonicSpectralSlope [Fft, Harm]
+["lin-ampl/lin-freq" "power-ampl/lin-freq" "log-ampl/lin-freq"
+"lin-ampl/log-freq" "power-ampl/log-freq" "log-ampl/log-freq"]
+
+HarmonicSpectralDecrease [Fft, Harm]
+
+HarmonicSpectralRolloff [Fft, Harm, Thld1]
+
+HarmonicSpectralVariation [Fft, Harm]
+["lin-ampl" "power-ampl" "log-ampl"]
+
+HarmonicSpectralDeviation [Fft, Harm, Dev]
+["lin-ampl" "power-ampl" "log-ampl"]
+
+HarmonicOddToEvenRatio [Fft, Harm]
+["lin-ampl" "power-ampl" "log-ampl"]
+ 
+HarmonicTristimulus [Fft, Harm]
+["lin-ampl1" "power-ampl1" "log-ampl1"
+ "lin-ampl2" "power-ampl2" "log-ampl2"
+ "lin-ampl3" "power-ampl3" "log-ampl3"]
+ 
+Chroma [Fft, Chrm]
+[(12 / ChromaResolution)]
+
+-------------------------------------------------------------------------------
+3.4 List of EnergyDescriptors
+These descriptors can only assume values 0 or 1 to switch them or and off.
+
+TemporalIncrease
+TemporalDecrease [Thld2]
+TemporalCentroid [Thld3]
+EffectiveDuration
+LogAttackTime
+AmplitudeModulation
+EnergyEnvelope
+
+===============================================================================
+4. References
+===============================================================================
+
+http://recherche.ircam.fr/equipes/analyse-synthese/peeters/ARTICLES/
+Peeters_2003_cuidadoaudiofeatures.pdf
+
+===============================================================================
+Author of this document:     	Alessandro Saccoia
+Version:    			1.1
+Date:       			apr 4, 2011
+===============================================================================
+
+

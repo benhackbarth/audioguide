@@ -1,0 +1,32 @@
+---------
+COPYRIGHT
+---------
+
+(c) IRCAM, 2008 - 2012
+
+This package contains materials copyrighted by IRCAM (www.ircam.fr)
+and you CANNOT USE, COPY, DISTRIBUTE OR REVERSE ENGINEER
+ANY PART OF THIS PACKAGE WITHOUT THE EXPLICIT PERMISSION OF
+IRCAM. This package may or not use external libraries for which
+licence information is reported below; please refer to respective
+web sites.
+
+libsndfile is copyright (c) Erik de Castro Lopo published under the
+GNU LGPL (for further info on libsndfile see http://www.mega-nerd.com/libsndfile for the license refer to libsndfile.License or http://www.gnu.org/copyleft/lesser.html)
+
+This software use part of the Loki library:
+////////////////////////////////////////////////////////////////////////////////
+// The Loki Library
+// Copyright (c) 2001 by Andrei Alexandrescu
+// This code accompanies the book:
+// Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design 
+//     Patterns Applied". Copyright (c) 2001. Addison-Wesley.
+// Permission to use, copy, modify, distribute and sell this software for any 
+//     purpose is hereby granted without fee, provided that the above copyright 
+//     notice appear in all copies and that both that copyright notice and this 
+//     permission notice appear in supporting documentation.
+// The author or Addison-Wesley Longman make no representations about the 
+//     suitability of this software for any purpose. It is provided "as is" 
+//     without express or implied warranty.
+////////////////////////////////////////////////////////////////////////////////
+
