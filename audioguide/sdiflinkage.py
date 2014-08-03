@@ -26,7 +26,7 @@ class SdifInterface:
 		# check for other bin files #
 		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')
 		self.supervp_bin = findbin(supervp_bin, 'AudioSculpt3.0b7/Kernels/supervp')
-		print self.pm2_bin, self.supervp_bin
+		#print self.pm2_bin, self.supervp_bin
 		
 		# other stuff
 		self.forceAnal = forceAnal

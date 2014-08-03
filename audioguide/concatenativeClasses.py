@@ -1,5 +1,5 @@
 import sys, os
-import util, metrics, sfSegment
+import util, descriptordata, sfSegment
 import numpy as np
 
 
@@ -234,7 +234,7 @@ class corpus:
 				cobj.numbSfFiles = len(files)
 			# reset counters...
 			segCount = 0
-			windowDist = metrics.hannWin(len(timeList)*2)
+			windowDist = descriptordata.hannWin(len(timeList)*2)
 			# segment list
 			for idx in range(len(timeList)): 
 				#thisSegDict = {}
@@ -284,7 +284,7 @@ class corpus:
 			###########################
 			## done with CORPUS loop ##
 			###########################
-		p.startPercentageBar(upperLabel="LOADING CORPUS", total=len(self.preloadlist))
+		p.startPercentageBar(upperLabel="Evaluating CORPUS...", total=len(self.preloadlist))
 		# in a seperate loop for printing...
 		for cidx, corpusSegParams in enumerate(self.preloadlist):
 			start=corpusSegParams[1]

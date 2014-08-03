@@ -1,6 +1,6 @@
 import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-import sdiflinkage, util, sdiflinkage, metrics, descriptorData, util
+import sdiflinkage, util, sdiflinkage, descriptordata, util
 import numpy as np
 
 

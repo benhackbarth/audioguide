@@ -41,7 +41,7 @@ import audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, sdiflinkage
+from audioguide import sfSegment, concatenativeClasses, userinterface, util, sdiflinkage
 # import all other modules
 import numpy as np
 try:
@@ -84,15 +84,16 @@ for file in args:
 	############
 	## TARGET ##
 	############
-	tgt = sfSegment.target(ops.TARGET)
-	tgt.initAnal(SdifInterface, ops, p)
+	filetosegment = sfSegment.target(ops.TARGET)
+	filetosegment.initAnal(SdifInterface, ops, p)
 	if options.OUTPUT_FILE == '':
 		segFile = file+'.txt'
 	else:
 		segFile = os.path.abspath(options.OUTPUT_FILE)
-	tgt.writeSegmentationFile(segFile)
-	print( "\n\tFound %i segments in %s"%(len(tgt.segs), file) )
-	print( "\tWrote target label file %s\n"%segFile )
+	filetosegment.writeSegmentationFile(segFile)
+	print('Trigger Threshold dB: %.2f     Rise Ratio: %.2f      Offset dB: %.2f'%(options.THRESHOLD, options.RISE, util.ampToDb(filetosegment.powerOffsetValue)))
+	print( "\nFound %i segments"%(len(filetosegment.segs)) )
+	print( "Wrote file %s\n"%(segFile) )
 
 #	opsData = '''CORPUS = []
 #TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = %f

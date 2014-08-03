@@ -151,7 +151,7 @@ class TerminalController:
 
 
 class printer:
-	def __init__(self, verbosity, optionsPath, pathtologfile, length=68):
+	def __init__(self, verbosity, optionsPath, pathtologfile, length=74):
 		self.updateLength = length
 		self.term = TerminalController()
 		if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):

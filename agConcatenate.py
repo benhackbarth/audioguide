@@ -3,7 +3,7 @@ import sys, os, audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, metrics, sdiflinkage
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, sdiflinkage
 # import all other modules
 import numpy as np
 try:
@@ -187,7 +187,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
 			for dobj in ComputedDescList:
 				if dobj.describes_energy and dobj.name != 'power':
-					tgtseg.desc[dobj.name] = metrics.DescriptorComputation(dobj, tgtseg, None, None)
+					tgtseg.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, tgtseg, None, None)
 			for d in AveragedDescList:
 				tgtseg.desc[d.name].clear()			
 		#####################################
@@ -209,7 +209,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 
 		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
 		printLabel += ' '*(24-len(printLabel))
-		printLabel += "search pass lengths: %s"%(distanceCalculations.lengthAtPasses)
+		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
 
 #p.logsection( "CONCATENATION SUMMARY" )
@@ -287,7 +287,7 @@ if ops.LISP_OUTPUT_FILEPATH != None:
 ## csound output file ##
 ########################
 if ops.CSOUND_CSD_FILEPATH != None:
-	import csoundInterface as csd
+	import csoundinterface as csd
 	csSco = ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )

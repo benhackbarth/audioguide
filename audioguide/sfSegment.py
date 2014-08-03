@@ -2,7 +2,7 @@ import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 #sys.path.append('/Users/ben/Documents/audioGuide/audioguide')
 sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib2.7-darwin-64')
-import util, metrics, descriptorData
+import util, descriptordata
 import numpy as np
 
 
@@ -35,7 +35,7 @@ class SfSegment:
 		################
 		self.printName = os.path.split(self.filename)[1] # short name for printing
 		self.segmentHash = util.listToCheckSum([self.filename, self.segmentStartSec, self.segmentEndSec, self.envDb, self.envAttackSec, self.envDecaySec, self.envSlope])
-		self.midiPitchFromFilename = metrics.getMidiPitchFromString(self.printName)
+		self.midiPitchFromFilename = descriptordata.getMidiPitchFromString(self.printName)
 		self.rmsAmplitudeFromFilename = util.getDynamicFromFilename(self.printName, notFound=-1000)
 		####################################
 		## get information about envelope ##
@@ -65,7 +65,7 @@ class SfSegment:
 		###############################
 		## initalise descriptor data ##
 		###############################
-		self.desc = descriptorData.container(descriptors, self) # for storing descriptor values from disk
+		self.desc = descriptordata.container(descriptors, self) # for storing descriptor values from disk
 		# tells us which descriptors are:
 		#	SdifDescList - loaded from SDIF analyses
 		#	ComputedDescList - transformed from loaded descriptor data - delta, deltadelta, odf, etc.
@@ -77,15 +77,31 @@ class SfSegment:
 			self.desc[dname] = data
 		del tmppy
 		for dobj in ComputedDescList:
-			self.desc[dobj.name] = metrics.DescriptorComputation(dobj, self, None, None)
+			self.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, self, None, None)
+		self.triggerinit = False
+	###################################################
+	def initThresholdTest(self, onsetDescriptorDict):		
+		# get min / max of trigger descriptors
+		self.mins = {}
+		self.maxs = {}
+		for dname, weight in onsetDescriptorDict.items():
+			self.mins[dname] = np.min(self.desc[dname][:])
+			self.maxs[dname] = np.max(self.desc[dname][:])
+		self.triggerinit = True
 	###################################################
 	def thresholdTest(self, time, onsetDescriptorDict):		
+		if not self.triggerinit: self.initThresholdTest(onsetDescriptorDict) # only once!
 		trig = 0.
-		ws = 0.
+		weightsum = 0.
 		for dname, weight in onsetDescriptorDict.items():
-			trig += (self.desc[dname][time]) * weight
-			ws += weight
-		return util.ampToDb(trig)/ws
+			value = self.desc[dname][time]
+			if dname.find('power') != -1 or value < 0.:
+				trigadd = value / self.maxs[dname]
+			else:
+				trigadd = value / self.mins[dname] # for non-power descriptors that are greater than 0.!
+			trig += trigadd * weight
+			weightsum += weight
+		return util.ampToDb(trig)/weightsum
 	#################################
 	#################################
 	def testForInitErrors(self, acceptedSoundfileExtensions):
@@ -199,7 +215,7 @@ class targetSegment(SfSegment):
 		self.midiPitchMethod = midiPitchMethod
 	###################################################
 	def initMixture(self, SdifInterface):
-		self.mixdesc = descriptorData.container(SdifInterface.mixtureDescriptors, self)
+		self.mixdesc = descriptordata.container(SdifInterface.mixtureDescriptors, self)
 		for dobj in SdifInterface.mixtureDescriptors:
 			if dobj.seg: continue
 			#	def setNorm(self, subtract, divide):
@@ -258,9 +274,8 @@ class target: # the target
 	########################################
 	def timeStretch(self, SdifInterface, ops, p):
 		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, ops.SUPERVP_STRETCH_FLAGS, p=p)
-		print self.filename
-		self.startSec = 0
-		self.endSec = None
+		self.startSec = 0 # this now gets reset, as starttime was considered when making the stretched file
+		self.endSec = None # this now gets reset, as endtime was considered when making the stretched file
 	########################################
 	def initAnal(self, SdifInterface, ops, p):
 		# Start by loading the entire target as an 
@@ -322,7 +337,7 @@ class target: # the target
 			lengths.append(SdifInterface.f2s(segLen))
 			f += segLen
 
-		p.startPercentageBar(upperLabel="LOADING TARGET", total=len(self.segmentationInSec))
+		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
 			segment = targetSegment(self.filename, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
@@ -334,8 +349,8 @@ class target: # the target
 		if len(self.segs) == 0:
 			util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(self.filename))
 		p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.segs), np.average(lengths)))
-		if ops.TARGET_MAKE_DESCRIPTOR_PLOTS:
-			self.plotMetrics(SdifInterface, p)
+		if ops.TARGET_PLOT_DESCRIPTORS_FILEPATH != None:
+			self.plotMetrics(ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, SdifInterface, p)
 
 		if ops.TARGET_DESCRIPTORS_FILEPATH != None:
 			try:
@@ -362,7 +377,7 @@ class target: # the target
 			for dobj in SdifInterface.mixtureDescriptors:
 				seg.mixdesc[dobj.name].setNorm(seg.desc[dobj.name].normSubtract, seg.desc[dobj.name].normDivide)
 	########################################
-	def plotMetrics(self, SdifInterface, p, normalise=True):
+	def plotMetrics(self, outputpath, SdifInterface, p, normalise=True):
 		import matplotlib.pyplot as plt
 		lengthTv = self.whole.lengthInFrames
 		powers = self.whole.desc['power'][:]
@@ -372,7 +387,9 @@ class target: # the target
 
 		for dobj in SdifInterface.requiredDescriptors:
 			fig = plt.figure(figsize=(lengthTv/10., 10.))
-			savepath = "/Users/ben/Documents/audioGuide/0-new/output/plot-"+dobj.name+".jpg"
+			proot, pext = os.path.splitext(outputpath)
+			
+			savepath = proot + '-' + dobj.name + pext
 			if dobj.seg or dobj.name in ['power']: continue
 			vals = self.whole.desc[dobj.name][:]
 			if normalise:

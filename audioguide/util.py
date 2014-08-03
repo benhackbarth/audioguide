@@ -384,9 +384,7 @@ def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, supervp_fla
 	checksum = listToCheckSum([sffile, start, end, stretchcoeff])
 	stretchedfilename = os.path.join(stretcheddir, '%sx%.2f-%s%s'%(sfheadroot, stretchcoeff, checksum, sfheadext))
 	
-	if os.path.exists(stretchedfilename):
-		return stretchedfilename
-		
+	if os.path.exists(stretchedfilename): return stretchedfilename
 	#################################
 	## do supervp time stretching! ##
 	#################################
@@ -395,17 +393,13 @@ def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, supervp_fla
 	fh = open(stretchParamFile, 'w')
 	fh.write("-10 1\n0 %s\n"%(stretchcoeff))
 	fh.close()
-	
 	# add start time and end time offsets to flags if needed
 	if start != None: supervp_flags += ' -B%f'%start
 	if end != None: supervp_flags += ' -E%f'%end
-
+	# make supervp command!
 	command = '%s -t -Z -U -S"%s" %s -D"%s" "%s"'%(svpbin, sffile, supervp_flags, stretchParamFile, stretchedfilename)
-	print 'TARGET TIME STRETCH - "%s"'%command
+	#print 'TARGET TIME STRETCH - "%s"'%command
 	executeCommand( command )
-	
-
-	sys.exit()
 	return stretchedfilename
 
 

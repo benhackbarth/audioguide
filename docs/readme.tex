@@ -538,18 +538,19 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 
 \optEntry{MIDI\_FILEPATH}{string/None}{output/output.mid}{a midi file of the concatenation with pitches chosen according to midiPitchMethod from each corpus entry.}
 
-\optEntry{TARGET\_SEGMENT\_LABELS\_FILEPATH}{string/None}{output/tgtLabels.txt}{Audacity-style labels showing how the target sound was segmented.}
+\optEntry{TARGET\_SEGMENT\_LABELS\_FILEPATH}{string/None}{output/targetlabels.txt}{Audacity-style labels showing how the target sound was segmented.}
 
-\optEntry{SUPERIMPOSITION\_LABEL\_FILEPATH}{string/None}{output/superimpositionLabels.txt}{Audacity-style labels showing the selected corpus sounds and how they overlap.}
+\optEntry{SUPERIMPOSITION\_LABEL\_FILEPATH}{string/None}{output/superimpositionlabels.txt}{Audacity-style labels showing the selected corpus sounds and how they overlap.}
 
 \optEntry{LISP\_OUTPUT\_FILEPATH}{string/None}{output/output.lisp.txt}{a textfile containing selected corpus events as a lisp-style list.}
 
 %\optEntry{PARAM\_SCORE\_FILEPATH}{string/None}{output/paramscore.txt}{.}
+
 \optEntry{DICT\_OUTPUT\_FILEPATH}{string/None}{output.json}{a textfile containing selected corpus events in json fotmat.}
 
 \optEntry{TARGET\_DESCRIPTORS\_FILEPATH}{string/None}{targetdescriptors.json}{saves the loaded target descriptors to a json dictionary.}
-%\optEntry{ORDER\_CORPUS\_BY\_DESCRIPTOR\_FILEPATH}{string/None}{0.}{.}
-%\optEntry{TARGET\_MAKE\_DESCRIPTOR\_PLOTS}{string/None}{0.}{.}
+
+\optEntry{TARGET\_PLOT\_DESCRIPTORS\_FILEPATH}{string/None}{None}{creates a plot of each target descriptor used in concatenation.  Doesn't work for averaged descriptors (``-seg''), only time varying descriptors.}
 
 
 \subsection{Printing/Interaction}
