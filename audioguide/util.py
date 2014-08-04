@@ -383,7 +383,6 @@ def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, supervp_fla
 	sfheadroot, sfheadext = os.path.splitext(sfhead)
 	checksum = listToCheckSum([sffile, start, end, stretchcoeff])
 	stretchedfilename = os.path.join(stretcheddir, '%sx%.2f-%s%s'%(sfheadroot, stretchcoeff, checksum, sfheadext))
-	
 	if os.path.exists(stretchedfilename): return stretchedfilename
 	#################################
 	## do supervp time stretching! ##

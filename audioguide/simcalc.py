@@ -4,22 +4,11 @@ import sfSegment, util
 
 
 
-#def printString(tgtTime, overlapNumber, passLengths):
-#	clockTime = (6-len(str(util.trunc(ag.f2s(tgtTime), 2))))*' '+str(util.trunc(ag.f2s(tgtTime), 2))
-#	firstHalfString = 'Searching: Target @ %s x %i'%(clockTime, overlapNumber+1)
-#	firstHalfString += ' '*(32-len(firstHalfString))
-#	if len(passLengths) == 1:
-#		secondHalf = '-   Search size: '
-#	else:
-#		secondHalf = '-   Search pass sizes: '
-#	for p in passLengths:
-#		secondHalf += '%s%i'%(' '*(6-len(str(p))), p)
-#	wholeString = firstHalfString+secondHalf
-#	return wholeString
-
-
 class BreakIt(Exception):
 	pass
+
+
+
 
 class distanceCalculations:
 	def __init__(self, superimposeObj, randomseed, SdifInterface, p):
@@ -198,8 +187,6 @@ def fixedSizeDigest(array1, array2, dist, peaks):
 			interpMask2[idx] = scalarBetweenPeakAndEnd*(l-peaks[1])+peaks[1]
 		array1Fixed = util.interpArray(array1, lenMask, interpMask=interpMask1)
 		array2Fixed = util.interpArray(array2, lenMask, interpMask=interpMask2)
-		#print "#1", array1Fixed
-		#print "#2", array2Fixed
 	else: # no peak data, flat interpolation
 		lenMask = fixedSizes[0]+fixedSizes[1]+1
 		array1Fixed = util.interpArray(array1, lenMask)

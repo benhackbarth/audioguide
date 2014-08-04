@@ -506,7 +506,7 @@ class corpus:
 class SuperimposeTracker():
 	def __init__(self, tgtlength, tgtlengthsegs, overlap_inc_amp, peakAlign, peakAlignEnvelope, cpsentrylength, p):
 		self.p = p
-		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0}
+		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0, 'cpsnames': []}
 		self.choiceCnt = 0 # tracks number of decisions made
 		self.overlap_inc_amp = util.dbToAmp(overlap_inc_amp)
 		self.peakAlign = peakAlign
@@ -519,11 +519,12 @@ class SuperimposeTracker():
 		if max != None and self.cnt[type][time] >= max: pick = 'notok'
 		return pick	
 	########################################
-	def increment(self, start, dur, segidx, cps_voiceid, powers, logtext):
+	def increment(self, start, dur, segidx, cps_voiceid, powers, logtext, corpusname):
 		self.p.log( logtext )
 		self.cnt['segidx'][segidx] += 1
 		self.cnt['onset'][start] += 1
 		self.cnt['selectionCount'] += 1
+		self.cnt['cpsnames'].append(corpusname)
 		self.histogram['select'].append(start)
 		self.choiceCnt += 1
 		for f in range(dur):

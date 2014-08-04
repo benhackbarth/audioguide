@@ -1,4 +1,4 @@
-TARGET = tsf('cage.aiff', thresh=-32, rise=1.2)
+TARGET = tsf('cage.aiff', thresh=-26, rise=1.2)
 
 CORPUS = [
 csf('lachenmann.aiff'),

@@ -1,4 +1,4 @@
-import sys, re
+import sys, re, util
 
 class TerminalController:
     """
@@ -207,11 +207,31 @@ class printer:
 		self.progress.update(self.counter/(self.maxNumb-1), txt)
 		print "\n"
 	###############################################
-	def middleprint(self, string, force=False): # MIDDLE print call
+	def middleprint(self, string, force=False, colour='CYAN', borderchar='-', cr=True): # MIDDLE print call
 		if self.v == 0 and not force: return
-		string = str(string)
-		outsides = int(((self.updateLength-len(string)-2)/2.0))*"-"
-		print(self.term.render('${BOLD}${CYAN}'+outsides+" "+string+" "+outsides+'${NORMAL}\n'))
+		outsides = int(((self.updateLength-len(string)-2)/2.0))*borderchar
+		printstr = "${BOLD}${%s}%s %s %s${NORMAL}"%(colour, outsides, str(string), outsides)
+		if cr: printstr += '\n'
+		print(self.term.render(printstr))
+	###############################################
+	def printProgramInfo(self, agversion, force=False):
+		if self.v == 0 and not force: return
+		self.middleprint('audioguide%s / python%s'%(agversion, sys.version.split()[0]), colour='RED', borderchar=' ', cr=False, force=force)
+	###############################################
+	def printDict(self, header, dictObj, valueColour='RED'):
+	# p.printDict("SELECTIONS", {'1': 100, '2': 'benef'})
+		if self.v == 0: return
+		self.middleprint(header, cr=False)
+		for key, val in dictObj.items():
+			print(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%s${NORMAL}"%(str(key), valueColour, str(val))))
+	###############################################
+	def printListLikeHistogram(self, header, values, valueColour='RED'):
+		if self.v == 0: return
+		
+		self.middleprint(header, cr=False)
+		for frequency, label in util.histogram(values):
+			print(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%.0f%%${NORMAL}"%(str(label), valueColour, (frequency/float(len(values))*100))))
+		print "\n"
 
 
 
@@ -219,7 +239,6 @@ class printer:
 class ProgressBar:
     HEADER = '${NORMAL}${NORMAL}%s${NORMAL}\n\n'
     BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'
-
     def __init__(self, term, header, PRINT_LENGTH):
         self.term = term
         if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):

@@ -60,7 +60,7 @@ for file in args:
 	file = os.path.abspath(file)
 	fileExtension = os.path.splitext(file)[1]
 	isValidSoundfile = False
-	for ext in ['.wav', '.aiff', '.au', '.gilbert_butt_fuck']:
+	for ext in ['.wav', '.aiff', '.aif', '.au']:
 		if ext.lower() == fileExtension.lower():
 			isValidSoundfile = True
 			break
@@ -79,11 +79,12 @@ for file in args:
 
 	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
+	p.printProgramInfo(audioguide.__version__, force=True)
 	SdifInterface = ops.createSdifInterface(p)
-	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	############
 	## TARGET ##
 	############
+	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	filetosegment = sfSegment.target(ops.TARGET)
 	filetosegment.initAnal(SdifInterface, ops, p)
 	if options.OUTPUT_FILE == '':

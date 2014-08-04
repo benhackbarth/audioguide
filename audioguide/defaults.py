@@ -6,8 +6,6 @@ ALERT_ON_ERROR = True
 PRINT_SELECTION_HISTO = False
 PRINT_SIM_SELECTION_HISTO = True
 
-
-
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################
 DESCRIPTOR_FORCE_ANALYSIS = False
 DESCRIPTOR_WIN_SIZE_SEC = 0.04643990929708
@@ -30,8 +28,6 @@ CLUSTERANAL_NUMB_CLUSTS = 8
 SUPERVP_BIN = None
 PM2_BIN = None
 
-
-
 ##############  OUTPUT FILES  #############
 # FOR EACH VARIABLE ENDING IN _FILEPATH:
 #    a value of None will turn off the creation of this file
@@ -48,7 +44,6 @@ DICT_OUTPUT_FILEPATH = 'output/output.json'
 TARGET_DESCRIPTORS_FILEPATH = 'output/targetdescriptors.json'
 ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH = 'output/orderedcorpus.aiff'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
-
 
 ############  CSOUND  ############
 CSOUND_SR = 48000

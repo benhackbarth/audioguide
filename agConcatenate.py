@@ -29,8 +29,9 @@ if not os.path.exists(opspath):
 ###########################################
 ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
+p.printProgramInfo(audioguide.__version__)
 SdifInterface = ops.createSdifInterface(p)
-p.middleprint('AUDIOGUIDE CONCATENATE SOUNDFILE')
+p.middleprint('CONCATENATE SOUNDFILE')
 
 
 ############
@@ -205,30 +206,27 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
 
 		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR) )
-		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText())
+		
+		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
+		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname)
 
 		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
 		printLabel += ' '*(24-len(printLabel))
 		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
 
-#p.logsection( "CONCATENATION SUMMARY" )
-#print len(superimp.histogram['select']), superimp.choiceCnt
-#
-#for i in superimp.histogram['select']:
-#	
-#
-#
-#cps.makeSelectionLogicHistogram(outputEvents)
+p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
+p.logsection( "CONCATENATION SUMMARY" )
+if ops.PRINT_SIM_SELECTION_HISTO:
+	p.printListLikeHistogram('Simultaneous Selection Histogram', ["%i notes"%(v) for v in superimp.cnt['segidx']])
+if ops.PRINT_SELECTION_HISTO:
+	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
 
-
+p.logsection( "OUTPUT FILES" )
 #####################################
 ## sort outputEvents by start time ##
 #####################################
-p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
-p.logsection( "OUTPUT FILES" )
 outputEvents.sort(key=lambda x: x.timeInScore)
-
 
 ######################
 ## dict output file ##
