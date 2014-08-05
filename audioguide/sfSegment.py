@@ -8,7 +8,7 @@ import numpy as np
 
 
 class SfSegment:
-	def __init__(self, filename, startSec, endSec, descriptors, SdifInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01, synthesisParameters=None):
+	def __init__(self, filename, startSec, endSec, descriptors, SdifInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
 		self.filename = util.verifyPath(filename, SdifInterface.searchPaths)
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.soundfileTotalDuration, self.soundfileChns = SdifInterface.validateSdifResource(self.filename)
@@ -18,7 +18,6 @@ class SfSegment:
 		self.envAttackSec = envAttackSec
 		self.envDecaySec = envDecaySec
 		self.envSlope = envSlope
-		self.synthesisParameters = synthesisParameters
 		# if startSec=None, it is begninning
 		# if endSec=None, it is end of file
 		if self.segmentStartSec == None: self.segmentStartSec = 0
@@ -138,9 +137,9 @@ class SfSegment:
 class corpusSegment(SfSegment):
 	'''Inherits class of SfSegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, synthesisParameters):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, synthesisParameters=synthesisParameters)
+		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
 		self.userCpsStr = userCpsStr
 		self.concatFileName = concatFileName
@@ -160,6 +159,7 @@ class corpusSegment(SfSegment):
 		self.restrictRepetition = restrictRepetition
 		self.sim_accum = 0. # for similarity calculations
 		self.selectionTimes = []
+		self.segfileData = segfileData
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
 		tgtvals = tgtseg.desc[dobj.name].getnorm(tgtSeek, tgtSeek+array_len)	
@@ -297,7 +297,7 @@ class target: # the target
 			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH))
 		else:
 			self.powerOffsetValue = minPower*util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_REL_THRESH)
-			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using TARGET_SEGMENT_OFFSET_DB_REL_THRESH dB below the minimum found power -- a value of %f dB."%(self.filename, ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH, util.ampToDb(self.powerOffsetValue)))
+			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using TARGET_SEGMENT_OFFSET_DB_REL_THRESH dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH, ops.TARGET_SEGMENT_OFFSET_DB_REL_THRESH, util.ampToDb(self.powerOffsetValue)))
 	
 		
 		# segment the target

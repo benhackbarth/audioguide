@@ -1,13 +1,14 @@
-TARGET = tsf('soundfiles/cage.aiff', thresh=-32, rise=1.2)
+TARGET = tsf('cage.aiff', thresh=-32, rise=1.2)
 
 CORPUS = [
-csf('/Users/ben/Documents/audioGuide/examples/lachenmann.aiff'),
+csf('lachenmann.aiff'),
+csf('heat sink.aiff'),
+csf('dream.aiff'),
 ]
 
 
 SEARCH = [
-#spass('ratio_limit', d('effDur-seg', norm=1), minratio=0.9, maxratio=1.1),
-spass('closest_percent', d('power-seg', norm=2), percent=10),
+spass('ratio_limit', d('effDur-seg', norm=1), minratio=0.9, maxratio=1.1),
 spass('closest', d('mfccs'))
 ]
 

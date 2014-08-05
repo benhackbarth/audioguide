@@ -231,7 +231,7 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ######################
 ## dict output file ##
 ######################
-if ops.DICT_OUTPUT_FILEPATH != None or True:
+if ops.DICT_OUTPUT_FILEPATH != None:
 	output = {}
 	output['target'] = None
 	output['corpus'] = None
@@ -280,6 +280,20 @@ if ops.LISP_OUTPUT_FILEPATH != None:
 	fh.write('(' + ''.join([ oe.makeLispText() for oe in outputEvents ]) +')')
 	fh.close()
 	p.log( "Wrote lisp output file %s\n"%ops.LISP_OUTPUT_FILEPATH )
+
+
+
+########################################
+## data from segmentation file output ##
+########################################
+if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
+	fh = open(ops.DATA_FROM_SEGMENTATION_FILEPATH, 'w')
+	for line in [oe.makeSegmentationDataText() for oe in outputEvents]:
+		fh.write(line)
+	fh.close()
+	p.log( "Wrote data from segmentation file to textfile %s\n"%ops.DATA_FROM_SEGMENTATION_FILEPATH )
+
+
 
 ########################
 ## csound output file ##

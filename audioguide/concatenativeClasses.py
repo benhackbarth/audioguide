@@ -270,15 +270,17 @@ class corpus:
 						if startSec >= timeTuple[0] and endSec <= timeTuple[1]: skip = True
 					#print filehead, start, end, skip
 					if skip: continue
-					
-				if len(timeList[idx]) >= 3: extraMappedData = timeList[idx][3:]
-				else: extraMappedData = ''
+				# see if there is any extra data from the segmentation file
+				if len(timeList[idx]) > 3:
+					segmentationfileData = ' '.join(timeList[idx][3:])
+				else:
+					segmentationfileData = None
 				# test if limitDur is set...
 				if cobj.limitDur != None:
 					if endSec != None and endSec-startSec > cobj.limitDur: endSec = start+cobj.limitDur
 				# see which sf to map sound concatenation onto...
 				if cobj.concatFileName == None: concatFileName = timeList[idx][0]
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, cobj.hasParams])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb} )	
 			###########################
@@ -580,7 +582,7 @@ class outputEvent:
 		# audioguide stuff
 		self.transposition = transposition
 		self.voiceID = sfseghandle.voiceID
-		self.synthesisParams = sfseghandle.synthesisParameters
+		self.extraDataFromSegmentationFile = sfseghandle.segfileData
 		self.midiFromFilename = sfseghandle.desc['MIDIPitch-seg'].get(0, None)
 		self.midiPitch = self.midiFromFilename + self.transposition
 		if self.midiPitch < minOutputMidi: self.midiPitch = minOutputMidi
@@ -608,6 +610,10 @@ class outputEvent:
 		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'filename', 'midiFromFilename', 'peaktimeSec', 'powerSeg', 'sfSkip', 'simSelects', 'transposition', 'voiceID']:
 			dicty[key] = getattr(self, key)
 		return dicty
+	####################################	
+	def makeSegmentationDataText(self):
+		return "%.3f  %.3f  %s  %.3f  %s"%(self.timeInScore, self.duration, self.filename, self.sfSkip, self.extraDataFromSegmentationFile)
+
 
 	
 
