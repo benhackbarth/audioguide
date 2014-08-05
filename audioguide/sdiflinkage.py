@@ -26,18 +26,12 @@ def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.jo
 class SdifInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
-
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, searchPaths=[]):	
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
-		
+		assert os.path.exists(self.ircamdescriptor_bin)
 		# check for other bin files #
 		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')
 		self.supervp_bin = findbin(supervp_bin, 'AudioSculpt3.0b7/Kernels/supervp')
-		#print self.pm2_bin, self.supervp_bin
-		
-		# other stuff
-		self.forceAnal = forceAnal
-		self.p = p
 		# anal
 		self.winLengthSec = winLengthSec
 		self.hopLengthSec = hopLengthSec
@@ -63,8 +57,9 @@ class SdifInterface:
 		self.minParDuration = 0.0
 		self.agDescriptToSdif = agDescriptToSdif
 		self.halfWinLengthSec = self.winLengthSec / 2.0
-		
-		# other linkages
+		# other stuff
+		self.forceAnal = forceAnal
+		self.p = p
 		self.searchPaths = searchPaths
 		# mfccs
 		for b in range(self.numbMfccs):

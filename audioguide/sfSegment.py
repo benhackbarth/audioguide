@@ -362,6 +362,9 @@ class target: # the target
 			fh.close()
 			p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
 
+		if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
+			self.plotSegmentation(ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, SdifInterface, p)
+ 
 	
 	########################################
 	def writeSegmentationFile(self, filename):
@@ -404,7 +407,27 @@ class target: # the target
 			p.log("TARGET PLOT: plotted descriptor %s"%(savepath))
 			plt.savefig(savepath)
 			plt.close()
-
+	########################################
+	def plotSegmentation(self, outputpath, SdifInterface, p):
+		import matplotlib.pyplot as plt
+		powers = self.whole.desc['power'][:]
+		powers -= np.min(powers)
+		powers /= np.max(powers) # normalise between 0 and 1
+		plotheight = 15.
+		fig = plt.figure(figsize=(len(powers)/10., plotheight))
+		plt.plot(range(len(powers)), powers, ls='steps-post', lw=1, label=['power'])
+		for sidx in range(len(self.segmentationInFrames)): # plot segmentation
+			xstart = self.segmentationInFrames[sidx][0]
+			xend = self.segmentationInFrames[sidx][1]
+			#print self.segmentationInFrames[sidx], self.segmentationLogic[sidx]
+			plt.axvspan(xstart, xend, facecolor='#FFCCCC', alpha=1, ec='r', lw=1)
+			plt.text(xstart, 0.5*plotheight, 'benny', fontsize=12, color='black')
+		leg = plt.legend(['power'],'upper right', shadow=False)
+		frame  = leg.get_frame()  
+		frame.set_facecolor('0.90')    # set the frame face color to light gray
+		p.log("SEGMENTATION PLOT: %s"%(outputpath))
+		plt.savefig(outputpath)
+		plt.close()
 
 
 

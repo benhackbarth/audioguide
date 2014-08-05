@@ -1,4 +1,4 @@
-import sys, re, util
+import sys, re, util, os
 
 class TerminalController:
     """
@@ -215,7 +215,8 @@ class printer:
 		self.renderOrLog(self.term.render(printstr))
 	###############################################
 	def printProgramInfo(self, agversion, force=False):
-		self.middleprint('audioguide%s / python%s'%(agversion, sys.version.split()[0]), colour='RED', borderchar=' ', cr=False, force=force)
+		self.renderOrLog(self.term.render("${RED}audioguide%s${NORMAL} -> %s"%(agversion, os.path.dirname(__file__))))
+		self.renderOrLog(self.term.render("${RED}python%s${NORMAL} -> %s"%(sys.version.split()[0], os.path.abspath(sys.executable))))
 	###############################################
 	def printDict(self, header, dictObj, valueColour='RED'):
 		self.middleprint(header, cr=False)
@@ -231,6 +232,9 @@ class printer:
 	def renderOrLog(self, string):
 		if self.v == 0: self.log(string)
 		print(string)
+	###############################################
+	def pprint(self, string, colour='RED'):
+		self.renderOrLog(self.term.render("${%s}%s${NORMAL}"%(colour, str(string))))
 
 
 
