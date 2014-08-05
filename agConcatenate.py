@@ -300,6 +300,6 @@ if ops.CSOUND_CSD_FILEPATH != None:
 p.close()
 	
 if ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
-	csd.playFile( ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_PLAYERS )
+	csd.playFile( ops.CSOUND_RENDER_FILEPATH )
 		
 	

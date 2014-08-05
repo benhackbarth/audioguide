@@ -206,7 +206,8 @@ def render(file, totalEvents, printerobj=None):
 
 
 
-def playFile(file, commandLinePlayers):
+def playFile(file):
+	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'Windows': 'mplay32 \play'}
 	command = '%s "%s"'%(commandLinePlayers[platform.system()], file)
 	try:
 		cs = subprocess.call(command, shell=True)

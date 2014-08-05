@@ -1,6 +1,5 @@
 ###############  SETUP  ##############
 SEARCH_PATHS = [] # additional directories to search for soundfiles
-SOUNDFILE_EXTENSIONS = ['.aiff', '.aif', '.wav', '.au'] # when loading a directory, skip files without these extensions; not case sensative
 VERBOSITY = 2
 ALERT_ON_ERROR = True
 PRINT_SELECTION_HISTO = False
@@ -49,7 +48,6 @@ TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 CSOUND_SR = 48000
 CSOUND_KR = 128
 CSOUND_PLAY_RENDERED_FILE = True
-CSOUND_PLAYERS = {'Darwin': 'afplay', 'Linux': 'aplay', 'Windows': 'mplay32 \play'}
 CSOUND_CHANNEL_RENDER_METHOD = "mix" # mix | oneChannelPerVoice | oneChannelPerOverlap
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 

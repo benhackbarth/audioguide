@@ -212,26 +212,25 @@ class printer:
 		outsides = int(((self.updateLength-len(string)-2)/2.0))*borderchar
 		printstr = "${BOLD}${%s}%s %s %s${NORMAL}"%(colour, outsides, str(string), outsides)
 		if cr: printstr += '\n'
-		print(self.term.render(printstr))
+		self.renderOrLog(self.term.render(printstr))
 	###############################################
 	def printProgramInfo(self, agversion, force=False):
-		if self.v == 0 and not force: return
 		self.middleprint('audioguide%s / python%s'%(agversion, sys.version.split()[0]), colour='RED', borderchar=' ', cr=False, force=force)
 	###############################################
 	def printDict(self, header, dictObj, valueColour='RED'):
-	# p.printDict("SELECTIONS", {'1': 100, '2': 'benef'})
-		if self.v == 0: return
 		self.middleprint(header, cr=False)
 		for key, val in dictObj.items():
-			print(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%s${NORMAL}"%(str(key), valueColour, str(val))))
+			self.renderOrLog(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%s${NORMAL}"%(str(key), valueColour, str(val))))
 	###############################################
 	def printListLikeHistogram(self, header, values, valueColour='RED'):
-		if self.v == 0: return
-		
 		self.middleprint(header, cr=False)
 		for frequency, label in util.histogram(values):
-			print(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%.0f%%${NORMAL}"%(str(label), valueColour, (frequency/float(len(values))*100))))
-		print "\n"
+			self.renderOrLog(self.term.render("${BOLD}%s${NORMAL} -> ${%s}%.0f%%${NORMAL}"%(str(label), valueColour, (frequency/float(len(values))*100))))
+		self.renderOrLog("\n")
+	###############################################
+	def renderOrLog(self, string):
+		if self.v == 0: self.log(string)
+		print(string)
 
 
 

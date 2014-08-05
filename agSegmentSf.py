@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 import sys, os, random
 
 from optparse import OptionParser
@@ -73,8 +73,20 @@ for file in args:
 	'TARGET_SEGMENT_OFFSET_DB_ABS_THRESH': options.ABS_DB_OFFSET_THRESH,
 	'TARGET_SEGMENT_OFFSET_DB_REL_THRESH': options.REL_DB_OFFSET_BOOST,
 	'VERBOSITY': 0,
+	
+	'LOG_FILEPATH': None,
+	'CSOUND_CSD_FILEPATH': None,
+	'CSOUND_RENDER_FILEPATH': None,
+	'MIDI_FILEPATH': None,
+	'LISP_OUTPUT_FILEPATH': None,
+	'DICT_OUTPUT_FILEPATH': None,
+	'ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH': None,
+	'DICT_OUTPUT_FILEPATH': None,
+	'TARGET_SEGMENT_LABELS_FILEPATH': None,
+	'SUPERIMPOSITION_LABEL_FILEPATH': None,
+	'TARGET_DESCRIPTORS_FILEPATH': None,
+	'TARGET_PLOT_DESCRIPTORS_FILEPATH': None,
 	}
-
 
 
 	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
