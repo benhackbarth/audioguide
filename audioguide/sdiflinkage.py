@@ -26,7 +26,7 @@ def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.jo
 class SdifInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
-	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, numbPeaks=12, numbClust=8, clustDescriptDict={'mfcc1': 1, 'mfcc2': 1, 'mfcc3': 1, 'mfcc4': 1, 'mfcc5': 1}, forceAnal=False, p=None, searchPaths=[]):	
+	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[]):	
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		assert os.path.exists(self.ircamdescriptor_bin)
 		# check for other bin files #
@@ -43,20 +43,16 @@ class SdifInterface:
 		self.F0MaxFrequency = F0MaxFrequency
 		self.F0AmpThreshold = F0AmpThreshold
 		self.F0Quality = F0Quality
-		self.numbPeaks = numbPeaks
-		# CLUSTER ANALYSIS
-		self.numbClust = numbClust
-		self.clustDescriptDict = clustDescriptDict			
 		# PEAKS SUPERVP ANALYSIS
-		self.peaksThreshold = 70
-		# PARTIALS PM2
-		self.partialThreshold = 70
-		self.maxpartials = 12
-		self.minParConnectSec = 0.317000001
-		self.minParConnectFrqRatio = 1.28920708
-		self.minParDuration = 0.0
+#		self.peaksThreshold = 70
+#		# PARTIALS PM2
+#		self.partialThreshold = 70
+#		self.maxpartials = 12
+#		self.minParConnectSec = 0.317000001
+#		self.minParConnectFrqRatio = 1.28920708
+#		self.minParDuration = 0.0
 		self.agDescriptToSdif = agDescriptToSdif
-		self.halfWinLengthSec = self.winLengthSec / 2.0
+#		self.halfWinLengthSec = self.winLengthSec / 2.0
 		# other stuff
 		self.forceAnal = forceAnal
 		self.p = p
@@ -142,7 +138,7 @@ TextureWindowsHopFrames = -1
 	#############################
 	def expandDescriptorPackages(self, ops):
 		for spass in ops.SEARCH:
-			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, ops.IRCAMDESCRIPTOR_NUMB_MFCCS, ops.SUPERVP_NUMB_PEAKS)
+			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, ops.IRCAMDESCRIPTOR_NUMB_MFCCS)
 	#############################
 	def getDescriptorLists(self, ops):
 		self.expandDescriptorPackages(ops)
@@ -646,7 +642,7 @@ def clusterAnalysis(clusteringMatrix, numb_clusters):# cluster analysis
 
 
 
-def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs, numbSupervpPeaks):
+def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 	from UserClasses import SingleDescriptor as d
 	newListOfDescriptorObjs = []
 	
@@ -664,10 +660,10 @@ def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs, numbSup
 			for i in range(numb):
 				metricsToWrite.append( ( 'cluster_cent'+str(i)+dobj.name[13:], dobj.weight/float(numb) ) )
 			#print metricsToWrite
-		elif dobj.name.find('peakfrqs') != -1:
-			for i in range(ops.SUPERVP_NUMB_PEAKS):
-				metricsToWrite.append( ('peakfrq'+str(i)+dobj.name[10:], dobj.weight*((numbSupervpPeaks)/float(numbSupervpPeaks)) ) )
-				metricsToWrite.append( ('peakamp'+str(i)+dobj.name[10:], 0) )
+#		elif dobj.name.find('peakfrqs') != -1:
+#			for i in range(ops.SUPERVP_NUMB_PEAKS):
+#				metricsToWrite.append( ('peakfrq'+str(i)+dobj.name[10:], dobj.weight*((numbSupervpPeaks)/float(numbSupervpPeaks)) ) )
+#				metricsToWrite.append( ('peakamp'+str(i)+dobj.name[10:], 0) )
 		elif dobj.name.find('crests') != -1:
 			for i in range(4):
 				metricsToWrite.append( [ 'crest'+str(i)+dobj.name[6:], dobj.weight/4. ] )

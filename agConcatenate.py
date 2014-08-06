@@ -281,8 +281,6 @@ if ops.LISP_OUTPUT_FILEPATH != None:
 	fh.close()
 	p.log( "Wrote lisp output file %s\n"%ops.LISP_OUTPUT_FILEPATH )
 
-
-
 ########################################
 ## data from segmentation file output ##
 ########################################
@@ -292,8 +290,6 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 		fh.write(line)
 	fh.close()
 	p.log( "Wrote data from segmentation file to textfile %s\n"%ops.DATA_FROM_SEGMENTATION_FILEPATH )
-
-
 
 ########################
 ## csound output file ##

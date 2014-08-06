@@ -1,5 +1,6 @@
 # ignore generated python files
 output/*
+tests/*
 *.bbprojectd
 *.rtf
 *.pyc

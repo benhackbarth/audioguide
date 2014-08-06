@@ -192,8 +192,12 @@ class printer:
 	###############################################
 	def percentageBarNext(self, lowerLabel='', incr=1):
 		if self.v < 2: return
-		outText = lowerLabel+(' '*(self.updateLength-len(lowerLabel)))
-		self.progress.update(self.counter/(self.maxNumb-1), outText)
+		maxlen = self.updateLength-20
+		if len(lowerLabel) >=  maxlen:
+			writetext = lowerLabel[maxlen*-1:]+(' '*(self.updateLength-len(lowerLabel[maxlen*-1:])))
+		else:
+			writetext = lowerLabel+(' '*(self.updateLength-len(lowerLabel)))
+		self.progress.update(self.counter/(self.maxNumb-1), writetext)
 		self.counter += incr
 	###############################################
 	def percentageBarClose(self, txt="Done."):

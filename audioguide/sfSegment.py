@@ -265,7 +265,8 @@ class target: # the target
 		self.startSec = userOptsTargetObject.start
 		self.endSec = userOptsTargetObject.end
 		self.segmentationThresh = userOptsTargetObject.thresh
-		self.segmentationRise = userOptsTargetObject.rise
+		self.segmentationOffsetRise = userOptsTargetObject.offsetRise
+		self.segmentationOffsetThreshAdd = userOptsTargetObject.offsetThreshAdd
 		self.segmentationMinLenSec = userOptsTargetObject.minSegLen
 		self.segmentationMaxLenSec = userOptsTargetObject.maxSegLen
 		self.envDb = userOptsTargetObject.scaleDb
@@ -273,7 +274,7 @@ class target: # the target
 		self.stretch = userOptsTargetObject.stretch
 	########################################
 	def timeStretch(self, SdifInterface, ops, p):
-		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, ops.SUPERVP_STRETCH_FLAGS, p=p)
+		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, p=p)
 		self.startSec = 0 # this now gets reset, as starttime was considered when making the stretched file
 		self.endSec = None # this now gets reset, as endtime was considered when making the stretched file
 	########################################
@@ -288,62 +289,84 @@ class target: # the target
 		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface)
 		self.whole.midiPitchMethod = self.midiPitchMethod
 		self.lengthInFrames = self.whole.lengthInFrames
+
+		# SEGMENTATION
+		self.filename = os.path.abspath(self.filename)
 		self.segmentationMinLenFrames = SdifInterface.s2f(self.segmentationMinLenSec, self.filename, minimum=1)
 		self.segmentationMaxLenFrames = SdifInterface.s2f(self.segmentationMaxLenSec, self.filename)
 		p.log("TARGET SEGMENTATION: minimum segment length %.3f sec; maximum %.3f sec"%(self.segmentationMinLenSec, self.segmentationMaxLenSec))
-		minPower = min(self.whole.desc['power'])
-		if minPower < util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH): # use absolute threshold
+		self.minPower = min(self.whole.desc['power'])
+		if self.minPower < util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH): # use absolute threshold
 			self.powerOffsetValue = util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH)
 			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH))
 		else:
-			self.powerOffsetValue = minPower*util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_REL_THRESH)
-			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using TARGET_SEGMENT_OFFSET_DB_REL_THRESH dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH, ops.TARGET_SEGMENT_OFFSET_DB_REL_THRESH, util.ampToDb(self.powerOffsetValue)))
+			self.powerOffsetValue = self.minPower*util.dbToAmp(self.segmentationOffsetThreshAdd)
+			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using offsetThreshAdd dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, self.segmentationOffsetThreshAdd, self.segmentationOffsetThreshAdd, util.ampToDb(self.powerOffsetValue)))
 	
-		
-		# segment the target
 		self.segs = []
 		self.segmentationInFrames = []
 		self.segmentationInSec = []
 		self.segmentationLogic = []
-		f = 0
-		while True:
-			if f >= self.whole.lengthInFrames: break # we are done!
-			trigVal = self.whole.thresholdTest(f, ops.TARGET_ONSET_DESCRIPTORS)
-			if trigVal < self.segmentationThresh:
-				f += 1
-				continue
-			# found an onset, let's find the offset...
-			self.segmentationLogic.append([SdifInterface.f2s(f), 'triggered', trigVal])
-			endOffset = self.whole.lengthInFrames
-			segLen = self.segmentationMinLenFrames
-			lengths = []
+		lengths = []
+		
+		if ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH == None:
+			f = 0
 			while True:
-				if f+segLen+1 >= self.whole.lengthInFrames:
-					reason = ['eof', self.whole.lengthInFrames]
-					self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'eof', SdifInterface.f2s(self.whole.lengthInFrames)])
-					break
-			
-				thisAmpDb = util.ampToDb(self.whole.desc['power'][f+segLen])
-				riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
-				if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
-					self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'drop', thisAmpDb])
-					break
-				if riseRatio >= self.segmentationRise:
-					self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'rise', riseRatio])
-					break
-				segLen += 1
-			self.segmentationInFrames.append((f, f+segLen))
-			self.segmentationInSec.append((SdifInterface.f2s(f), SdifInterface.f2s(f+segLen)))
-			lengths.append(SdifInterface.f2s(segLen))
-			f += segLen
+				if f >= self.whole.lengthInFrames: break # we are done!
+				trigVal = self.whole.thresholdTest(f, ops.TARGET_ONSET_DESCRIPTORS)
+				if trigVal < self.segmentationThresh:
+					f += 1
+					continue
+				# an onset because above trigger threshold
+				self.segmentationLogic.append([SdifInterface.f2s(f), 'triggered', trigVal])
+				segLen = self.segmentationMinLenFrames
+				while True:
+					# an offset if end of file is reached
+					if f+segLen+1 >= self.whole.lengthInFrames:
+						reason = ['eof', self.whole.lengthInFrames]
+						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'eof', SdifInterface.f2s(self.whole.lengthInFrames)])
+						break
+					# an offset if max seg length is reached
+					if segLen+1 >= self.segmentationMaxLenFrames:
+						reason = ['maxSegLength', self.whole.lengthInFrames]
+						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'maxSegLength', self.segmentationMaxLenSec])
+						break			
+					# an offset if amplitude is below offset threshold
+					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
+						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'drop', util.ampToDb(self.whole.desc['power'][f+segLen])])
+						break
+					# an offset if riseratio is too large
+					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
+					if riseRatio >= self.segmentationOffsetRise:
+						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'rise', riseRatio])
+						break
+					segLen += 1
+				self.segmentationInFrames.append((f, f+segLen))
+				f += segLen
+			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, util.ampToDb(self.segmentationOffsetThreshAdd))
+		else: # load target segments from a file
+			p.log("TARGET SEGMENTATION: reading segments from file %s"%(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH))
+			for dataentry in util.readAudacityLabelFile(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH):
+				startf = SdifInterface.s2f(dataentry[0], self.filename)
+				endf = SdifInterface.s2f(dataentry[1], self.filename)
+				self.segmentationInFrames.append((startf, endf))
+			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH)[1])
+		###################################
+		## make segment times in seconds ##
+		###################################
+		for start, end in self.segmentationInFrames:
+			self.segmentationInSec.append((SdifInterface.f2s(start), SdifInterface.f2s(end)))
+			lengths.append(SdifInterface.f2s(end-start))
 
+
+		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
 			segment = targetSegment(self.filename, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
 			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
 			self.segs.append(segment)
-		p.percentageBarClose(txt="Found %i segments (threshold=%.1f rise=%.2f)."%(len(self.segs), self.segmentationThresh, self.segmentationRise))
+		p.percentageBarClose(txt=closebartxt)
 		# done!
 	
 		if len(self.segs) == 0:
@@ -356,9 +379,11 @@ class target: # the target
 			try:
 				import json as json
 			except ImportError:
-				import simplejson as json		
+				import simplejson as json
+			outputdict = self.whole.desc.getdict()
+			outputdict['frame2second'] = SdifInterface.f2s(1)
 			fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
-			json.dump(self.whole.desc.getdict(), fh)
+			json.dump(outputdict, fh)
 			fh.close()
 			p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
 

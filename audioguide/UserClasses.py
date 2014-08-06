@@ -6,12 +6,13 @@ import numpy as np
 
 
 class TargetOptionsEntry:
-	def __init__(self, filename, start=None, end=None, thresh=-40, rise=1.5, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1):
+	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1):
 		self.filename = filename
 		self.start = start
 		self.end = end
 		self.thresh = thresh
-		self.rise = rise
+		self.offsetRise = offsetRise
+		self.offsetThreshAdd = offsetThreshAdd
 		self.minSegLen = minSegLen
 		self.maxSegLen = maxSegLen
 		self.scaleDb = scaleDb
@@ -169,9 +170,10 @@ class SingleDescriptor:
 			self.is_mixable = mixBool
 		else:
 			for pname in self.parents:
-				filetype, energyBool, mixBool, frame, matrix, row, col = sdiflinkage.agDescriptToSdif[pname]
-				if energyBool: self.describes_energy = True
-				if mixBool: self.is_mixable = True
+				if sdiflinkage.agDescriptToSdif.has_key(pname):
+					filetype, energyBool, mixBool, frame, matrix, row, col = sdiflinkage.agDescriptToSdif[pname]
+					if energyBool: self.describes_energy = True
+					if mixBool: self.is_mixable = True
 	########################################
 	def __repr__(self):
 		return self.name

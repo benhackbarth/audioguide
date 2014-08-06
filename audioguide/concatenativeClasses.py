@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, types
 import util, descriptordata, sfSegment
 import numpy as np
 
@@ -41,11 +41,37 @@ class parseOptions:
 			ops[item] = util.verifyOutputPath(val, scriptpath)
 		# assign dict to this classes' attributes so that values may
 		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
+		self.checkOptionsVariableTypes(ops)
+		
 		for k, v in ops.items(): setattr(self, k, v)
+	#############################
+	def checkOptionsVariableTypes(self, ops):		
+		# string or None
+		for attr in ['TARGET_DESCRIPTORS_FILEPATH', 'DICT_OUTPUT_FILEPATH', 'ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH', 'TARGET_OFFLINE_SEGMENTAITON_FILEPATH', 'SUPERIMPOSITION_LABEL_FILEPATH', 'CSOUND_RENDER_FILEPATH', 'LOG_FILEPATH', 'MIDI_FILEPATH', 'LISP_OUTPUT_FILEPATH', 'TARGET_SEGMENTATION_GRAPH_FILEPATH', 'DATA_FROM_SEGMENTATION_FILEPATH', 'TARGET_PLOT_DESCRIPTORS_FILEPATH', 'TARGET_SEGMENT_LABELS_FILEPATH', 'CSOUND_CSD_FILEPATH', 'PM2_BIN', 'SUPERVP_BIN']:
+			test = self.typeTest(ops[attr], [types.NoneType, types.StringType])
+		
+		# int or None
+		for attr in ['RANDOM_SEED', ]:
+			test = self.typeTest(ops[attr], [types.NoneType, types.IntType])
+		# bool
+		for attr in ['DESCRIPTOR_FORCE_ANALYSIS', 'CSOUND_PLAY_RENDERED_FILE', 'ALERT_ON_ERROR', 'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION', 'PRINT_SIM_SELECTION_HISTO', 'PRINT_SELECTION_HISTO', 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS',]:
+			test = self.typeTest(ops[attr], [bool])
+		
+		
+		['VERBOSITY', 'DESCRIPTOR_WIN_SIZE_SEC', 'IRCAMDESCRIPTOR_RESAMPLE_RATE', 'CSOUND_KR', 'IRCAMDESCRIPTOR_F0_AMP_THRESHOLD', 'IRCAMDESCRIPTOR_F0_MAX_FREQUENCY', 'SEARCH', 'IRCAMDESCRIPTOR_WINDOW_TYPE', 'TARGET_SEGMENT_OFFSET_DB_REL_THRESH', 'ORDER_CORPUS_BY_DESCRIPTOR', 'SUPERVP_NUMB_PEAKS', 'OUTPUT_TIME_STRETCH', 'OUTPUT_TIME_ADD', 'TARGET', 'IRCAMDESCRIPTOR_NUMB_MFCCS', 'SUPERVP_STRETCH_FLAGS', 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR', 'DESCRIPTOR_HOP_SIZE_SEC',  'SEARCH_PATHS', 'CORPUS_GLOBAL_ATTRIBUTES', 'CSOUND_SR', 'TARGET_ONSET_DESCRIPTORS', 'OUTPUT_GAIN_DB', 'IRCAMDESCRIPTOR_F0_MIN_FREQUENCY', 'CSOUND_CHANNEL_RENDER_METHOD', 'IRCAMDESCRIPTOR_F0_QUALITY', 'IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ', 'VOICE_PATTERN', 'TARGET_SEGMENT_OFFSET_DB_ABS_THRESH', 'ROTATE_VOICES']
+
+	
+	
+	#############################
+	def typeTest(self, thing, types):
+		output = False
+		for t in types:
+			if isinstance(thing, t): output=True
+		return output
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
-		linkage = sdiflinkage.SdifInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, numbPeaks=self.SUPERVP_NUMB_PEAKS, numbClust=self.CLUSTERANAL_NUMB_CLUSTS, clustDescriptDict=self.CLUSTERANAL_DESCRIPTOR_DIM, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p)
+		linkage = sdiflinkage.SdifInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, winLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, hopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p)
 		linkage.getDescriptorLists(self)
 		return linkage
 ##########################################################
