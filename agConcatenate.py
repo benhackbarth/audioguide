@@ -241,6 +241,17 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 	fh.close()
 	p.log( "Wrote JSON dict file %s\n"%ops.DICT_OUTPUT_FILEPATH )
 
+#####################################
+## maxmsp list output pour gilbert ##
+#####################################
+if ops.MAXMSP_OUTPUT_FILEPATH != None:
+	output = [oe.makeMaxMspListOutput() for oe in outputEvents]
+	fh = open(ops.MAXMSP_OUTPUT_FILEPATH, 'w')
+	json.dump(output, fh)
+	fh.close()
+	p.log( "Wrote MAX/MSP JSON lists to file %s\n"%ops.MAXMSP_OUTPUT_FILEPATH )
+
+
 ######################
 ## midi output file ##
 ######################
