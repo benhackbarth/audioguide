@@ -245,13 +245,16 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 ## maxmsp list output pour gilbert ##
 #####################################
 if ops.MAXMSP_OUTPUT_FILEPATH != None:
-	output = [oe.makeMaxMspListOutput() for oe in outputEvents]
+	output = {}
+	allusedcpsfiles = [oe.filename for oe in outputEvents]
+	output['target_file'] = [tgt.filename, tgt.startSec*1000., tgt.endSec*1000.]
+	output['events'] = [oe.makeMaxMspListOutput() for oe in outputEvents]
+	output['corpus_files'] = list(set(allusedcpsfiles))
 	fh = open(ops.MAXMSP_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
 	fh.close()
 	p.log( "Wrote MAX/MSP JSON lists to file %s\n"%ops.MAXMSP_OUTPUT_FILEPATH )
-
-
+	
 ######################
 ## midi output file ##
 ######################

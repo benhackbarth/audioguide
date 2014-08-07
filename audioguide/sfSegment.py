@@ -289,6 +289,8 @@ class target: # the target
 			self.timeStretch(SdifInterface, ops, p)
 		# analise the whole target sound!
 		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface)
+		self.startSec = self.whole.segmentStartSec
+		self.endSec = self.whole.segmentEndSec
 		self.whole.midiPitchMethod = self.midiPitchMethod
 		self.lengthInFrames = self.whole.lengthInFrames
 
