@@ -124,17 +124,16 @@ class cpsLimit:
 			self.cnt_reject.append(sfobj)
 		return test
 	########################################
-	def printRejects(self, cps):
+	def printRejects(self, cps, p):
 		dicty = {}
 		for sf in self.cnt_reject:
 			id = os.path.split(sf.userCpsStr)[1]
 			if not dicty.has_key(sf.voiceID): dicty[sf.voiceID] = 0
 			dicty[sf.voiceID] += 1
-		output = self.origString+'\n'
+		p.pprint( self.origString, colour='BOLD')
 		for voiceID, numb in dicty.iteritems():
 			percent = numb*100. / float(cps.data['cspInfo'][voiceID]['segs'])
-			output += "\tremoved %.1f%% segments from %s\n"%(percent, cps.data['cspInfo'][voiceID]['filehead'])
-		return output
+			p.printreject(numb, percent, cps.data['cspInfo'][voiceID]['filehead'])
 
 
 
@@ -331,6 +330,7 @@ class corpus:
 
 		p.percentageBarClose(txt="Read %i/%i segments (%.0f%%, %.2f min.)"%(self.data['postLimitSegmentCount'], len(self.preLimitSegmentList), self.data['postLimitSegmentCount']/float(len(self.preLimitSegmentList))*100., self.data['totalLengthInSeconds']/60.))
 
+		self.printConcateLimitations(p)
 
 
 	############################################################################
@@ -355,12 +355,14 @@ class corpus:
 		# test to make sure some samples made it though usert limitations... 
 		if self.data['postLimitSegmentCount'] == 0:
 			util.error('CORPUS', "No database segments made it into the selection pool.  Check limits..")
+	############################################################################
+	def printConcateLimitations(self, p): # return only same with a certain starting prefix
 		# print corpus segment data
-		for limitList in [self.globalLimits,self.localLimits]:	
+		for limitList in [self.globalLimits, self.localLimits]:	
 			if len(limitList) > 0:
-				print('LIMITS')
+				p.pprint('LIMITS')
 				for cpsLimitObj in limitList:
-					print( cpsLimitObj.printRejects(self) )
+					cpsLimitObj.printRejects(self, p)
 				print('\n')
 	############################################################################
 	def nameTest(self, name, prefixList): # return only same with a certain starting prefix

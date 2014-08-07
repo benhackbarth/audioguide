@@ -345,7 +345,7 @@ class target: # the target
 					segLen += 1
 				self.segmentationInFrames.append((f, f+segLen))
 				f += segLen
-			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, util.ampToDb(self.segmentationOffsetThreshAdd))
+			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
 		else: # load target segments from a file
 			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
 			for dataentry in util.readAudacityLabelFile(self.segmentationFilepath):

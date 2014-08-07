@@ -239,6 +239,9 @@ class printer:
 	###############################################
 	def pprint(self, string, colour='RED'):
 		self.renderOrLog(self.term.render("${%s}%s${NORMAL}"%(colour, str(string))))
+	###############################################
+	def printreject(self, numb, percent, file):
+		self.renderOrLog(self.term.render("\tremoved ${BOLD}"+str(numb)+"${NORMAL} (${BLUE}"+"%.1f%%"%percent+"${NORMAL}) ${NORMAL}segments from "+file+"\n"))
 
 
 
