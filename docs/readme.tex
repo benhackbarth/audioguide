@@ -55,8 +55,8 @@ stringstyle=\color[rgb]{0.627,0.126,0.941},
 \begin{center}
 \includegraphics[width=0.75\textwidth]{image0.png}
 
-By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz. \\
-Copyright Ben Hackbarth, 2011-2013.
+By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno. \\
+Copyright Ben Hackbarth, 2011-2014.
 \end{center}
 
 \tableofcontents
@@ -420,7 +420,7 @@ SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.9, maxratio=1.1)] #
 
 Remember, the order of the spass objects in the SEARCH variable is very important -- it is essentially the order of operations.
 
-\subsubsection{The D object}
+\subsubsection{The d() object}
 Use the `d' object for specifying a descriptor in the SEARCH variable.
 
  \begin{lstlisting}[language=python]
@@ -489,6 +489,7 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 
 
+
 \section{Other Options}
 \subsection{Descriptor Computation Parameters}
 \optEntry{DESCRIPTOR\_FORCE\_ANALYSIS}{bool}{False}{if True forces \ag to remake SDIF analysis, even if previously made.}
@@ -511,11 +512,9 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{IRCAMDESCRIPTOR\_F0\_QUALITY}{float}{0.1}{see ircamdescriptor documentation for details.}
 
-\optEntry{SUPERVP\_STRETCH\_FLAGS}{string}{-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td\_thresh 1.2 -td\_G 2.5 -td\_band 0,22050 -td\_nument 10 -td\_minoff 0.02s -td\_mina 9.9999997e-06 -td\_minren 0 -td\_evstre 1 -td\_ampfac 1.5 -td\_relax 100 -td\_relaxto 1 -FCombineMul -shape 1 -Vuf -4}{flags used for time stretching target sounds with supervp.  I wouldn't try to change this...}
+\optEntry{SUPERVP\_BIN}{string/None}{None}{Optionally specify a path to the supervp analysis binary.  Used for target pre-concatenation time stretching.}
 
-\optEntry{SUPERVP\_BIN}{string/None}{None}{}
-
-\optEntry{PM2\_BIN}{string/None}{None}{}
+\optEntry{PM2\_BIN}{string/None}{None}{Optionally specify a path to the pm2 analysis binary.  Currently not implemented.}
 
 
 \subsection{Concatenation}
@@ -527,33 +526,44 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{OUTPUT\_TIME\_ADD}{float}{0.}{offset the start time of selected events by a value in seconds.}
 
-\subsection{Output Files}\label{outputfiles}
+\subsection{Concatenation Output Files}\label{outputfiles}
 For each of the following *\_FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, \ag will create the file relative to the location o the agConcatenate.py script.
 
 \optEntry{CSOUND\_CSD\_FILEPATH}{string/None}{output/output.csd}{creates an output csd file for rendering the resulting concatenation with csound.}
 
 \optEntry{CSOUND\_RENDER\_FILEPATH}{string/None}{output/output.aiff}{sets the sound output file in the CSOUND\_CSD\_FILEPATH file.  This is the name of csound's output soundfile and will be created at the end of concatenation.}
 
-\optEntry{LOG\_FILEPATH}{string/None}{output/log.txt}{a log file with lots of information from the concatenation algorithm.}
-
 \optEntry{MIDI\_FILEPATH}{string/None}{output/output.mid}{a midi file of the concatenation with pitches chosen according to midiPitchMethod from each corpus entry.}
-
-\optEntry{TARGET\_SEGMENT\_LABELS\_FILEPATH}{string/None}{output/targetlabels.txt}{Audacity-style labels showing how the target sound was segmented.}
 
 \optEntry{SUPERIMPOSITION\_LABEL\_FILEPATH}{string/None}{output/superimpositionlabels.txt}{Audacity-style labels showing the selected corpus sounds and how they overlap.}
 
 \optEntry{LISP\_OUTPUT\_FILEPATH}{string/None}{output/output.lisp.txt}{a textfile containing selected corpus events as a lisp-style list.}
 
-%\optEntry{PARAM\_SCORE\_FILEPATH}{string/None}{output/paramscore.txt}{.}
+\optEntry{DATA\_FROM\_SEGMENTATION\_FILEPATH}{string/None}{None}{This file lists all of the extra data of selected events during concatenation.  This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment.  This is useful if you want to tag each corpus segment with text based information for use later.}
 
-\optEntry{DICT\_OUTPUT\_FILEPATH}{string/None}{output.json}{a textfile containing selected corpus events in json fotmat.}
+\optEntry{DICT\_OUTPUT\_FILEPATH}{string/None}{output/output.json}{a textfile containing selected corpus events in json format.}
+
+\optEntry{MAXMSP\_OUTPUT\_FILEPATH}{string/None}{output/output.maxmsp.json}{a textfile containing a list of selected corpus events.  Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.}
+
+
+\subsection{Other Output Files}\label{otheroutputfiles}
+For each of the following *\_FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, \ag will create the file relative to the location o the agConcatenate.py script.
+
+\optEntry{LOG\_FILEPATH}{string/None}{output/log.txt}{a log file with lots of information from the concatenation algorithm.}
+
+\optEntry{TARGET\_SEGMENT\_LABELS\_FILEPATH}{string/None}{output/targetlabels.txt}{Audacity-style labels showing how the target sound was segmented.}
+
+\optEntry{TARGET\_SEGMENTATION\_GRAPH\_FILEPATH}{string/None}{None}{like TARGET\_SEGMENT\_LABELS\_FILEPATH, this variable creates a file to show information about target segmentation.  Here however, the output is a jpg graph of the onset and offset times and the target's power.  This output requires you to install python's module matplotlib.}
 
 \optEntry{TARGET\_DESCRIPTORS\_FILEPATH}{string/None}{targetdescriptors.json}{saves the loaded target descriptors to a json dictionary.}
 
 \optEntry{TARGET\_PLOT\_DESCRIPTORS\_FILEPATH}{string/None}{None}{creates a plot of each target descriptor used in concatenation.  Doesn't work for averaged descriptors (``-seg''), only time varying descriptors.}
 
 
+
 \subsection{Printing/Interaction}
+\optEntry{SEARCH\_PATHS}{list}{[]}{a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that \ag examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn't do anything.}
+
 \optEntry{ALERT\_ON\_ERROR}{bool}{False}{will attempt to play the system alert sound when exiting with an error.  Pretty irritating, but then again you probably deserve it.}
 
 \optEntry{VERBOSITY}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
@@ -561,6 +571,37 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 \optEntry{PRINT\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.}
 
 \optEntry{PRINT\_SIM\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus overlapping selection after concatenation.  If false (the default) will add this information to the log file, if used.}
+
+
+\subsection{Csound Rendering}
+\optEntry{CSOUND\_SR}{int}{48000}{The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound's output soundfile.}
+
+\optEntry{CSOUND\_KR}{int}{128}{The control rate used for csound rendering.  See csound's documentation for more information.}
+
+\optEntry{CSOUND\_CHANNEL\_RENDER\_METHOD}{string}{"mix"}{Tells \ag how deal with corpus segments distribution in the output soundfile  By default`'mix'' creates a 2 channel csound file and puts mono corpus sounds in the middle of the stereo field.  The string ``oneChannelPerVoice'' tells audioguide to selected sounds from each item of the CORPUS list into a separate channel.  The number of output channels will equal the length of the CORPUS variable.}
+
+\optEntry{CSOUND\_STRETCH\_CORPUS\_TO\_TARGET\_DUR}{string/None}{None}{Affects the durations of concatenated sound events rendered by csound.  By default None doesn't do anything -- csound plays back each corpus sound according to its duration.  ``pv'' uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  ``transpose'' does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.}
+
+\optEntry{CSOUND\_PLAY\_RENDERED\_FILE}{bool}{True}{if True, \ag will play the rendered csound file at the command line at the end of the concatenative algorithm.}
+
+
+
+%############ TARGET  ############
+%TARGET_ONSET_DESCRIPTORS = {'power-odf-7': 1}
+%TARGET_SEGMENT_OFFSET_DB_ABS_THRESH = -80.
+%TARGET_OFFLINE_SEGMENTAITON_FILEPATH = None
+%
+%##########  CORPUS   #######
+%CORPUS_GLOBAL_ATTRIBUTES = {}
+%VOICE_PATTERN = []
+%ROTATE_VOICES = False
+%ORDER_CORPUS_BY_DESCRIPTOR = 'centroid-seg'
+%
+%#######  CONCATENATE SELECTION  #######
+%ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS = False
+%RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION = False
+
+
 
 
 

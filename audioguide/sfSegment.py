@@ -267,11 +267,13 @@ class target: # the target
 		self.segmentationThresh = userOptsTargetObject.thresh
 		self.segmentationOffsetRise = userOptsTargetObject.offsetRise
 		self.segmentationOffsetThreshAdd = userOptsTargetObject.offsetThreshAdd
+		self.segmentationOffsetThreshAbs = userOptsTargetObject.offsetThreshAbs
 		self.segmentationMinLenSec = userOptsTargetObject.minSegLen
 		self.segmentationMaxLenSec = userOptsTargetObject.maxSegLen
 		self.envDb = userOptsTargetObject.scaleDb
 		self.midiPitchMethod = userOptsTargetObject.midiPitchMethod
 		self.stretch = userOptsTargetObject.stretch
+		self.segmentationFilepath = userOptsTargetObject.segmentationFilepath
 	########################################
 	def timeStretch(self, SdifInterface, ops, p):
 		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, p=p)
@@ -296,12 +298,12 @@ class target: # the target
 		self.segmentationMaxLenFrames = SdifInterface.s2f(self.segmentationMaxLenSec, self.filename)
 		p.log("TARGET SEGMENTATION: minimum segment length %.3f sec; maximum %.3f sec"%(self.segmentationMinLenSec, self.segmentationMaxLenSec))
 		self.minPower = min(self.whole.desc['power'])
-		if self.minPower < util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH): # use absolute threshold
-			self.powerOffsetValue = util.dbToAmp(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH)
-			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(ops.TARGET_SEGMENT_OFFSET_DB_ABS_THRESH))
+		if self.minPower < util.dbToAmp(self.segmentationOffsetThreshAbs): # use absolute threshold
+			self.powerOffsetValue = util.dbToAmp(self.segmentationOffsetThreshAbs)
+			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(self.segmentationOffsetThreshAbs))
 		else:
 			self.powerOffsetValue = self.minPower*util.dbToAmp(self.segmentationOffsetThreshAdd)
-			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in TARGET_SEGMENT_OFFSET_DB_ABS_THRESH.  So, I'm using offsetThreshAdd dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, self.segmentationOffsetThreshAdd, self.segmentationOffsetThreshAdd, util.ampToDb(self.powerOffsetValue)))
+			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in offsetThreshAbs.  So, I'm using offsetThreshAdd dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, self.segmentationOffsetThreshAdd, self.segmentationOffsetThreshAdd, util.ampToDb(self.powerOffsetValue)))
 	
 		self.segs = []
 		self.segmentationInFrames = []
@@ -309,11 +311,11 @@ class target: # the target
 		self.segmentationLogic = []
 		lengths = []
 		
-		if ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH == None:
+		if self.segmentationFilepath == None:
 			f = 0
 			while True:
 				if f >= self.whole.lengthInFrames: break # we are done!
-				trigVal = self.whole.thresholdTest(f, ops.TARGET_ONSET_DESCRIPTORS)
+				trigVal = self.whole.thresholdTest(f, SdifInterface.tgtOnsetDescriptors)
 				if trigVal < self.segmentationThresh:
 					f += 1
 					continue
@@ -345,12 +347,12 @@ class target: # the target
 				f += segLen
 			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, util.ampToDb(self.segmentationOffsetThreshAdd))
 		else: # load target segments from a file
-			p.log("TARGET SEGMENTATION: reading segments from file %s"%(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH))
-			for dataentry in util.readAudacityLabelFile(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH):
+			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
+			for dataentry in util.readAudacityLabelFile(self.segmentationFilepath):
 				startf = SdifInterface.s2f(dataentry[0], self.filename)
 				endf = SdifInterface.s2f(dataentry[1], self.filename)
 				self.segmentationInFrames.append((startf, endf))
-			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(ops.TARGET_OFFLINE_SEGMENTAITON_FILEPATH)[1])
+			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 		###################################
 		## make segment times in seconds ##
 		###################################

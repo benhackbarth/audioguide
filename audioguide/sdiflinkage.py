@@ -26,6 +26,7 @@ def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.jo
 class SdifInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
+	tgtOnsetDescriptors = {'power-odf-7': 1}
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[]):	
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		assert os.path.exists(self.ircamdescriptor_bin)
@@ -151,7 +152,7 @@ TextureWindowsHopFrames = -1
 				#dobj.origin = 'SEARCH'
 				self.addDescriptorIfNeeded(dobj, ops, addParents=True)
 		# add target onset descriptors
-		for dname, weight in ops.TARGET_ONSET_DESCRIPTORS.items():
+		for dname, weight in self.tgtOnsetDescriptors.items():
 			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
 		# add limiting descriptors
 		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
@@ -160,7 +161,7 @@ TextureWindowsHopFrames = -1
 		# add ordering by descriptor
 		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR, ops.ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH]:
 			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
-		for dname, weight in ops.TARGET_ONSET_DESCRIPTORS.items():
+		for dname, weight in self.tgtOnsetDescriptors.items():
 			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
 		# add internal mectrics if not already used
 		internalDescriptorNames = ['power', 'peakTime-seg', 'power-seg', 'power-mean-seg', 'effDur-seg', 'f0-seg', 'MIDIPitch-seg']

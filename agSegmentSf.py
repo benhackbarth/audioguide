@@ -19,9 +19,6 @@ parser.add_option("-p", "--plot", action="store_true", dest="PLOT_OUTPUT", defau
 (options, args) = parser.parse_args()
 
 
-TARGET_SEGMENTATION_GRAPH_FILEPATH = None #'output/targetlabels.jpg'
-
-
 
 ###########################################
 ## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
@@ -33,14 +30,12 @@ sys.path.append(libpath)
 from audioguide import sfSegment, concatenativeClasses, userinterface, util, sdiflinkage
 # import all other modules
 import numpy as np
-try:
-	import json as json
-except ImportError:
-	import simplejson as json
+try: import json as json
+except ImportError: import simplejson as json
 from UserClasses import TargetOptionsEntry as tsf
 from UserClasses import SingleDescriptor as d
 
-
+createdSegFiles = 0
 for file in args:
 	# test if its an audio file
 	file = os.path.abspath(file)
@@ -54,15 +49,13 @@ for file in args:
 		continue
 
 	if options.PLOT_OUTPUT:
-		plotMe = 'output/corpussegmentation.jpg'
+		plotMe = file+'.jpg'
 	else:
 		plotMe = None
 		
 	agopts = {
-	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
+	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, minSegLen=%f, maxSegLen=%f, offsetThreshAbs=-200)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
 	'VERBOSITY': 0,
-	'TARGET_SEGMENT_OFFSET_DB_ABS_THRESH': -200.0,
-
 	'LOG_FILEPATH': None,
 	'CSOUND_CSD_FILEPATH': None,
 	'CSOUND_RENDER_FILEPATH': None,
@@ -76,7 +69,6 @@ for file in args:
 	'TARGET_DESCRIPTORS_FILEPATH': None,
 	'TARGET_PLOT_DESCRIPTORS_FILEPATH': None,
 	'TARGET_SEGMENTATION_GRAPH_FILEPATH': plotMe
-	
 	}
 
 
@@ -91,22 +83,19 @@ for file in args:
 	filetosegment = sfSegment.target(ops.TARGET)
 	filetosegment.initAnal(SdifInterface, ops, p)
 	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
-	
 	p.pprint("%s"%filetosegment.filename)
 	p.pprint("\nAN ONSET HAPPENS when", colour="BOLD")
 	print("The amplitude crosses the Relative Onset Trigger Threshold: %.2f\n"%(options.TRIGGER_THRESHOLD))
-	
-	#print("\tpeak amplitude (absolute): %.2f"%util.ampToDb(max(filetosegment.whole.desc['power'])))
-	#print("\tminimum amplitude (absolute): %.2f"%minamp)
 	p.pprint("\nAN OFFSET HAPPENS when", colour="BOLD")
 	print("1. Offset Rise Ratio: when next-frame's-amplitude/this-frame's-amplitude >= %.2f"%(options.RISERATIO))
 	print("...or...")
 	print("2. Offset dB above minimum: when this frame's absolute amplitude <= %.2f (minimum found amplitude of %.2f plus the offset dB boost of %.2f)\n"%(util.ampToDb(filetosegment.powerOffsetValue), minamp, options.MINIMUM_DB_OFFSET_BOOST))
-	
-	if options.OUTPUT_FILE == '':
-		segFile = file+'.txt'
-	else:
-		segFile = os.path.abspath(options.OUTPUT_FILE)
+	if options.OUTPUT_FILE == '': segFile = file+'.txt'
+	else: segFile = os.path.abspath(options.OUTPUT_FILE)
 	filetosegment.writeSegmentationFile(segFile)
 	print( "\nFound %i segments"%(len(filetosegment.segs)) )
 	print( "Wrote file %s\n"%(segFile) )
+	createdSegFiles += 1
+	
+if (createdSegFiles == 0):
+	print("\n\nError: I didn't create any segmentation textfiles because you didn't give me any soundfiles in your input arguments!  You wrote: %s\n\n"%(' '.join(sys.argv)))

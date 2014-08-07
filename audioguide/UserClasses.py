@@ -6,21 +6,20 @@ import numpy as np
 
 
 class TargetOptionsEntry:
-	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1):
+	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None):
 		self.filename = filename
 		self.start = start
 		self.end = end
 		self.thresh = thresh
 		self.offsetRise = offsetRise
 		self.offsetThreshAdd = offsetThreshAdd
+		self.offsetThreshAbs = offsetThreshAbs
 		self.minSegLen = minSegLen
 		self.maxSegLen = maxSegLen
 		self.scaleDb = scaleDb
 		self.midiPitchMethod = midiPitchMethod
 		self.stretch = stretch
-
-
-
+		self.segmentationFilepath = segmentationFilepath
 
 class CorpusOptionsEntry:
 	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.1,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False):

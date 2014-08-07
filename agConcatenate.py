@@ -106,7 +106,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		segidxt = superimp.test('segidx', segidx, ops.SUPERIMPOSE.minSegment, ops.SUPERIMPOSE.maxSegment)
 		overt = superimp.test('overlap', tif, ops.SUPERIMPOSE.minOverlap, ops.SUPERIMPOSE.maxOverlap)
 		onsett = superimp.test('onset', tif, ops.SUPERIMPOSE.minOnset, ops.SUPERIMPOSE.maxOnset)
-		trigVal = tgtseg.thresholdTest(segSeek, ops.TARGET_ONSET_DESCRIPTORS)
+		trigVal = tgtseg.thresholdTest(segSeek, SdifInterface.tgtOnsetDescriptors)
 		trig = trigVal >= tgt.segmentationThresh
 		####################################################
 		# skip selecting if some criteria doesn't match!!! #
