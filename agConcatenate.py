@@ -31,7 +31,7 @@ ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, s
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 p.printProgramInfo(audioguide.__version__)
 SdifInterface = ops.createSdifInterface(p)
-p.middleprint('CONCATENATE SOUNDFILE')
+p.middleprint('SOUNDFILE CONCATENATION')
 
 
 ############
@@ -73,7 +73,6 @@ for dobj in SdifInterface.normalizeDescriptors:
 p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
-#p.barOpen('Concatenating Based on %s'%ops.SUPERIMPOSE.searchOrder, len(tgt.segFrames)+1)
 superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
 cps.setupCorpusConcatenationLimitations(tgt, SdifInterface)
 outputEvents = []
@@ -222,12 +221,19 @@ if ops.PRINT_SIM_SELECTION_HISTO:
 if ops.PRINT_SELECTION_HISTO:
 	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
 
-p.logsection( "OUTPUT FILES" )
+
 #####################################
 ## sort outputEvents by start time ##
 #####################################
 outputEvents.sort(key=lambda x: x.timeInScore)
 
+
+###########################
+## temporal quantization ##
+###########################
+concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL))
+
+p.logsection( "OUTPUT FILES" )
 ######################
 ## dict output file ##
 ######################

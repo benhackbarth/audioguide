@@ -245,7 +245,6 @@ class corpus:
 				#######################
 				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, SdifInterface.validSfExtensions)
 				cobj.segmentationFile = None # don't print it
-				print files
 				for file in files:
 					segFileTest = file+cobj.segmentationExtension
 					if not cobj.wholeFile and not os.path.isfile(segFileTest):
@@ -587,7 +586,6 @@ class SuperimposeTracker():
 
 
 
-
 class outputEvent:
 	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, minOutputMidi=21):		
 		# soundfile stuff
@@ -650,5 +648,32 @@ class outputEvent:
 
 
 
-	
+def quantizeTime(outputEvents, method, interval):
+	if method == None:
+		'''Does nothing'''
+		pass
+		
+	elif method == 'snapToGrid':
+		'''Quantize each note's start time to the nearest value
+		of OUTPUT_QUANTIZE_TIME_INTERVAL seconds'''
+		for oe in outputEvents:
+			oe.timeInScore = (int(oe.timeInScore/interval))*interval
+		
+	elif method == 'medianAggregate':
+		'''Sets each note's start time to the median time
+		of notes found in time slices of OUTPUT_QUANTIZE_TIME_INTERVAL
+		length in seconds.'''
+		lastEvent = outputEvents[-1].timeInScore
+		for oe in outputEvents:
+			oe.quantizeInx = int(oe.timeInScore/interval)
+		
+		for qstep in range(int(lastEvent/interval)+1):
+			found = []
+			for oe in outputEvents: 
+				if oe.quantizeInx == qstep: found.append(oe)
+			if len(found) == 0: # nothing here
+				continue
+			qstepMedianTime = np.median([oe.timeInScore for oe in found])
+			for oe in found: oe.timeInScore = qstepMedianTime
+
 
