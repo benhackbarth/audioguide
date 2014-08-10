@@ -6,12 +6,14 @@ parser = OptionParser(usage="usage: %prog [options] soundfile")
 parser.set_defaults(TRIGGER_THRESHOLD=-40)
 parser.set_defaults(RISERATIO=1.3)
 parser.set_defaults(MINIMUM_DB_OFFSET_BOOST=+12)
+parser.set_defaults(DB_OFFSET_ABSOLUTE=-80)
 parser.set_defaults(MINIMUM_SEG=0.1)
 parser.set_defaults(MAXIMUM_SEG=1000)
 parser.set_defaults(OUTPUT_FILE='')
 parser.add_option("-t", "--triggerthreshold", action="store", dest="TRIGGER_THRESHOLD", type="float", help="set the threshold for detecting segment onsets.  a value from -100 to 0 where a lower value make onsets happen more frequently.  default=-40")
 parser.add_option("-r", "--riseratio", action="store", dest="RISERATIO", type="float", help="set the rise-ratio used in determining segment offsets.  the rise-ratio is the ratio of a frame's amplitude to the next frame's amplitude.  in an active segment, if this ratio is greater than user-supplied rise-ratio, it will cause an offset.  it must be greater than 1.  default=1.3")
 parser.add_option("-d", "--minoffsetdbboost", action="store", dest="MINIMUM_DB_OFFSET_BOOST", type="float", help="set the minimum-db-offset-boost.  this value in dB is added to the soundfile's minimum amplitude.  in an active segment, if a frame's amplitude is below this threshold, it causes a segment offset.  default=+12")
+parser.add_option("-a", "--offsetabsolute", action="store", dest="DB_OFFSET_ABSOLUTE", type="float", help="set the minimum-db-offset-boost.  this value in dB is added to the soundfile's minimum amplitude.  in an active segment, if a frame's amplitude is below this threshold, it causes a segment offset.  default=+12")
 parser.add_option("-s", "--minimum", action="store", dest="MINIMUM_SEG", type="float", help="set the minimum segment length in seconds.  segments will be forced to be this duration in seconds or greater.  default=0.1")
 parser.add_option("-l", "--maximum", action="store", dest="MAXIMUM_SEG", type="float", help="set the maximum segment length in seconds.  segments will be forced to be this duration in seconds or shorter.  default=1000")
 parser.add_option("-f", "--file", action="store", dest="OUTPUT_FILE", type="str", help="set the name of the output file.  by default it is the soundfile name + '.txt'")
@@ -56,7 +58,7 @@ for file in args:
 		plotMe = None
 		
 	agopts = {
-	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, minSegLen=%f, maxSegLen=%f, offsetThreshAbs=-200)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
+	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
 	'VERBOSITY': 0,
 	'LOG_FILEPATH': None,
 	'CSOUND_CSD_FILEPATH': None,

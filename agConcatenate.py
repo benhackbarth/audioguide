@@ -40,6 +40,9 @@ p.middleprint('SOUNDFILE CONCATENATION')
 p.logsection( "TARGET" )
 tgt = sfSegment.target(ops.TARGET)
 tgt.initAnal(SdifInterface, ops, p)
+if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
+	tgt.writeSegmentationFile(ops.TARGET_SEGMENT_LABELS_FILEPATH)
+	p.log( "Wrote target label file %s\n"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
 
 ############
 ## CORPUS ##
@@ -275,13 +278,6 @@ if ops.MIDI_FILEPATH != None:
 	MyMIDI.writeFile(binfile)
 	binfile.close()
 	p.log( "Wrote MIDIfile %s\n"%ops.MIDI_FILEPATH )
-
-#################################
-## target segment label output ##
-#################################
-if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
-	tgt.writeSegmentationFile(ops.TARGET_SEGMENT_LABELS_FILEPATH)
-	p.log( "Wrote target label file %s\n"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
 
 ###################################
 ## superimpose label output file ##

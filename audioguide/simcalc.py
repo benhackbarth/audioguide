@@ -1,6 +1,6 @@
-import sys, operator
+import sys, operator, random
 import numpy as np
-import sfSegment, util
+import util
 
 
 
@@ -12,7 +12,6 @@ class BreakIt(Exception):
 
 class distanceCalculations:
 	def __init__(self, superimposeObj, randomseed, SdifInterface, p):
-		import random
 		random.seed(randomseed)
 		self.p = p
 		self.searchResults = []
@@ -51,14 +50,10 @@ class distanceCalculations:
 					# so ratio=1.1 of corpus is 110% of target
 					if ratio > maxd: maxd = ratio
 					if ratio < mind: mind = ratio
-					#print "\t", spassobj.maxratio, ratio
-					
 					if spassobj.minratio != None and ratio < spassobj.minratio: continue
 					if spassobj.maxratio != None and ratio > spassobj.maxratio: continue
 					newList.append(c)
-				self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
 				self.corpusObjs = newList
-				self.lengthAtPasses.append('%i'%(len(newList)))
 			else:
 				########################################################
 				## search segmented and timevarying feature distances ##
@@ -109,7 +104,8 @@ class distanceCalculations:
 				self.logTextOutput += "\tdistance calc pass #%i - %s - %i -> %i ( %2.2f <-> %2.2f )\n"%(spidx+1, spassobj.method, len(self.corpusObjs), len(newList), mind, maxd)
 				self.corpusObjs = newList
 				
-				self.lengthAtPasses.append('%i'%(len(newList)))
+			
+			self.lengthAtPasses.append('%i'%(len(newList)))
 		# done with loop
 		assert len(self.corpusObjs) == 1
 		self.searchResults.append( self.corpusObjs[0] )

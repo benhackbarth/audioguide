@@ -116,7 +116,8 @@ class SfSegment:
 			util.error('sfSegment init', 'startSec is greater than its endSec!!')
 		# test if requested read too long
 		if self.segmentEndSec > self.soundfileTotalDuration:
-			print "WARNING", 'endSec is longer than the file\'s duration!!', self.filename, 
+			print('\n\nWARNING endSec (%.2f) is longer than the file\'s duration(%.2f)!!  Truncating to filelength.\n\n'%(self.segmentEndSec, self.soundfileTotalDuration))
+			self.segmentEndSec = self.soundfileTotalDuration
 			#util.error('sfSegment init', 'endSec is after the the file\'s duration!!')
 	#################################
 	#################################
@@ -328,21 +329,25 @@ class target: # the target
 					# an offset if end of file is reached
 					if f+segLen+1 >= self.whole.lengthInFrames:
 						reason = ['eof', self.whole.lengthInFrames]
-						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'eof', SdifInterface.f2s(self.whole.lengthInFrames)])
+						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						self.segmentationLogic[-1].extend([endtimeSec, 'eof', SdifInterface.f2s(self.whole.lengthInFrames)])
 						break
 					# an offset if max seg length is reached
 					if segLen+1 >= self.segmentationMaxLenFrames:
 						reason = ['maxSegLength', self.whole.lengthInFrames]
-						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'maxSegLength', self.segmentationMaxLenSec])
+						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						self.segmentationLogic[-1].extend([endtimeSec, 'maxSegLength', self.segmentationMaxLenSec])
 						break			
 					# an offset if amplitude is below offset threshold
 					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
-						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'drop', util.ampToDb(self.whole.desc['power'][f+segLen])])
+						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						self.segmentationLogic[-1].extend([endtimeSec, 'drop', util.ampToDb(self.whole.desc['power'][f+segLen])])
 						break
 					# an offset if riseratio is too large
 					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
 					if riseRatio >= self.segmentationOffsetRise:
-						self.segmentationLogic[-1].extend([SdifInterface.f2s(f+segLen), 'rise', riseRatio])
+						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						self.segmentationLogic[-1].extend([endtimeSec, 'rise', riseRatio])
 						break
 					segLen += 1
 				self.segmentationInFrames.append((f, f+segLen))
