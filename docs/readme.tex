@@ -289,6 +289,8 @@ csf('Vienna-harpNotes/', includeStr='_p_', scaleDb=-30),
 \begin{description}
 \item[scaleDb] applies an amplitude change to each segment of this collection. by default, it is 0, yielding no change. -6 = twice as soft.  Note that amplitude scaling affects both the concatenative algorithm and the csound rendering.  
 
+\item[limitDur] limits the duration of each segment from this csf() entry.  The duration of all segments over this value (in seconds) will be truncated.  
+
 \item[onsetLen] if onsetLen is a float or integer, it is the fade-in time in seconds.  If it is a string formed as '10\%', it is interpreted as a percent of each segment's duration.  So, onsetLen=0.1 yields a 100 ms. attack envelope while onsetLen='50\%' yields a fade in over 50\% of the segment's duration.
 
 \item[offsetLen] Same as onsetLen, but for the envelope fade out.
@@ -299,7 +301,26 @@ csf('lachenmann.aiff', onsetLen=0.1, offsetLen='50%') # will apply a 100ms fade 
 \end{lstlisting}
 \begin{description}
 
-\item[transMethod] A string indicating how to transpose segments chosen from this corpus entry.
+\item[postSelectAmpBool] If True, \ag will attempt to change the amplitude of selected segments to match the amplitude of the target.  The default, False, makes no adjustment.
+\item[postSelectAmpMethod] Tells \ag how to attempt to match corpus and target amplitudes.  It is only meaningful if postSelectAmpMethod is True:
+\begin{description}
+\item[`power-mean-seg'] will use the mean of segment powers' to change adjust selected segments amplitudes.  
+\item[`power-seg'] will adjust amplitudes according to peak amplitudes.  
+\end{description}
+\item[postSelectAmpMin] If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.
+\item[postSelectAmpMax] If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.
+
+\item[transMethod] A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:
+\begin{description}
+\item[None] yields no transposition.
+\item[`single-pitch n'] yields no transposition.
+\item[`random n m'] transposes this segment randomally between midi pitch n and m.
+\item[`f0'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment.
+\item[`f0-chroma'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment modulo 12 (i.e., matching its chroma).
+\end{description}
+
+
+
 
 \item[transQuantize] Quantization interval for transposition of corpus sounds.  1 will quantize to semitones, 0.5 to quarter tones, 2 to whole tones, etc.
 

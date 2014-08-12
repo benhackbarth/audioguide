@@ -192,7 +192,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 				if dobj.describes_energy and dobj.name != 'power':
 					tgtseg.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, tgtseg, None, None)
 			for d in AveragedDescList:
-				tgtseg.desc[d.name].clear()			
+				tgtseg.desc[d.name].clear()
 		#####################################
 		## mix chosen sample's descriptors ##
 		#####################################
