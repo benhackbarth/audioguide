@@ -7,18 +7,16 @@
 \usepackage{textcomp}
 \definecolor{listinggray}{gray}{0.9}
 \definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
- \usepackage{graphicx}
- \usepackage{setspace}
- \usepackage{parskip}
- \usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{xspace}
 \lstset{
 backgroundcolor=\color{lbcolor}, tabsize=3, rulecolor=\color{white}, language=python, basicstyle=\scriptsize, upquote=true, aboveskip={0.75\baselineskip}, columns=fixed, showstringspaces=false, extendedchars=true, breaklines=true, prebreak=, breakindent=0.5em, frame=single, showtabs=false, showspaces=false, showstringspaces=false, identifierstyle=\ttfamily, keywordstyle=\color[rgb]{0,0,1}, commentstyle=\color[rgb]{0.133,0.545,0.133}, stringstyle=\color[rgb]{0.627,0.126,0.941}
 }
 \usepackage{color,hyperref}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.3}
-\hypersetup{colorlinks,breaklinks,
-            linkcolor=blue,urlcolor=blue,
-            anchorcolor= blue,citecolor= blue,citebordercolor=Violet, filebordercolor=Red,linkbordercolor=Blue}
+\hypersetup{colorlinks,breaklinks,linkcolor=blue,urlcolor=blue,anchorcolor= blue,citecolor= blue,citebordercolor=Violet, filebordercolor=Red,linkbordercolor=Blue}
             
 \newcommand{\figurewrap}[2]{\begin{figure}[h!]
 \centering
@@ -61,63 +59,74 @@ Using \ag comes down to interacting with python scripts in the \ag folder.  For 
 
 The reason that segmentation and concatenation are separated into discrete steps that I find is useful to fine-tune the segmentation of corpus sounds \emph{before} using them in a concatenation.  Soundfile segmentation is a difficult technical problem and should remain conceptually and aesthetically open-ended.  I have yet to find an algorithm that does not require adjustments based on the nature of the sound in question and the intention of the user as to what a segment should be.
 
-%
-%\subsection{Segmenting Corpus Soundfiles}
-%\emph{Note}: If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip\footnote{But make sure tell \ag not to search for segmentation textfiles by setting the corpus attribute wholeFIle=True.  See the Manipulating How Directories Are Read subsection of the CORPUS options section for more info.} the \emph{Segmenting Corpus Soundfiles} section and proceed to the concatenation section.
-%
-%The script you use to segment your corpus files with a script called `agSegmentSf.py'.  The output of agSegmentSf.py is a textfile which denotes the start and stop times of autonomous sound segments in a continuous audiofile.  Once you find a segmentation that you're happy with, you don't need to keep running this script.
-%Whats more, you do not \emph{need} to use `agSegmentSf.py' if you do not want to -- instead you could:
-%\begin{enumerate}
-%\item use whole soundfiles as segments
-%\item create segmentation files by hand
-%\item create segmentation files with other software as long the textfile is written in the same format as \ag's.
-%\end{enumerate}
-%
-%To segment a corpus file, `cd' into the \ag folder and run the following command:
-%
-%\begin{lstlisting}[language=python]
-%$ > python2.7 agSegmentSf.py examples/lachenmann.aiff
-%\end{lstlisting}
-%
-%\ag will think for a second, and then output the following data detailing the segmentation of this audiofile:
-%
-%\begin{lstlisting}[language=python]
-%------------------- \ag SEGMENT SOUNDFILE -------------------
-%
-%
-%	Found 86 segments in /Users/ben/Desktop/\ag-1.1.0/examples/lachenmann.aiff
-%	Wrote target label file /Users/ben/Desktop/\ag-1.1.0/examples/lachenmann.aiff.txt
-%\end{lstlisting}
-%
-%As a result of running this python script, \ag wrote a textfile called examples/lachenmann.aiff.txt.  In it are 86 segments obtained using a triggering threshold of -40 dB, a rise ratio of 1.3 and a offset dB value of -54 (you can read more about how to alter these values and their effect in the subsequent section).
-%
-%\subsection{Concatenating}
-%Next you call the concatenate script agConcatenate.py with an \ag options file as the first (and only) argument.  
-%
-%To run one of the examples in the examples directory, run the following command inside the \ag directory:
-%\begin{lstlisting}[language=python]
-%python2.7 agConcatenate.py examples/01-simplest.py
-%\end{lstlisting}
-%
-%..which will use the options contained in `examples/01-simplest.py' to parameterize the concatenative algorithm.  In this file you specify the target sound, the corpus sounds, and perhaps lots of other options that parameterize the concatenative process.  The `agConcatenate.py' script will perform the following operations:
-%\begin{enumerate}
-%\item Run an ircamdescriptor analysis of the soundfile in the \ref{target} TARGET variable\footnote{An SDIF analysis is only done once -- subsequent usages of a soundfile simply read SDIF data from disk.  Analysis files are stored in a directory called `\ag/data\_json/' in the \ag folder.  This directory can become quite large since these SDIF files are quite large in size.  Removing this folder will cause all SDIF files to be recomputed.}.  
-%\item Segment the target sound according to your options file.  An Audacity-style label file is created in a file called `output/tgtLabels.txt' in the output directory.
-%\item Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
-%\item (If you've specified them) Remove corpus segment according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
-%\item Normalise target and corpus descriptor data according to your options file.
-%\item Go through each target segment one by one.  Select corpus segment(s) to match each target segment according to the descriptors and search passes in the SEARCH variable of your options file.  Control over the layering and superimposition of corpus sounds is specified in the SUPERIMPOSE variable.
-%\item Write selected segments to a sound score called `output/output.csd' in the output directory.  There are many other types of outputs which you can read about in the output file subsection \ref{outputfiles} in the last part of this document.
-%\item If you have csound, `output/output.csd' is rendered with csound to create an audiofile called `output/output.aiff'.
-%\item If you have csound, automatic playback of `output/output.aiff' at the command line.
-%\end{enumerate}
-%
-%
-%\section{Corpus Segmentation}
-%`agSegmentSf.py' uses a segmentation labeling format identical to that of the soundfile editor Audacity.  So, to examine your segments, open lachenmann.aiff in Audacity, then import labels and select `examples/lachenmann.aiff.txt'.
-%
-%\figurewrap{image1.png}{1}
-%
+
+\subsection{Segmenting Corpus Soundfiles}
+\emph{Note}: If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip\footnote{But make sure tell \ag not to search for segmentation textfiles by setting the corpus attribute wholeFIle=True.  See the Manipulating How Directories Are Read subsection of the CORPUS options section for more info.} the \emph{Segmenting Corpus Soundfiles} section and proceed to the concatenation section.
+
+The script you use to segment your corpus files with a script called `agSegmentSf.py'.  AgSegmentSf.py automatically creates a textfile which denotes the start and stop times of sound segments in a continuous audiofile.  Once you find a segmentation that you're happy with you're ready to use this sound file in the agConcatenate.py script.
+Keep in mind that you do not \emph{need} to use agSegmentSf.py if you do not want to -- instead you could:
+\begin{enumerate}
+\item use whole soundfiles as segments
+\item create segmentation files by hand
+\item create segmentation files with other software as long the textfile is written in the same format as \ag's.
+\end{enumerate}
+
+To segment a corpus file, `cd' into the \ag folder and run the following command:
+
+\begin{lstlisting}[language=python]
+$ > python2.7 agSegmentSf.py examples/lachenmann.aiff
+\end{lstlisting}
+
+\ag will think for a second, and then output the following data detailing the segmentation of this audiofile:
+
+\begin{lstlisting}[language=python]
+---------------------- AUDIOGUIDE SEGMENT SOUNDFILE ----------------------
+
+Evaluating /Users/ben/Documents/audioguide1.1/examples/lachenmann.aiff from 0.00-64.65
+
+AN ONSET HAPPENS when
+The amplitude crosses the Relative Onset Trigger Threshold: -40.00 (-t option)
+
+
+AN OFFSET HAPPENS when
+1. Offset Rise Ratio: when next-frame's-amplitude/this-frame's-amplitude >= 1.30 (-r option)
+	...or...
+2. Offset dB above minimum: when this frame's absolute amplitude <= -80.00 (minimum found amplitude of -260.00 plus the offset dB boost of 12.00 (-d option))
+
+
+Found 144 segments
+Wrote file /Users/ben/Documents/audioguide1.1/examples/lachenmann.aiff.txt
+\end{lstlisting}
+
+As a result of running this python script, \ag automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension .txt -- in this case: examples/lachenmann.aiff.txt.  In this case \ag found 144 segments obtained using a triggering threshold of -40 dB, a rise ratio of 1.3 and a offset dB value of -80 (you can read more about how to alter these values and their effect in section \ref{segmentation}).
+
+\subsection{Concatenating}
+Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special \ag options file as the first (and only) argument.  
+
+To run one of the examples in the examples directory, run the following command inside the \ag directory:
+\begin{lstlisting}[language=python]
+python2.7 agConcatenate.py examples/01-simplest.py
+\end{lstlisting}
+
+..which will use the options contained in `examples/01-simplest.py' to parameterize the concatenative algorithm.  In this options file you specify a target sound, the corpus sounds, and (if you like) lots of other options that parameterize the concatenative process.  When run, the `agConcatenate.py' script will perform the following summarised operations:
+\begin{enumerate}
+\item Run an ircamdescriptor analysis of the soundfile in the TARGET variable\footnote{An SDIF analysis is only done once -- subsequent usages of this soundfile simply read SDIF data from disk.  Analysis files are stored in a directory called `\ag/data\_json/' in the \ag folder.  This directory can become quite large since these SDIF files are quite substantial in size.  Removing this folder will cause all SDIF files to be recomputed.}.  
+\item Segment the target sound according to your options file.  An Audacity-style label file is created in a file called `output/tgtlabels.txt' in the output directory.
+\item Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
+\item (If you've specified them) Remove corpus segment according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
+\item Normalise target and corpus descriptor data according to your options file.
+\item Go through each target segment one by one.  Select corpus segment(s) to match each target segment according to the descriptors and search passes in the SEARCH variable of your options file.  Control over the layering and superimposition of corpus sounds is specified in the SUPERIMPOSE variable.
+\item Write selected segments to a csound score called `output/output.csd'.  (In addition to the csd file there are many other types of outputs which you can read about in \ref{outputfiles}.
+\item If you have csound, `output/output.csd' is rendered with csound to create an audiofile called `output/output.aiff'.
+\item If you have csound, automatic playback of `output/output.aiff' at the command line.
+\end{enumerate}
+
+
+\section{Corpus Segmentation}\label{segmentation}
+The textfiles created by agSegmentSf.py use a segmentation labeling format identical to that of the soundfile editor Audacity.  So, to examine your segments, open lachenmann.aiff in Audacity, then import labels and select `examples/lachenmann.aiff.txt'.
+
+\figurewrap{image1.png}{1}
+
 %Segmentation textfiles document one segment per line. here is an example line: `1.50 2.13 onset -12.9 offset rise 1.33'.
 %
 %Everything after startSec and endSec is not required by \ag, but give you information about the segmentation logic.  These fields correspond to: startSec endSec onset thresholdValue offset offsetMethod methodValue.
@@ -155,14 +164,14 @@ The reason that segmentation and concatenation are separated into discrete steps
 %\end{lstlisting}
 
 \section{The Concatenation Options File}
-The options file used by the concatenate script if a python file that defines a bunch of variables.  Most variables can be changed with a simple assignments using the `=' symbol.  For instance, to change the path of the csound output sound file, write the following in your myOptions.py file:
+The options file used by the concatenate script is a python file that defines a bunch of variables.  Most variables can be changed with simple assignments using the `=' symbol.  For instance, to change the path of the csound output sound file, write the following in your myOptions.py file:
 \begin{lstlisting}
 CSOUND_RENDER_FILEPATH = '/path/to/the/file/i/want.aiff' # sets the path of the csound output aiff file
 DESCRIPTOR_HOP_SIZE_SEC = 0.02049 # change the analysis hop size
 \end{lstlisting}
 
 
-However, there are five custom objects that are written into the options file as well -- `tsf', `csf', `spass', `d', `si'.  These objects take required parameters and also take keyword arguments.  The following sections describe the object-style variables.
+However, there are five custom objects that are written into the options file as well -- tsf(), csf(), spass(), d() and si().  These objects take required parameters \emph{and also} take keyword arguments.  The following sections describe the object-style variables; Section \ref{otheroptions} details variables changed with the `=' symbol.
 
 \section{The TARGET Variable and tsf() object}\label{target}
 The TARGET variable is written as a tsf() object which requires a path to a soundfile and also takes the following optional keyword arguments:
@@ -201,23 +210,25 @@ The CORPUS variable is defined as a list of csf() objects which require a path t
 
 
 \begin{lstlisting}[language=python]
-csf('pathToFileOrDirectoryOfFiles', allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], hasParams=False, includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30\%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.1,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0,  wholeFile=False, MWinstrName=None,  MWtext=None, MWnotehead='.')
+csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], limit=[], wholeFile=False, recursive=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, onsetLen=0.01, offsetLen='30%', postSelectAmpBool=False, postSelectAmpMethod='power-mean-seg', postSelectAmpMin=-12, postSelectAmpMax=+12, midiPitchMethod='composite', transMethod=None,  transQuantize=0, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
 \end{lstlisting}
 
 
-The simplest way to include a soundfile in your corpus is to use its path as the first argument of the `csf' object:
+
+
+The simplest way to include a soundfile in your corpus is to use its path as the first argument of the csf() object:
 \begin{lstlisting}
 CORPUS = [csf("lachenmann.aiff")] # will search for a segmentation file called lachenmann.aiff.txt and add all of its segments to the corpus
 \end{lstlisting}
 
-The simplest way to include a directory of soundfiles in your corpus is to use its path as the first argument of the `csf' object:
+The simplest way to include a directory of soundfiles in your corpus is to use its path as the first argument of the csf() object:
 \begin{lstlisting}
 CORPUS = [csf("lachenmann.aiff"), csf('piano')] # will use segments from lachenmann.aiff as well as all sounds in the directory called piano
 \end{lstlisting}
 
-\noindent However, as you can see above, each `csf' object has \emph{a lot} of optional arguments to give you better control over what segments are used, how directories are read and how segments are treated during concatenation.  
+\noindent However, as you can see above, each csf() object has \emph{a lot} of optional arguments to give you better control over what segments are used, how directories are read and how segments are treated during concatenation.  
 
-\emph{Note: Each of these keyword arguments only apply to the csf object within which they are written.  If you'd like to specify these parameters for the entire corpus, see section 4.2.5: Specifying CORPUS entry attributes globally.}
+\emph{Note: Each of these keyword arguments only apply to the csf object within which they are written.  If you'd like to specify these parameters for the entire corpus, see \ref{globalcorpus}.}
 
 \subsection{Manipulating which segments are added to the corpus}
 \begin{description}
@@ -310,10 +321,12 @@ csf('lachenmann.aiff', onsetLen=0.1, offsetLen='50%') # will apply a 100ms fade 
 \item[postSelectAmpMin] If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.
 \item[postSelectAmpMax] If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.
 
+\item[midiPitchMethod] Undocumented, sorry!
+
 \item[transMethod] A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:
 \begin{description}
 \item[None] yields no transposition.
-\item[`single-pitch n'] yields no transposition.
+\item[`single-pitch n'] transposes all selected segments from this csf() to midi pitch n.
 \item[`random n m'] transposes this segment randomally between midi pitch n and m.
 \item[`f0'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment.
 \item[`f0-chroma'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment modulo 12 (i.e., matching its chroma).
@@ -347,15 +360,15 @@ csf('piano/', restrictRepetition=2.5) # Each segment is invalid to be picked if 
 
 \item[restrictInTime] a time in seconds specifying how often a sample from this entry may be selected. -- for example restrictInTime=0.5 would permit segments from this collection to be select a maximum of once every 0.5 seconds.
 
-	%\item scaleDistance (1): Adjust the distance when executing a multidimensional search using these segments.  scaleDistance=2 will make these sounds twice as `far', and thus less likely to be selected by the search algorithm.  scaleDistance=0.25 makes _more_ likely to be picked.
+\item[scaleDistance] Scale the resulting distance when executing a multidimensional search using on segments.  scaleDistance=2 will make these sounds twice as `far', and thus less likely to be selected by the search algorithm.  scaleDistance=0.25 makes 4 times more likely to be picked.
 
-\item[superimposeRule]  This one is a little crazy.  Basically, you can specify when this corpus's segments can be chosen based on the number of simultaneously selected samples.  You do this by writing a little equation as a 2-item list.  superimposeRule=('==', 0) says that this set of corpus segments may only be chosen is this is the first selection for this target segment (sim selection `0').  superimposeRule=('>', 2) say this corpus's segments are only valid to by picked if there are already more than 2 selections for this target segment.  I know, right?
+\item[superimposeRule]  This one is a little crazy.  Basically, you can specify when this corpus's segments can be chosen based on the number of simultaneously selected samples.  You do this by writing a little equation as a 2-item list.  superimposeRule=(`==', 0) says that this set of corpus segments may only be chosen is this is the first selection for this target segment (sim selection `0').  superimposeRule=(`>', 2) say this corpus's segments are only valid to by picked if there are already more than 2 selections for this target segment.  I know, right?
 \end{description}
 
 
 \subsection{Miscellaneous}
 \begin{description}
-\item[segmentationFile] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension '.txt'. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.
+\item[segmentationFile] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension `.txt'. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.
 
 \item[segmentationExtension] Manually specify the segmentation text file extension.  See above.
 \end{description}
@@ -367,7 +380,7 @@ csf('lachenmann.aiff', segmentationExtension='-gran.txt') # will use a segmentat
 \end{lstlisting}
 
 
-\subsection{Specifying csf() attributes globally}
+\subsection{Specifying csf() attributes globally}\label{globalcorpus}
 csf() attributes may be specified globally using the variable CORPUS\_GLOBAL\_ATTRIBUTES.  Note that they are specified in dictionary format rather than keyword format.
 
 \begin{lstlisting}
@@ -390,11 +403,11 @@ spass(search_type, descriptor1... descriptorN, percent=None, minratio=None, maxr
 
 And the search\_type string may be among the following methods:
 \begin{description}
-\item[closest] Return the best matching segment.
-\item[closest\_percent] Return the top \emph{percent} percent of the best matching segments.
-\item[farthest] Return the worst matching segment.
-\item[farthest\_percent] Return the worst \emph{percent} percent of segments.
-\item[ratio\_limit] Return segments where the ratio of the target descriptor value to the segment's value falls between minratio and maxratio.  Only works for averaged descriptors.
+\item[`closest'] Return the best matching segment.
+\item[`closest\_percent'] Return the top \emph{percent} percent of the best matching segments.
+\item[`farthest'] Return the worst matching segment.
+\item[`farthest\_percent'] Return the worst \emph{percent} percent of segments.
+\item[`ratio\_limit'] Return segments where the ratio of the target descriptor value to the segment's value falls between minratio and maxratio.  Only works for averaged descriptors.
 \end{description}
 
 
@@ -437,7 +450,7 @@ SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.9, maxratio=1.1)] #
 Remember, the order of the spass objects in the SEARCH variable is very important -- it is essentially the order of operations.
 
 \section{The d() object}
-Use the `d' object for specifying a descriptor in the SEARCH variable.
+Use the d() object for specifying a descriptor in an spass() object.
 
  \begin{lstlisting}[language=python]
 d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energy=False)
@@ -465,12 +478,12 @@ SEARCH= [spass('closest', d('centroid'), d('effDur-seg', norm=1))]
 SEARCH= [spass('closest', d('centroid', distance='pearson'))] # uses a pearson correlation formula for determining distance between the continuously valued centroid of target and corpus segments.
 \end{lstlisting}
 
-\item[energy] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments energy values.  So, softer frames will not penalize distance.
+\item[energy] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments energy values.  So, softer frames will not affect distance as much as louder frames.
 \end{description}
 
 
 \section{The SUPERIMPOSE variable and si() object}
-Use the `si' object for specifying how corpus segments may be superimposed during concatenation.
+Use the si() object for specifying how corpus segments may be superimposed during concatenation.
 
  \begin{lstlisting}[language=python]
 SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, minOverlap=None, maxOverlap=None, searchOrder='power', calcMethod='mixture', peakAlign=False)
@@ -493,11 +506,11 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 
 
-\section{Other Options}
+\section{Other Options}\label{otheroptions}
 \subsection{Descriptor Computation Parameters}
 \optEntry{DESCRIPTOR\_FORCE\_ANALYSIS}{bool}{False}{if True, \ag is forced to remake all SDIF analysis, even if previously made.}
 
-\optEntry{DESCRIPTOR\_WIN\_SIZE\_SEC}{float}{0.04096}{the FFT window size of descriptor analysis in seconds.  0.04096 seconds = 1024 @ 25kHz (the default resample rate).}
+\optEntry{DESCRIPTOR\_WIN\_SIZE\_SEC}{float}{0.04096}{the FFT window size of descriptor analysis in seconds.  0.04096 seconds = 512 @ 12.5kHz (the default resample rate).}
 
 \optEntry{DESCRIPTOR\_HOP\_SIZE\_SEC}{float}{0.01024}{the FFT window overlaps of descriptor analysis in seconds.  Important, as it effectively sets of temporal resolution of \ag.}
 

@@ -1,9 +1,10 @@
 import sys, os, types
-import util, descriptordata, sfSegment
+import util, descriptordata, sfSegment, tests
 import numpy as np
 
 
 
+	
 
 class parseOptions:
 	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
@@ -41,35 +42,8 @@ class parseOptions:
 			ops[item] = util.verifyOutputPath(val, scriptpath)
 		# assign dict to this classes' attributes so that values may
 		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
-		self.checkOptionsVariableTypes(ops)
-		
+		tests.testOpsDict(ops)
 		for k, v in ops.items(): setattr(self, k, v)
-	#############################
-	def checkOptionsVariableTypes(self, ops):		
-		# string or None
-		for attr in ['TARGET_DESCRIPTORS_FILEPATH', 'DICT_OUTPUT_FILEPATH', 'ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH', 'MAXMSP_OUTPUT_FILEPATH', 'SUPERIMPOSITION_LABEL_FILEPATH', 'CSOUND_RENDER_FILEPATH', 'LOG_FILEPATH', 'MIDI_FILEPATH', 'LISP_OUTPUT_FILEPATH', 'TARGET_SEGMENTATION_GRAPH_FILEPATH', 'DATA_FROM_SEGMENTATION_FILEPATH', 'TARGET_PLOT_DESCRIPTORS_FILEPATH', 'TARGET_SEGMENT_LABELS_FILEPATH', 'CSOUND_CSD_FILEPATH', 'PM2_BIN', 'SUPERVP_BIN']:
-			test = self.typeTest(ops[attr], [types.NoneType, types.StringType])
-			assert test
-		# int or None
-		for attr in ['RANDOM_SEED', ]:
-			test = self.typeTest(ops[attr], [types.NoneType, types.IntType])
-			assert test
-		# bool
-		for attr in ['DESCRIPTOR_FORCE_ANALYSIS', 'CSOUND_PLAY_RENDERED_FILE', 'ALERT_ON_ERROR', 'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION', 'PRINT_SIM_SELECTION_HISTO', 'PRINT_SELECTION_HISTO', 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS',]:
-			test = self.typeTest(ops[attr], [bool])
-			assert test
-		
-		
-		['VERBOSITY', 'DESCRIPTOR_WIN_SIZE_SEC', 'IRCAMDESCRIPTOR_RESAMPLE_RATE', 'CSOUND_KR', 'IRCAMDESCRIPTOR_F0_AMP_THRESHOLD', 'IRCAMDESCRIPTOR_F0_MAX_FREQUENCY', 'SEARCH', 'IRCAMDESCRIPTOR_WINDOW_TYPE', 'TARGET_SEGMENT_OFFSET_DB_REL_THRESH', 'ORDER_CORPUS_BY_DESCRIPTOR', 'SUPERVP_NUMB_PEAKS', 'OUTPUT_TIME_STRETCH', 'OUTPUT_TIME_ADD', 'TARGET', 'IRCAMDESCRIPTOR_NUMB_MFCCS', 'SUPERVP_STRETCH_FLAGS', 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR', 'DESCRIPTOR_HOP_SIZE_SEC',  'SEARCH_PATHS', 'CORPUS_GLOBAL_ATTRIBUTES', 'CSOUND_SR', 'OUTPUT_GAIN_DB', 'IRCAMDESCRIPTOR_F0_MIN_FREQUENCY', 'CSOUND_CHANNEL_RENDER_METHOD', 'IRCAMDESCRIPTOR_F0_QUALITY', 'IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ', 'VOICE_PATTERN',  'ROTATE_VOICES']
-
-	
-	
-	#############################
-	def typeTest(self, thing, types):
-		output = False
-		for t in types:
-			if isinstance(thing, t): output=True
-		return output
 	#############################
 	def createSdifInterface(self, p):
 		import sdiflinkage
@@ -677,3 +651,6 @@ def quantizeTime(outputEvents, method, interval):
 			for oe in found: oe.timeInScore = qstepMedianTime
 
 
+	else:
+		util.error("QUANTIZATION", "no quantization method called %s"%method)
+		

@@ -312,7 +312,7 @@ class target: # the target
 		self.segmentationInFrames = []
 		self.segmentationInSec = []
 		self.segmentationLogic = []
-		lengths = []
+		self.seglengths = []
 		
 		if self.segmentationFilepath == None:
 			f = 0
@@ -365,7 +365,7 @@ class target: # the target
 		###################################
 		for start, end in self.segmentationInFrames:
 			self.segmentationInSec.append((SdifInterface.f2s(start), SdifInterface.f2s(end)))
-			lengths.append(SdifInterface.f2s(end-start))
+			self.seglengths.append(SdifInterface.f2s(end-start))
 
 
 		
@@ -377,29 +377,6 @@ class target: # the target
 			self.segs.append(segment)
 		p.percentageBarClose(txt=closebartxt)
 		# done!
-	
-		if len(self.segs) == 0:
-			util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(self.filename))
-		p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.segs), np.average(lengths)))
-		if ops.TARGET_PLOT_DESCRIPTORS_FILEPATH != None:
-			self.plotMetrics(ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, SdifInterface, p)
-
-		if ops.TARGET_DESCRIPTORS_FILEPATH != None:
-			try:
-				import json as json
-			except ImportError:
-				import simplejson as json
-			outputdict = self.whole.desc.getdict()
-			outputdict['frame2second'] = SdifInterface.f2s(1)
-			fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
-			json.dump(outputdict, fh)
-			fh.close()
-			p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
-
-		if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
-			self.plotSegmentation(ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, SdifInterface, p)
- 
-	
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')
@@ -438,7 +415,7 @@ class target: # the target
 			leg = plt.legend([dobj.name, 'power'],'upper right', shadow=False)
 			frame  = leg.get_frame()  
 			frame.set_facecolor('0.90')    # set the frame face color to light gray
-			p.log("TARGET PLOT: plotted descriptor %s"%(savepath))
+			p.log("TARGET: plotted descriptor %s as %s"%(dobj.name, savepath))
 			plt.savefig(savepath)
 			plt.close()
 	########################################
@@ -459,7 +436,7 @@ class target: # the target
 		leg = plt.legend(['power'],'upper right', shadow=False)
 		frame  = leg.get_frame()  
 		frame.set_facecolor('0.90')    # set the frame face color to light gray
-		p.log("SEGMENTATION PLOT: %s"%(outputpath))
+		p.log("TARGET: plotted segmentation to %s"%(outputpath))
 		plt.savefig(outputpath)
 		plt.close()
 

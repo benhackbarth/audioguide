@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-class TargetOptionsEntry:
+class TargetOptionsEntry(object):
 	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None):
 		self.filename = filename
 		self.start = start
@@ -22,7 +22,7 @@ class TargetOptionsEntry:
 		self.segmentationFilepath = segmentationFilepath
 
 
-class CorpusOptionsEntry:
+class CorpusOptionsEntry(object):
 	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False):
 		self.name = name
 		self.start = start
@@ -59,7 +59,7 @@ class CorpusOptionsEntry:
 		
 
 
-class SearchPassOptionsEntry:
+class SearchPassOptionsEntry(object):
 	def __init__(self, *args, **kwargs):	
 		self._all_args = args
 		self.method = args[0]
@@ -79,7 +79,7 @@ class SearchPassOptionsEntry:
 
 
 
-class SuperimpositionOptionsEntry:
+class SuperimpositionOptionsEntry(object):
 	def __init__(self, minSegment=None, maxSegment=None, minOnset=None, maxOnset=None, minOverlap=None, maxOverlap=None, overlapAmpThresh=-70, searchOrder='power', subtractScale=1, subtractDur='corpusDur', ampDur='corpusDur', overlapDur='corpusEffDur', calcMethod='mixture', simCalcDur='corpusEffDur', peakAlign=False, peakAlignEnvelope='subtracted', incr=1):
 		self.minSegment = minSegment
 		self.maxSegment = maxSegment
@@ -107,7 +107,7 @@ class SuperimpositionOptionsEntry:
 
 
 
-class SingleDescriptor:
+class SingleDescriptor(object):
 	def __init__(self, name, weight=1., norm=2., normmethod='stddev', distance='euclidean', limit=False, simultaneous=None, energyWeight=False, origin='SEARCH', neededBy=['target', 'corpus'], packagename=None):
 		singleNumberDescriptors = ['effDur-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
 		#neverRecalculate = ['zeroCross', 'f0', 'peakamp', 'peakfrq']

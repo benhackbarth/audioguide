@@ -40,9 +40,42 @@ p.middleprint('SOUNDFILE CONCATENATION')
 p.logsection( "TARGET" )
 tgt = sfSegment.target(ops.TARGET)
 tgt.initAnal(SdifInterface, ops, p)
+if len(tgt.segs) == 0:
+	util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(tgt.filename))
+p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(tgt.segs), np.average(tgt.seglengths)))
+#######################
+## target label file ##
+#######################
 if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
 	tgt.writeSegmentationFile(ops.TARGET_SEGMENT_LABELS_FILEPATH)
-	p.log( "Wrote target label file %s\n"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
+	p.log( "TARGET: wrote segmentation label file %s"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
+#############################
+## target descriptors file ##
+#############################
+if ops.TARGET_DESCRIPTORS_FILEPATH != None:
+	try:
+		import json as json
+	except ImportError:
+		import simplejson as json
+	outputdict = tgt.whole.desc.getdict()
+	outputdict['frame2second'] = SdifInterface.f2s(1)
+	fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
+	json.dump(outputdict, fh)
+	fh.close()
+	p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
+##############################
+## target descriptor graphs ##
+##############################
+if ops.TARGET_PLOT_DESCRIPTORS_FILEPATH != None:
+	tgt.plotMetrics(ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, SdifInterface, p)
+###############################
+## target segmentation graph ##
+###############################
+if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
+	tgt.plotSegmentation(ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, SdifInterface, p)
+
+
+
 
 ############
 ## CORPUS ##

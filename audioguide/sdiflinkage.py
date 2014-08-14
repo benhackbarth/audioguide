@@ -27,16 +27,29 @@ class SdifInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
 	tgtOnsetDescriptors = {'power-odf-7': 1}
+	powersOfTwo = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
+
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[]):	
+		self.p = p
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		assert os.path.exists(self.ircamdescriptor_bin)
 		# check for other bin files #
 		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')
 		self.supervp_bin = findbin(supervp_bin, 'AudioSculpt3.0b7/Kernels/supervp')
 		# anal
-		self.winLengthSec = winLengthSec
-		self.hopLengthSec = hopLengthSec
 		self.resampleRate = resampleRate
+		#############################################################################
+		## ensure that window and hop sizes are powers of two of the resample rate ##
+		#############################################################################
+		closestWinSize = self.powersOfTwo[np.argmin(np.abs(self.powersOfTwo-(winLengthSec*float(self.resampleRate))))]
+		closestHopSize = self.powersOfTwo[np.argmin(np.abs(self.powersOfTwo-(hopLengthSec*float(self.resampleRate))))]
+		self.winLengthSec = closestWinSize/float(self.resampleRate)
+		self.hopLengthSec = closestHopSize/float(self.resampleRate)
+		if self.p != None: 
+			self.p.log("SDIF CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
+			self.p.log("SDIF CONFIG: using analysis overlap of %.3f (%i samples)"%(self.hopLengthSec, closestHopSize))
+
+
 		self.windowType = windowType
 		self.numbMfccs = numbMfccs
 		self.F0MaxAnalysisFreq = F0MaxAnalysisFreq
@@ -56,7 +69,6 @@ class SdifInterface:
 #		self.halfWinLengthSec = self.winLengthSec / 2.0
 		# other stuff
 		self.forceAnal = forceAnal
-		self.p = p
 		self.searchPaths = searchPaths
 		# mfccs
 		for b in range(self.numbMfccs):
