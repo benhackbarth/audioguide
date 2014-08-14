@@ -1,7 +1,4 @@
 ##############  OUTPUT FILES  #############
-# FOR EACH VARIABLE ENDING IN _FILEPATH:
-#    a value of None will turn off the creation of this file
-#    a string path will create this file in the location specified
 CSOUND_CSD_FILEPATH = 'output/output.csd'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'
 LOG_FILEPATH = 'output/log.txt'

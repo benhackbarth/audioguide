@@ -28,7 +28,7 @@ class SfSegment:
 		##############################################################
 		## check to make sure all user supplied values check out OK ##
 		##############################################################
-		self.testForInitErrors(SdifInterface.validSfExtensions)
+		self.testForInitErrors(SdifInterface)
 		################
 		## other shit ##
 		################
@@ -103,11 +103,12 @@ class SfSegment:
 		return util.ampToDb(trig)/weightsum
 	#################################
 	#################################
-	def testForInitErrors(self, acceptedSoundfileExtensions):
+	def testForInitErrors(self, SdifInterface):
 		# test self.filename
+		oneframesec = SdifInterface.f2s(1)
 		if not os.path.exists(self.filename):
 			util.error('sfSegment init', 'file does not exist: \t%s\n'%self.filename)
-		if self.soundfileExtension.lower() not in acceptedSoundfileExtensions:
+		if self.soundfileExtension.lower() not in SdifInterface.validSfExtensions:
 			util.error('sfSegment init', 'file is not an accepted soundfile type: \t%s\n'%self.filename)
 		# test that startSec is sane
 		if self.segmentStartSec < 0:
@@ -115,7 +116,7 @@ class SfSegment:
 		if self.segmentStartSec >= self.segmentEndSec:
 			util.error('sfSegment init', 'startSec is greater than its endSec!!')
 		# test if requested read too long
-		if self.segmentEndSec > self.soundfileTotalDuration:
+		if self.segmentEndSec > self.soundfileTotalDuration+(oneframesec/2.):
 			print('\n\nWARNING endSec (%.2f) is longer than the file\'s duration(%.2f)!!  Truncating to filelength.\n\n'%(self.segmentEndSec, self.soundfileTotalDuration))
 			self.segmentEndSec = self.soundfileTotalDuration
 			#util.error('sfSegment init', 'endSec is after the the file\'s duration!!')
