@@ -2,13 +2,13 @@ import subprocess, platform, sys, os, util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength):
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, maxOverlaps):
 	if channelRenderMethod in ["mix", None]:
 		nchnls = 2 # mono of stereo depending on corpus sf
 	elif channelRenderMethod == "oneChannelPerVoice":
 		nchnls = cpsLength
 	elif channelRenderMethod == "oneChannelPerOverlap":
-		nchnls = cpsLength
+		nchnls = maxOverlaps
 	else:
 		util.error("csdrenderer", "no know render method %s\n"%channelRenderMethod)
 
@@ -127,10 +127,8 @@ instr 1
 		iOutCh1 = p15+1
 		iOutCh2 = p15+1
 	endif
-	
-;	print iOutCh1, iOutCh2
-;	outch     int(iOutCh1), asnd1, int(iOutCh2), asnd2
-	outs asnd1, asnd2
+
+	outch     int(iOutCh1), asnd1, int(iOutCh2), asnd2
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin
 

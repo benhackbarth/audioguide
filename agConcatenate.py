@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, os, audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
+opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
 from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, sdiflinkage
@@ -12,16 +13,8 @@ except ImportError:
 	import simplejson as json
 
 
-#######################
-## find options file ##
-#######################
-if len(sys.argv) == 1:
-	print('\nPlease specify an options file as the first argument\n')
-	sys.exit(1)
-opspath = os.path.realpath(sys.argv[1])
-if not os.path.exists(opspath):
-	print('\nCouldn\'t find an options called "%s"\n'%sys.argv[1])
-	sys.exit(1)
+
+
 
 
 ###########################################
@@ -345,8 +338,9 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 ########################
 if ops.CSOUND_CSD_FILEPATH != None:
 	import csoundinterface as csd
+	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
 	csSco = ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len, maxOverlaps)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)

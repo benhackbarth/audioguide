@@ -3,12 +3,19 @@ import util, sys
 
 def testOpsDict(dicty):
 	for name, value in dicty.items():
+		#print name, value
 		outcomes = []
 		for tstring in UserVar_types[name]: outcomes.append( testVariable(tstring, value) )
 		#print name, value, outcomes
 		if not True in outcomes: # if none of these test were passed
 			util.error("user variable", "variable %s must be %s (%s given as %s)"%(name, ' or '.join(UserVar_types[name]), str(value), type(value)))
 
+
+
+def testInstance(obj1, obj2):
+	str1 = str(obj1).replace('<','').split()[0].split('.')[-1]
+	str2 = str(obj2).replace('<class \'', '').replace("'>", '').split('.')[-1]
+	return str1 == str2
 
 
 
@@ -28,9 +35,9 @@ def testVariable(vtype, v):
 	elif vtype == 'a dictionary':
 		if isinstance(v, dict): return True
 	elif vtype == 'a tsf() object':
-		if isinstance(v, tsf): return True
+		if testInstance(v, tsf): return True
 	elif vtype == 'a si() object':
-		if isinstance(v, si): return True
+		if testInstance(v, si): return True
 	elif vtype in ['a number greater than zero', 'an integer greater than zero']:
 		if isinstance(v, (int, long, float)) and v > 0.: return True
 	elif vtype in ['a number greater than or equal to zero']:
@@ -39,9 +46,9 @@ def testVariable(vtype, v):
 	elif vtype == 'a list of strings':
 		if not False in [isinstance(i, basestring) for i in v]: return True
 	elif vtype == 'a list of spass() objects':
-		if not False in [isinstance(i, spass) for i in v]: return True
+		if not False in [testInstance(i, spass) for i in v]: return True
 	elif vtype == 'a list of csf() objects':
-		if not False in [isinstance(i, csf) for i in v]: return True
+		if not False in [testInstance(i, csf) for i in v]: return True
 	else: # a string for testing!
 		if v == vtype: return True
 	return False
@@ -106,7 +113,6 @@ UserVar_types = {
 ################  USER INTERACTION / PRINTING  ##############
 'SEARCH_PATHS': ['a list of strings'],
 'VERBOSITY': ['a number greater than or equal to zero'],
-'ALERT_ON_ERROR': ['True or False'],
 'PRINT_SELECTION_HISTO': ['True or False'],
 'PRINT_SIM_SELECTION_HISTO': ['True or False'],
 }

@@ -44,10 +44,10 @@ Copyright Ben Hackbarth, 2011-2014.
 \section{Installation}
 The following lists the dependancies of \ag.  For the moment \ag only works on OS X.  Note that, regarding numpy, recent versions of OS X  (after 10.5) come with python2.7 that automatically has numpy installed.  This distribution of \ag comes with a precompiled version of pysdif for 64-bit python and, on more current machines, should run out of the box.  Here is a complete list of the resources that \ag requires on your computer:
 \begin{description}
-\item[pysdif] To compile install download the \href{http://sourceforge.net/projects/sdif/files/sdif/}{sdif library} and configure, make and install.  Then download my patched version of the \href{http://www.benhackbarth.com/\ag/pysdif-0.1.4-patch.zip}{pysdif module}.  `cd' into the directory when unzipped and run: `python2.7 setup.py install'.  You're now setup to use pysdif in python2.7.
-\item[numpy] Most python2.7 installations come with numpy, a numerical computation module.  Upgrading to the latest python2.7 should get you there.  If you don't have it, you can download the source code or a binary installer \href{http://www.scipy.org/install.html}{here}.
-\item[csound6] Needed only if you would like \ag to automatically render concatenations (which you probably do).  Download an installer from \href{http://www.csounds.com/downloads}{here}.
-\item[matlibplot (optional)] Install this python module to enable graphing of descriptors and soundfile segmentation.
+\item[pysdif] To compile install download the \href{http://sourceforge.net/projects/sdif/files/sdif/}{sdif library} and configure, make and install.  Then download my patched version of the \href{http://www.benhackbarth.com/audioGuide/release/pysdif-0.1.4-patch.zip}{pysdif module}.  `cd' into the directory when unzipped and run: `python2.7 setup.py install'.  You're now setup to use pysdif in python2.7.
+\item[numpy] Most python2.7 installations come with numpy, a numerical computation module.  Upgrading to the latest python2.7 should get you there.  If you don't have it, you can download the source code or a binary installer \href{http://sourceforge.net/projects/numpy/files/NumPy/}{here}.
+\item[csound6] Needed only if you would like \ag to automatically render concatenations (which you probably do).  Download an installer from \href{http://csound.github.io/download.html}{here}.
+\item[matlibplot (optional)] Install this python module to enable graphing of descriptors and soundfile segmentation.  Get it from \href{http://matplotlib.org/downloads.html}{here}.
 \item[supervp (optional)] Used to stretch a target before concatenating.
 \end{description}
 
@@ -188,13 +188,13 @@ tsf('pathtosoundfile', start=0, end=file-length, thresh=-40, offsetRise=1.5, off
 \item[offsetThreshAdd] Segmentation offset relative threshold: a positive value in dB.  
 This value is added to the soundfile's minimum amplitude.  During segmentation, if a frame's amplitude is below this threshold, it causes a segment offset.  Also see offsetThreshAbs.
 \item[offsetThreshAbs] Segmentation offset absolute threshold: a negative value in dB.  When segmenting the target, if a frame's amplitude is below this value it will cause an offset.  This variable is an absolute value while offsetThreshAdd is relative to the soundfile's minimum amplitude.  Effectively, whichever of these two variable is closer to 0 will be the offset threshold.
-\item[minSegLen] Segmentation: the minimum duration in seconds of a target segment.
-\item[maxSegLen] Segmentation: the maximum duration in seconds of a target segment.
+\item[minSegLen*] Segmentation: the minimum duration in seconds of a target segment.
+\item[maxSegLen*] Segmentation: the maximum duration in seconds of a target segment.
 
-\item[scaleDb] Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft.  The target's amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it's energy profile.
+\item[scaleDb*] Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft.  The target's amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it's energy profile.
 
-\item[midiPitchMethod] undocumented !  sorry.
-\item[stretch] Uses SuperVp to time stretch/compress the target sound before analysis and concatenation.  Stretched sound files are saved and reused in the audioguide/data\_stretched\_sfs directory.  A value of 1, the default, will cause no time stretching to be applied.  Note that, in order to use this option, you must set the SUPERVP\_BIN variable in the audioguide/defaults.py file.
+\item[midiPitchMethod] same as corpus method documented in \ref{midipitchmethod}.
+\item[stretch*] Uses SuperVp to time stretch/compress the target sound before analysis and concatenation.  Stretched sound files are saved and reused in the audioguide/data\_stretched\_sfs directory.  A value of 1, the default, will cause no time stretching to be applied.  Note that, in order to use this option, you must set the SUPERVP\_BIN variable in the audioguide/defaults.py file.
 \item[segmentationFilepath] by default the Target sound is segmented at runtime.  However, if you'd like to specify a user-defined segmentation, you may give a file path to this variable.  Note that this file must be a textfile with the same format as corpus segmentation files.
 \end{description}
 
@@ -206,15 +206,11 @@ TARGET = tsf('cage.aiff', start=5, end=7, scaleDb=6) # only use seconds 5-7 of c
 
 
 \section{The CORPUS Variable and csf() object}
-The CORPUS variable is defined as a list of csf() objects which require a path to a soundfile OR a directory.  File paths and/or directory paths may be full paths or relative paths to the location of the options file you're using.  A csf() object takes the following optional keyword arguments:
-
+The CORPUS variable is defined as a list of csf() objects which require a path to a soundfile OR a directory.  File paths and/or directory paths may be full paths or relative paths to the location of the options file you're using or a path found in the SEARCH\_PATHS variable.  A csf() object required the soundfile/directory name, then takes the following optional keyword arguments:
 
 \begin{lstlisting}[language=python]
 csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], limit=[], wholeFile=False, recursive=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, onsetLen=0.01, offsetLen='30%', postSelectAmpBool=False, postSelectAmpMethod='power-mean-seg', postSelectAmpMin=-12, postSelectAmpMax=+12, midiPitchMethod='composite', transMethod=None,  transQuantize=0, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
 \end{lstlisting}
-
-
-
 
 The simplest way to include a soundfile in your corpus is to use its path as the first argument of the csf() object:
 \begin{lstlisting}
@@ -228,7 +224,7 @@ CORPUS = [csf("lachenmann.aiff"), csf('piano')] # will use segments from lachenm
 
 \noindent However, as you can see above, each csf() object has \emph{a lot} of optional arguments to give you better control over what segments are used, how directories are read and how segments are treated during concatenation.  
 
-\emph{Note: Each of these keyword arguments only apply to the csf object within which they are written.  If you'd like to specify these parameters for the entire corpus, see \ref{globalcorpus}.}
+\emph{Note: Each of these keyword arguments \emph{only} apply to the csf() object within which they are written.  If you'd like to specify these parameters for the entire corpus, see \ref{globalcorpus}.}
 
 \subsection{Manipulating which segments are added to the corpus}
 \begin{description}
@@ -242,8 +238,8 @@ csf('lachenmann.aiff', start=20, end=50) # only use segments who start between 2
 \end{lstlisting}
 
 \begin{description}
-\item[includeTimes] A list of two-number lists which specify regions of segments to include from this file's list of segment times.  See example below.
-\item[excludeTimes] Same as includeTimes but excludes segments in the identified regions.
+\item[includeTimes*] A list of two-number lists which specify regions of segments to include from this file's list of segment times.  See example below.
+\item[excludeTimes*] Same as includeTimes but excludes segments in the identified regions.
 \end{description}
 
 \begin{lstlisting}
@@ -252,7 +248,7 @@ csf('lachenmann.aiff', excludeTimes=[(30, 55)]) # use all segments except those 
 \end{lstlisting}
 
 \begin{description}
-\item[limit] A list of equation-like strings where segmented descriptor names are used to include/exclude segments from this file / directory.
+\item[limit*] A list of equation-like strings where segmented descriptor names are used to include/exclude segments from this file / directory.
 \end{description}
 \begin{lstlisting}
 csf('lachenmann.aiff', limit['centroid-seg >= 1000']) # segments whose centroid-seg is equal to or above 1000.
@@ -261,15 +257,27 @@ csf('lachenmann.aiff', limit['centroid-seg < 50%']) # only use 50% of segments w
 
 csf('lachenmann.aiff', limit['power-seg < 50%', 'power-seg > 10%']) # only use segments whose power-seg falls between 10%-50% of the total range of power-seg's in this file/directory.
 \end{lstlisting}
+\begin{description}
+\item[segmentationFile*] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension `.txt'. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.
+
+\item[segmentationExtension*] Manually specify the segmentation text file extension.  See above.
+\end{description}
+
+\begin{lstlisting}
+csf('lachenmann.aiff', segmentationFile='marmotTent.txt') # will use a segmentation file called marmotTent.txt, not the default lachenmann.aiff.txt.
+
+csf('lachenmann.aiff', segmentationExtension='-gran.txt') # will use a segmentation file called lachenmann.aiff-gran.txt, not the default lachenmann.aiff.txt.
+\end{lstlisting}
+
 
 
 
 \subsection{Manipulating How Directories Are Read}
 The following keyword arguments are useful when dealing with directories of files.
 \begin{description}
-\item[wholeFile] (False): if True \ag will use this soundfile as one single segment.  If False, \ag will search for a segmnetation file made with agSegmentSf.py.
+\item[wholeFile*] if True \ag will use this soundfile as one single segment.  If False, \ag will search for a segmnetation file made with agSegmentSf.py.
 
-\item[recursive] (True): if True \ag will include sounds in all subfolders of a given directory.
+\item[recursive*] if True \ag will include sounds in all subfolders of a given directory.
 \end{description}
 
 \begin{lstlisting}
@@ -279,9 +287,9 @@ csf('/Users/ben/gravillons', recursive=False) # will only use soundfiles in the 
 \end{lstlisting}
 
 \begin{description}
-\item[includeStr] (None): A string which is matched against the filename (not full path) of each soundfile in a given directory.  If part of the soundfile name matches this string, it is included.  If not it is excluded.  This is case sensitive.  See example below.
+\item[includeStr*] A string which is matched against the filename (not full path) of each soundfile in a given directory.  If part of the soundfile name matches this string, it is included.  If not it is excluded.  This is case sensitive.  See example below.
 
-\item[excludeStr] (None): Opposite of includeStr.
+\item[excludeStr*] Opposite of includeStr.
 \end{description}
 
 \begin{lstlisting}
@@ -298,13 +306,13 @@ csf('Vienna-harpNotes/', includeStr='_p_', scaleDb=-30),
 
 \subsection{Manipulating How Segments Will Be Concatenated}
 \begin{description}
-\item[scaleDb] applies an amplitude change to each segment of this collection. by default, it is 0, yielding no change. -6 = twice as soft.  Note that amplitude scaling affects both the concatenative algorithm and the csound rendering.  
+\item[scaleDb*] applies an amplitude change to each segment of this collection. by default, it is 0, yielding no change. -6 = twice as soft.  Note that amplitude scaling affects both the concatenative algorithm and the csound rendering.  
 
-\item[limitDur] limits the duration of each segment from this csf() entry.  The duration of all segments over this value (in seconds) will be truncated.  
+\item[limitDur*] limits the duration of each segment from this csf() entry.  The duration of all segments over this value (in seconds) will be truncated.  
 
-\item[onsetLen] if onsetLen is a float or integer, it is the fade-in time in seconds.  If it is a string formed as '10\%', it is interpreted as a percent of each segment's duration.  So, onsetLen=0.1 yields a 100 ms. attack envelope while onsetLen='50\%' yields a fade in over 50\% of the segment's duration.
+\item[onsetLen*] if onsetLen is a float or integer, it is the fade-in time in seconds.  If it is a string formed as '10\%', it is interpreted as a percent of each segment's duration.  So, onsetLen=0.1 yields a 100 ms. attack envelope while onsetLen='50\%' yields a fade in over 50\% of the segment's duration.
 
-\item[offsetLen] Same as onsetLen, but for the envelope fade out.
+\item[offsetLen*] Same as onsetLen, but for the envelope fade out.
 
 \end{description}
 \begin{lstlisting}
@@ -312,30 +320,33 @@ csf('lachenmann.aiff', onsetLen=0.1, offsetLen='50%') # will apply a 100ms fade 
 \end{lstlisting}
 \begin{description}
 
-\item[postSelectAmpBool] If True, \ag will attempt to change the amplitude of selected segments to match the amplitude of the target.  The default, False, makes no adjustment.
-\item[postSelectAmpMethod] Tells \ag how to attempt to match corpus and target amplitudes.  It is only meaningful if postSelectAmpMethod is True:
+\item[postSelectAmpBool*] If True, \ag will attempt to change the amplitude of selected segments to match the amplitude of the target.  The default, False, makes no adjustment.
+\item[postSelectAmpMethod*] Tells \ag how to attempt to match corpus and target amplitudes.  It is only meaningful if postSelectAmpMethod is True:
 \begin{description}
 \item[`power-mean-seg'] will use the mean of segment powers' to change adjust selected segments amplitudes.  
 \item[`power-seg'] will adjust amplitudes according to peak amplitudes.  
 \end{description}
-\item[postSelectAmpMin] If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.
-\item[postSelectAmpMax] If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.
+\item[postSelectAmpMin*] If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.
+\item[postSelectAmpMax*] If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.
 
-\item[midiPitchMethod] Undocumented, sorry!
+\item[midiPitchMethod*]\label{midipitchmethod} this tells \ag how got calculate a midipitch for each segment.  There are several possibilities, detailed below.  Note that if any of these methods do not find a result, -1 is returned.  This attribute is used when writing midi output files.  This data is also accessible as the descriptor d(`MIDIPitch-seg').
+\begin{description}
+\item[`f0-seg'] returns the averaged f0 array as the midipitch.  Note that it is not power weighted - it is actually the median of f0.
+\item[`centroid-seg'] returns the power averaged centroid converted into a midipitch.
+\item[`filename'] looks at the filename of the corpus segment to see if there is a midipitch indicated.  Names like A1ShortSeq.wav, Fs1ShortSeq.wav and BP-flatter-f-A\#3.wav work.
+\item[`composite'] first tries to look for a midipitch in the filename.  If not found, then tries `f0-seg'.
+\end{description}
 
-\item[transMethod] A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:
+\item[transMethod*] A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:
 \begin{description}
 \item[None] yields no transposition.
-\item[`single-pitch n'] transposes all selected segments from this csf() to midi pitch n.
-\item[`random n m'] transposes this segment randomally between midi pitch n and m.
+\item[`single-pitch n'] transposes all selected segments from this csf() to midipitch n.
+\item[`random n m'] transposes this segment randomally between midipitch n and m.
 \item[`f0'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment.
 \item[`f0-chroma'] transposes a selected corpus segment to match the f0-seg of the corresponding target segment modulo 12 (i.e., matching its chroma).
 \end{description}
 
-
-
-
-\item[transQuantize] Quantization interval for transposition of corpus sounds.  1 will quantize to semitones, 0.5 to quarter tones, 2 to whole tones, etc.
+\item[transQuantize*] Quantization interval for transposition of corpus sounds.  1 will quantize to semitones, 0.5 to quarter tones, 2 to whole tones, etc.
 
 \end{description}
 \begin{lstlisting}
@@ -344,9 +355,9 @@ csf('piano/', transMethod='f0-chroma', transQuantize=0.5) # transpose corpus seg
 \end{lstlisting}
 \begin{description}
 
-\item[allowRepetition] If False, any of the segments from this corpus entry may only be picked one time.  If True there is no restriction.
+\item[allowRepetition*] If False, any of the segments from this corpus entry may only be picked one time.  If True there is no restriction.
 
-\item[restrictRepetition] A delay time in seconds where, once chosen, a segment from this corpus entry is invalid to be picked again.  The default is 0.1, which the same corpus segment from being selected in quick succession.
+\item[restrictRepetition*] A delay time in seconds where, once chosen, a segment from this corpus entry is invalid to be picked again.  The default is 0.1, which the same corpus segment from being selected in quick succession.
 
 \end{description}
 \begin{lstlisting}
@@ -356,32 +367,18 @@ csf('piano/', restrictRepetition=2.5) # Each segment is invalid to be picked if 
 \begin{description}
 
 
-\item[restrictOverlaps] An integer specifying how many overlapping samples from this collection may be chosen by the concatenative algorithm at any given moment.  So, restrictOverlaps=2 only permits 2 overlapping voices at a time.
+\item[restrictOverlaps*] An integer specifying how many overlapping samples from this collection may be chosen by the concatenative algorithm at any given moment.  So, restrictOverlaps=2 only permits 2 overlapping voices at a time.
 
-\item[restrictInTime] a time in seconds specifying how often a sample from this entry may be selected. -- for example restrictInTime=0.5 would permit segments from this collection to be select a maximum of once every 0.5 seconds.
+\item[restrictInTime*] a time in seconds specifying how often a sample from this entry may be selected. -- for example restrictInTime=0.5 would permit segments from this collection to be select a maximum of once every 0.5 seconds.
 
-\item[scaleDistance] Scale the resulting distance when executing a multidimensional search using on segments.  scaleDistance=2 will make these sounds twice as `far', and thus less likely to be selected by the search algorithm.  scaleDistance=0.25 makes 4 times more likely to be picked.
+\item[scaleDistance*] Scale the resulting distance when executing a multidimensional search using on segments.  scaleDistance=2 will make these sounds twice as `far', and thus less likely to be selected by the search algorithm.  scaleDistance=0.25 makes 4 times more likely to be picked.
 
-\item[superimposeRule]  This one is a little crazy.  Basically, you can specify when this corpus's segments can be chosen based on the number of simultaneously selected samples.  You do this by writing a little equation as a 2-item list.  superimposeRule=(`==', 0) says that this set of corpus segments may only be chosen is this is the first selection for this target segment (sim selection `0').  superimposeRule=(`>', 2) say this corpus's segments are only valid to by picked if there are already more than 2 selections for this target segment.  I know, right?
+\item[superimposeRule*]  This one is a little crazy.  Basically, you can specify when this corpus's segments can be chosen based on the number of simultaneously selected samples.  You do this by writing a little equation as a 2-item list.  superimposeRule=(`==', 0) says that this set of corpus segments may only be chosen is this is the first selection for this target segment (sim selection `0').  superimposeRule=(`>', 2) say this corpus's segments are only valid to by picked if there are already more than 2 selections for this target segment.  I know, right?
 \end{description}
 
 
-\subsection{Miscellaneous}
-\begin{description}
-\item[segmentationFile] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension `.txt'. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.
-
-\item[segmentationExtension] Manually specify the segmentation text file extension.  See above.
-\end{description}
-
-\begin{lstlisting}
-csf('lachenmann.aiff', segmentationFile='marmotTent.txt') # will use a segmentation file called marmotTent.txt, not the default lachenmann.aiff.txt.
-
-csf('lachenmann.aiff', segmentationExtension='-gran.txt') # will use a segmentation file called lachenmann.aiff-gran.txt, not the default lachenmann.aiff.txt.
-\end{lstlisting}
-
-
-\subsection{Specifying csf() attributes globally}\label{globalcorpus}
-csf() attributes may be specified globally using the variable CORPUS\_GLOBAL\_ATTRIBUTES.  Note that they are specified in dictionary format rather than keyword format.
+\subsection{Specifying csf() keywords globally}\label{globalcorpus}
+csf() keywords may be specified globally using the variable CORPUS\_GLOBAL\_ATTRIBUTES.  Note that they are specified in dictionary format rather than object/keyword format.
 
 \begin{lstlisting}
 CORPUS = [csf('lachenmann.aiff', scaleDb=-6), csf('piano/', scaleDb=-6, wholeFile=True)]
@@ -416,7 +413,7 @@ Here is the most simple case of a SEARCH variable:
 SEARCH = [spass('closest', d('centroid'))] # will search all corpus segments and select the one with the `closest' centroid to the target segment.
 \end{lstlisting}
 
-Note that the first argument is the type of search performed -- in this case, selecting the closest sample.  Following the arguments are a list of descriptor objects which specify which descriptors to use.  Finally there are some keyword parameters that we will touch on later.
+Note that the first argument is the type of search performed -- in this case, selecting the closest sample.  Following the arguments are a list of descriptor objects which specify which descriptors to use:
 
 \begin{lstlisting}
 SEARCH = [spass('closest', d('centroid'), d('effDur-seg'))] # will search all corpus segments and select the one with the `closest' centroid and effective duration compared to the target segment.
@@ -450,35 +447,34 @@ SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.9, maxratio=1.1)] #
 Remember, the order of the spass objects in the SEARCH variable is very important -- it is essentially the order of operations.
 
 \section{The d() object}
-Use the d() object for specifying a descriptor in an spass() object.
+Use the d() object for parameterizing a descriptor in an spass() object.  The d() object take 1 argument -- the name of the desired descriptor --  and then several optional keywords arguments, detailed below.
 
  \begin{lstlisting}[language=python]
-d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energy=False)
+d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energyWeight=False)
 \end{lstlisting}
  
 \begin{description}
-
-\item[weight] How to weight this descriptor in relation to other descriptors.
+\item[weight*] How to weight this descriptor in relation to other descriptors.
 
 \begin{lstlisting}
 SEARCH= [spass('closest', d('centroid', weight=1), d('noisiness', weight=0.5))] # centroid is twice as important as noisiness.
 \end{lstlisting}
 
-\item[norm] A value of 2 normalizes the target and corpus data separately.  A value of 1 normalizes the target and corpus data together.  2 will yield a better rendering of the target's morphological contour.  1 will remain more faithful to concrete descriptor values.  I recommend using 2 by default, only using 1 when dealing with very `descriptive' descriptors like duration or pitch.
+\item[norm*] A value of 2 normalizes the target and corpus data separately.  A value of 1 normalizes the target and corpus data together.  2 will yield a better rendering of the target's morphological contour.  1 will remain more faithful to concrete descriptor values.  I recommend using 2 by default, only using 1 when dealing with very `descriptive' descriptors like duration or pitch.
 
 \begin{lstlisting}
 SEARCH= [spass('closest', d('centroid'), d('effDur-seg', norm=1))]
 \end{lstlisting}
 
-\item[normmethod] How to normalize data -- either `stddev' or `minmax'.  minmax is more precise, stddev is more forgiving of `outliers.'
+\item[normmethod*] How to normalize data -- either `stddev' or `minmax'.  minmax is more precise, stddev is more forgiving of `outliers.'
 
-\item[distance] Only valid for time-varying descriptors.  How to arithmetically evaluate distance between continuously valued array.  `euclidean' does a simple least squares distance.  Other methods include `pearson'.
+\item[distance*] Only valid for time-varying descriptors.  How to arithmetically measure distance between target and corpus arrays.  `euclidean' does a simple least squares distance.  Other methods include `pearson'.
 
 \begin{lstlisting}
-SEARCH= [spass('closest', d('centroid', distance='pearson'))] # uses a pearson correlation formula for determining distance between the continuously valued centroid of target and corpus segments.
+SEARCH= [spass('closest', d('centroid', distance='pearson'))] # uses a pearson correlation formula for determining distance between target and corpus centroid arrays.
 \end{lstlisting}
 
-\item[energy] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments energy values.  So, softer frames will not affect distance as much as louder frames.
+\item[energyWeight] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments' energy values.  The means that softer frames will not affect distance as much as louder frames.
 \end{description}
 
 
@@ -528,27 +524,33 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{IRCAMDESCRIPTOR\_F0\_QUALITY}{float}{0.1}{see ircamdescriptor documentation for details.}
 
-\optEntry{SUPERVP\_BIN}{string/None}{None}{Optionally specify a path to the supervp analysis binary.  Used for target pre-concatenation time stretching.}
+\optEntry{SUPERVP\_BIN*}{string/None}{None}{Optionally specify a path to the supervp analysis binary.  Used for target pre-concatenation time stretching.}
 
-\optEntry{PM2\_BIN}{string/None}{None}{Optionally specify a path to the pm2 analysis binary.  Currently not implemented.}
+%\optEntry{PM2\_BIN*}{string/None}{None}{Optionally specify a path to the pm2 analysis binary.  Currently not implemented.}
 
 
 \subsection{Concatenation}
-\optEntry{ROTATE\_VOICES}{bool}{False]}{if True, \ag will rotate through the list of corpus entries during concatenation.  This means that, when selecting corpus segment one, \ag will only search sound segments from the first item of the CORPUS variable.  Selection 2 will only search the second, and so on.  Corpus rotation is modular around the length of the CORPUS variable.  If the corpus only has one item, True will have no effect.}
+\optEntry{ROTATE\_VOICES*}{bool}{False]}{if True, \ag will rotate through the list of corpus entries during concatenation.  This means that, when selecting corpus segment one, \ag will only search sound segments from the first item of the CORPUS variable.  Selection 2 will only search the second, and so on.  Corpus rotation is modular around the length of the CORPUS variable.  If the corpus only has one item, True will have no effect.}
 
-\optEntry{VOICE\_PATTERN}{list}{[]}{if an empty list, this does nothing.  However, if the user gives a list of strings, \ag will rotate through this list of each concatenative selection and only use corpus segments who's filepath match this string.  Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.}
+\optEntry{VOICE\_PATTERN*}{list}{[]}{if an empty list, this does nothing.  However, if the user gives a list of strings, \ag will rotate through this list of each concatenative selection and only use corpus segments who's filepath match this string.  Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.}
 
-\optEntry{OUTPUT\_QUANTIZE\_TIME\_METHOD}{string/None}{None}{controls the quantisation of the start times of events selected during concatenation.  If OUTPUT\_QUANTIZE\_TIME\_METHOD = None, no quantisation takes place.  However, a value of `snapToGrid' will conform the start time's of events to a grid spaced in OUTPUT\_QUANTIZE\_TIME\_INTERVAL second slices.  Additionally, a value of `medianAggregate' will change each event's start time to the median start time of events in slices of OUTPUT\_QUANTIZE\_TIME\_INTERVAL seconds.  Any quantisation takes place after the application of OUTPUT\_TIME\_STRETCH and OUTPUT\_TIME\_ADD, as detailed below.}
+\optEntry{OUTPUT\_QUANTIZE\_TIME\_METHOD*}{string/None}{None}{controls the quantisation of the start times of events selected during concatenation.  Note that any quantisation takes place after the application of OUTPUT\_TIME\_STRETCH and OUTPUT\_TIME\_ADD, as detailed below.  This variable has the following possible settings:
+\begin{description}
+\item[None] no quantisation takes place (the default).
+\item[`snapToGrid'] conform the start times of events to a grid spaced in OUTPUT\_QUANTIZE\_TIME\_INTERVAL second slices.
+\item[`medianAggregate'] change each event's start time to the median start time of events in slices of OUTPUT\_QUANTIZE\_TIME\_INTERVAL seconds.  
+\end{description}
+}
 
-\optEntry{OUTPUT\_QUANTIZE\_TIME\_INTERVAL}{float}{0.25}{defines the temporal interval in seconds for quantisation.  If OUTPUT\_QUANTIZE\_TIME\_METHOD = None, this doesn't do anything.}
+\optEntry{OUTPUT\_QUANTIZE\_TIME\_INTERVAL*}{float}{0.25}{defines the temporal interval in seconds for quantisation.  If OUTPUT\_QUANTIZE\_TIME\_METHOD = None, this doesn't do anything.}
 
-\optEntry{OUTPUT\_GAIN\_DB}{int/None}{None}{adds a uniform gain in dB to all selected corpus units.  Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.}
+\optEntry{OUTPUT\_GAIN\_DB*}{int/None}{None}{adds a uniform gain in dB to all selected corpus units.  Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.}
 
-\optEntry{OUTPUT\_TIME\_STRETCH}{float}{1.}{stretch the temporality of selected units.  A value of 2 will stretch all events offsets by a factor of 2.}
+\optEntry{OUTPUT\_TIME\_STRETCH*}{float}{1.}{stretch the temporality of selected units.  A value of 2 will stretch all events offsets by a factor of 2.}
 
-\optEntry{OUTPUT\_TIME\_ADD}{float}{0.}{offset the start time of selected events by a value in seconds.}
+\optEntry{OUTPUT\_TIME\_ADD*}{float}{0.}{offset the start time of selected events by a value in seconds.}
 
-\optEntry{RANDOM\_SEED}{int/None}{None}{sets the pseudo-random seed for random unit selection.  By default a value of None will use the system's timestamp.  Setting an integer will create repeatable random results.}
+\optEntry{RANDOM\_SEED*}{int/None}{None}{sets the pseudo-random seed for random unit selection.  By default a value of None will use the system's timestamp.  Setting an integer will create repeatable random results.}
 
 
 \subsection{Concatenation Output Files}\label{outputfiles}
@@ -587,11 +589,9 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 
 
 \subsection{Printing/Interaction}
-\optEntry{SEARCH\_PATHS}{list}{[]}{a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that \ag examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn't do anything.}
+\optEntry{SEARCH\_PATHS*}{list}{[]}{a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that \ag examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn't do anything.}
 
-\optEntry{ALERT\_ON\_ERROR}{bool}{False}{will attempt to play the system alert sound when exiting with an error.  Pretty irritating, but then again you probably deserve it.}
-
-\optEntry{VERBOSITY}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
+\optEntry{VERBOSITY*}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
 
 \optEntry{PRINT\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.}
 
@@ -599,20 +599,15 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 
 
 \subsection{Csound Rendering}
-\optEntry{CSOUND\_SR}{int}{48000}{The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound's output soundfile.}
+\optEntry{CSOUND\_SR*}{int}{48000}{The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound's output soundfile.}
 
-\optEntry{CSOUND\_KR}{int}{128}{The control rate used for csound rendering.  See csound's documentation for more information.}
+\optEntry{CSOUND\_KR*}{int}{128}{The control rate used for csound rendering.  See csound's documentation for more information.}
 
 \optEntry{CSOUND\_CHANNEL\_RENDER\_METHOD}{string}{``mix''}{Tells \ag how deal with corpus segments distribution in the output soundfile  By default`'mix'' creates a 2 channel csound file and puts mono corpus sounds in the middle of the stereo field.  The string ``oneChannelPerVoice'' tells audioguide to put selected sounds from each item of the CORPUS list into a separate channel.  The number of output channels will therefore equal the length of the CORPUS list variable.}
 
-\optEntry{CSOUND\_STRETCH\_CORPUS\_TO\_TARGET\_DUR}{string/None}{None}{Affects the durations of concatenated sound events rendered by csound.  By default None doesn't do anything -- csound plays back each corpus sound according to its duration.  ``pv'' uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  ``transpose'' does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.}
+\optEntry{CSOUND\_STRETCH\_CORPUS\_TO\_TARGET\_DUR*}{string/None}{None}{Affects the durations of concatenated sound events rendered by csound.  By default None doesn't do anything -- csound plays back each corpus sound according to its duration.  ``pv'' uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  ``transpose'' does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.}
 
-\optEntry{CSOUND\_PLAY\_RENDERED\_FILE}{bool}{True}{if True, \ag will play the rendered csound file at the command line at the end of the concatenative algorithm.}
-
-
-%RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION = False
-
-
+\optEntry{CSOUND\_PLAY\_RENDERED\_FILE*}{bool}{True}{if True, \ag will play the rendered csound file at the command line at the end of the concatenative algorithm.}
 
 
 
