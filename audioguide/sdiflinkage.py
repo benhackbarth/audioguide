@@ -170,6 +170,9 @@ TextureWindowsHopFrames = -1
 		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops)
+		# add segmentation data descriptor
+		if ops.TARGET_SEGMENTATION_INFO != 'logic':
+			self.addDescriptorIfNeeded(d(ops.TARGET_SEGMENTATION_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
 		# add ordering by descriptor
 		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR, ops.ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH]:
 			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)

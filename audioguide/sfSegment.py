@@ -312,9 +312,10 @@ class target: # the target
 		self.segs = []
 		self.segmentationInFrames = []
 		self.segmentationInSec = []
-		self.segmentationLogic = []
+		self.extraSegmentationData = []
 		self.seglengths = []
 		
+	
 		if self.segmentationFilepath == None:
 			f = 0
 			while True:
@@ -324,31 +325,36 @@ class target: # the target
 					f += 1
 					continue
 				# an onset because above trigger threshold
-				self.segmentationLogic.append([SdifInterface.f2s(f), 'triggered', trigVal])
+				if ops.TARGET_SEGMENTATION_INFO == 'logic':
+					self.extraSegmentationData.append('trig=%.2f'%trigVal)
 				segLen = self.segmentationMinLenFrames
 				while True:
 					# an offset if end of file is reached
 					if f+segLen+1 >= self.whole.lengthInFrames:
 						reason = ['eof', self.whole.lengthInFrames]
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						self.segmentationLogic[-1].extend([endtimeSec, 'eof', SdifInterface.f2s(self.whole.lengthInFrames)])
+						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+							self.extraSegmentationData[-1] += ' eof=%.2f'%SdifInterface.f2s(self.whole.lengthInFrames)
 						break
 					# an offset if max seg length is reached
 					if segLen+1 >= self.segmentationMaxLenFrames:
 						reason = ['maxSegLength', self.whole.lengthInFrames]
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						self.segmentationLogic[-1].extend([endtimeSec, 'maxSegLength', self.segmentationMaxLenSec])
+						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
 						break			
 					# an offset if amplitude is below offset threshold
 					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						self.segmentationLogic[-1].extend([endtimeSec, 'drop', util.ampToDb(self.whole.desc['power'][f+segLen])])
+						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+							self.extraSegmentationData[-1] += ' drop=%.2f'%util.ampToDb(self.whole.desc['power'][f+segLen])
 						break
 					# an offset if riseratio is too large
 					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
 					if riseRatio >= self.segmentationOffsetRise:
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						self.segmentationLogic[-1].extend([endtimeSec, 'rise', riseRatio])
+						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
 						break
 					segLen += 1
 				self.segmentationInFrames.append((f, f+segLen))
@@ -368,7 +374,11 @@ class target: # the target
 			self.segmentationInSec.append((SdifInterface.f2s(start), SdifInterface.f2s(end)))
 			self.seglengths.append(SdifInterface.f2s(end-start))
 
-
+		
+		if ops.TARGET_SEGMENTATION_INFO != 'logic':
+			for start, end in self.segmentationInFrames:
+				self.extraSegmentationData.append('%s=%.2f'%(ops.TARGET_SEGMENTATION_INFO, self.whole.desc[ops.TARGET_SEGMENTATION_INFO].get(start, end) ))
+	
 		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
@@ -381,8 +391,8 @@ class target: # the target
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')
-		for segment in self.segmentationLogic:
-			fh.write( "%f\t%f\ttrig=%.2f %s=%.2f\n"%(segment[0], segment[3], segment[2], segment[4], segment[5]) )
+		for sidx in range(len(self.segmentationInSec)):
+			fh.write( "%f\t%f\t%s\n"%(self.segmentationInSec[sidx][0], self.segmentationInSec[sidx][1], self.extraSegmentationData[sidx]) )
 		fh.close()
 	########################################
 	def setupConcate(self, SdifInterface):
@@ -431,7 +441,7 @@ class target: # the target
 		for sidx in range(len(self.segmentationInFrames)): # plot segmentation
 			xstart = self.segmentationInFrames[sidx][0]
 			xend = self.segmentationInFrames[sidx][1]
-			#print self.segmentationInFrames[sidx], self.segmentationLogic[sidx]
+			#print self.segmentationInFrames[sidx], self.extraSegmentationData[sidx]
 			plt.axvspan(xstart, xend, facecolor='#FFCCCC', alpha=1, ec='r', lw=1)
 			plt.text(xstart, 0.5*plotheight, 'benny', fontsize=12, color='black')
 		leg = plt.legend(['power'],'upper right', shadow=False)

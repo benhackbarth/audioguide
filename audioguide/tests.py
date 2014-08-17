@@ -4,9 +4,11 @@ import util, sys
 def testOpsDict(dicty):
 	for name, value in dicty.items():
 		#print name, value
+		if not UserVar_types.has_key(name):
+			util.error("user variable", "I don't have an option called %s\n :("%(name))
 		outcomes = []
-		for tstring in UserVar_types[name]: outcomes.append( testVariable(tstring, value) )
-		#print name, value, outcomes
+		for tstring in UserVar_types[name]:
+			outcomes.append( testVariable(tstring, value) )
 		if not True in outcomes: # if none of these test were passed
 			util.error("user variable", "variable %s must be %s (%s given as %s)"%(name, ' or '.join(UserVar_types[name]), str(value), type(value)))
 
@@ -61,6 +63,7 @@ UserVar_types = {
 'CORPUS': ['a list of csf() objects'],
 'SUPERIMPOSE': ['a si() object'],
 'SEARCH': ['a list of spass() objects'],
+'TARGET_SEGMENTATION_INFO': ['a string'],
 ##########  OUTPUT FILES   #######
 'CSOUND_CSD_FILEPATH': ['None', 'a string'],
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
