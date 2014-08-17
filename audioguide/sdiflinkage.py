@@ -27,7 +27,6 @@ class SdifInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
 	tgtOnsetDescriptors = {'power-odf-7': 1}
-	powersOfTwo = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
 
 	def __init__(self, pm2_bin=None, supervp_bin=None, winLengthSec=0.12, hopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[]):	
 		self.p = p
@@ -41,10 +40,11 @@ class SdifInterface:
 		#############################################################################
 		## ensure that window and hop sizes are powers of two of the resample rate ##
 		#############################################################################
-		closestWinSize = self.powersOfTwo[np.argmin(np.abs(self.powersOfTwo-(winLengthSec*float(self.resampleRate))))]
-		closestHopSize = self.powersOfTwo[np.argmin(np.abs(self.powersOfTwo-(hopLengthSec*float(self.resampleRate))))]
-		self.winLengthSec = closestWinSize/float(self.resampleRate)
-		self.hopLengthSec = closestHopSize/float(self.resampleRate)
+		powersOfTwo = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
+		closestWinSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(winLengthSec*float(self.resampleRate))))]
+		closestHopSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(hopLengthSec*float(self.resampleRate))))]
+		self.winLengthSec = closestWinSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		self.hopLengthSec = closestHopSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
 		if self.p != None: 
 			self.p.log("SDIF CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
 			self.p.log("SDIF CONFIG: using analysis overlap of %.3f (%i samples)"%(self.hopLengthSec, closestHopSize))
