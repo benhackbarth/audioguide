@@ -37,7 +37,7 @@ opcode	pvsbuffer_module, a, akkkiiii
 	endif
 	UPDATE:
 	ibuflen		=	i(kbuflen)
-	iphasor		ftgen		0, 0, 65536, 7, 0, 65536, 1
+	iphasor		ftgenonce		0, 0, 65536, 7, 0, 65536, 1
 	aread 		osciliktp 	kspeed/ibuflen, iphasor, kPhOffset
 	kread		downsamp	  aread
 	kread		=		kread * ibuflen
@@ -101,7 +101,6 @@ instr 1
 		p3 = iTgtSegDur
 		kbuflen = 100
 		asnd1    pvsbuffer_module   asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
-		asnd2    pvsbuffer_module   asnd2, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
 	endif
 
 	; do envelope

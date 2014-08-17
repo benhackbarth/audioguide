@@ -234,8 +234,10 @@ class printer:
 		self.renderOrLog("\n")
 	###############################################
 	def renderOrLog(self, string):
-		if self.v == 0: self.log(string)
-		print(string)
+		if self.v == 0:
+			self.log(string)
+		else:
+			print(string)
 	###############################################
 	def pprint(self, string, colour='RED'):
 		self.renderOrLog(self.term.render("${%s}%s${NORMAL}"%(colour, str(string))))

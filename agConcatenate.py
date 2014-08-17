@@ -260,7 +260,7 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ###########################
 ## temporal quantization ##
 ###########################
-concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL))
+concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
 
 p.logsection( "OUTPUT FILES" )
 ######################

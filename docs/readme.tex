@@ -534,7 +534,7 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{VOICE\_PATTERN*}{list}{[]}{if an empty list, this does nothing.  However, if the user gives a list of strings, \ag will rotate through this list of each concatenative selection and only use corpus segments who's filepath match this string.  Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.}
 
-\optEntry{OUTPUT\_QUANTIZE\_TIME\_METHOD*}{string/None}{None}{controls the quantisation of the start times of events selected during concatenation.  Note that any quantisation takes place after the application of OUTPUT\_TIME\_STRETCH and OUTPUT\_TIME\_ADD, as detailed below.  This variable has the following possible settings:
+\optEntry{OUTPUT\_QUANTIZE\_TIME\_METHOD}{string/None}{None}{controls the quantisation of the start times of events selected during concatenation.  Note that any quantisation takes place after the application of OUTPUT\_TIME\_STRETCH and OUTPUT\_TIME\_ADD, as detailed below.  This variable has the following possible settings:
 \begin{description}
 \item[None] no quantisation takes place (the default).
 \item[`snapToGrid'] conform the start times of events to a grid spaced in OUTPUT\_QUANTIZE\_TIME\_INTERVAL second slices.
@@ -542,7 +542,7 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 \end{description}
 }
 
-\optEntry{OUTPUT\_QUANTIZE\_TIME\_INTERVAL*}{float}{0.25}{defines the temporal interval in seconds for quantisation.  If OUTPUT\_QUANTIZE\_TIME\_METHOD = None, this doesn't do anything.}
+\optEntry{OUTPUT\_QUANTIZE\_TIME\_INTERVAL}{float}{0.25}{defines the temporal interval in seconds for quantisation.  If OUTPUT\_QUANTIZE\_TIME\_METHOD = None, this doesn't do anything.}
 
 \optEntry{OUTPUT\_GAIN\_DB*}{int/None}{None}{adds a uniform gain in dB to all selected corpus units.  Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.}
 
@@ -550,7 +550,7 @@ SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, mi
 
 \optEntry{OUTPUT\_TIME\_ADD*}{float}{0.}{offset the start time of selected events by a value in seconds.}
 
-\optEntry{RANDOM\_SEED*}{int/None}{None}{sets the pseudo-random seed for random unit selection.  By default a value of None will use the system's timestamp.  Setting an integer will create repeatable random results.}
+\optEntry{RANDOM\_SEED}{int/None}{None}{sets the pseudo-random seed for random unit selection.  By default a value of None will use the system's timestamp.  Setting an integer will create repeatable random results.}
 
 
 \subsection{Concatenation Output Files}\label{outputfiles}
@@ -589,9 +589,9 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 
 
 \subsection{Printing/Interaction}
-\optEntry{SEARCH\_PATHS*}{list}{[]}{a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that \ag examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn't do anything.}
+\optEntry{SEARCH\_PATHS}{list}{[]}{a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that \ag examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn't do anything.}
 
-\optEntry{VERBOSITY*}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
+\optEntry{VERBOSITY}{int}{2}{affects the amount of information \ag prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.}
 
 \optEntry{PRINT\_SELECTION\_HISTO}{bool}{False}{if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.}
 
@@ -599,15 +599,15 @@ For each of the following *\_FILEPATH variables, a value of None tells the agCon
 
 
 \subsection{Csound Rendering}
-\optEntry{CSOUND\_SR*}{int}{48000}{The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound's output soundfile.}
+\optEntry{CSOUND\_SR}{int}{48000}{The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound's output soundfile.}
 
-\optEntry{CSOUND\_KR*}{int}{128}{The control rate used for csound rendering.  See csound's documentation for more information.}
+\optEntry{CSOUND\_KR}{int}{128}{The control rate used for csound rendering.  See csound's documentation for more information.}
 
 \optEntry{CSOUND\_CHANNEL\_RENDER\_METHOD}{string}{``mix''}{Tells \ag how deal with corpus segments distribution in the output soundfile  By default`'mix'' creates a 2 channel csound file and puts mono corpus sounds in the middle of the stereo field.  The string ``oneChannelPerVoice'' tells audioguide to put selected sounds from each item of the CORPUS list into a separate channel.  The number of output channels will therefore equal the length of the CORPUS list variable.}
 
-\optEntry{CSOUND\_STRETCH\_CORPUS\_TO\_TARGET\_DUR*}{string/None}{None}{Affects the durations of concatenated sound events rendered by csound.  By default None doesn't do anything -- csound plays back each corpus sound according to its duration.  ``pv'' uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  ``transpose'' does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.}
+\optEntry{CSOUND\_STRETCH\_CORPUS\_TO\_TARGET\_DUR}{string/None}{None}{Affects the durations of concatenated sound events rendered by csound.  By default None doesn't do anything -- csound plays back each corpus sound according to its duration.  ``pv'' uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  ``transpose'' does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.}
 
-\optEntry{CSOUND\_PLAY\_RENDERED\_FILE*}{bool}{True}{if True, \ag will play the rendered csound file at the command line at the end of the concatenative algorithm.}
+\optEntry{CSOUND\_PLAY\_RENDERED\_FILE}{bool}{True}{if True, \ag will play the rendered csound file at the command line at the end of the concatenative algorithm.}
 
 
 

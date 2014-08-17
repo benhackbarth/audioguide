@@ -622,12 +622,14 @@ class outputEvent:
 
 
 
-def quantizeTime(outputEvents, method, interval):
+def quantizeTime(outputEvents, method, interval, p):
 	if method == None:
 		'''Does nothing'''
-		pass
+		return
 		
-	elif method == 'snapToGrid':
+	p.pprint('Quantizing selected events into slices of %.2f seconds according to %s\n'%(interval, method))
+	
+	if method == 'snapToGrid':
 		'''Quantize each note's start time to the nearest value
 		of OUTPUT_QUANTIZE_TIME_INTERVAL seconds'''
 		for oe in outputEvents:

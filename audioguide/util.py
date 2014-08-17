@@ -39,11 +39,11 @@ def ladytext(string):
 	
 
 def exit(*args):
-	ALERT_ON_ERROR = False
-	if ALERT_ON_ERROR:  # beep?
-		sys.stdout.write('\a')
-		sys.stdout.flush()
-	print "\n"
+#	ALERT_ON_ERROR = False
+#	if ALERT_ON_ERROR:  # beep?
+#		sys.stdout.write('\a')
+#		sys.stdout.flush()
+#	print "\n"
 	sys.exit(1)
 
 
