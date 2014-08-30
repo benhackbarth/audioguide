@@ -162,6 +162,7 @@ class corpusSegment(SfSegment):
 		self.sim_accum = 0. # for similarity calculations
 		self.selectionTimes = []
 		self.segfileData = segfileData
+		self.cluster = None
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
 		tgtvals = tgtseg.desc[dobj.name].getnorm(tgtSeek, tgtSeek+array_len)	
@@ -215,6 +216,7 @@ class targetSegment(SfSegment):
 		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
+		self.cluster = None
 	###################################################
 	def initMixture(self, SdifInterface):
 		self.mixdesc = descriptordata.container(SdifInterface.mixtureDescriptors, self)
@@ -325,7 +327,7 @@ class target: # the target
 					f += 1
 					continue
 				# an onset because above trigger threshold
-				if ops.TARGET_SEGMENTATION_INFO == 'logic':
+				if ops.SEGMENTATION_FILE_INFO == 'logic':
 					self.extraSegmentationData.append('trig=%.2f'%trigVal)
 				segLen = self.segmentationMinLenFrames
 				while True:
@@ -333,27 +335,27 @@ class target: # the target
 					if f+segLen+1 >= self.whole.lengthInFrames:
 						reason = ['eof', self.whole.lengthInFrames]
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' eof=%.2f'%SdifInterface.f2s(self.whole.lengthInFrames)
 						break
 					# an offset if max seg length is reached
 					if segLen+1 >= self.segmentationMaxLenFrames:
 						reason = ['maxSegLength', self.whole.lengthInFrames]
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
 						break			
 					# an offset if amplitude is below offset threshold
 					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' drop=%.2f'%util.ampToDb(self.whole.desc['power'][f+segLen])
 						break
 					# an offset if riseratio is too large
 					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
 					if riseRatio >= self.segmentationOffsetRise:
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.TARGET_SEGMENTATION_INFO == 'logic':
+						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
 						break
 					segLen += 1
@@ -375,9 +377,9 @@ class target: # the target
 			self.seglengths.append(SdifInterface.f2s(end-start))
 
 		
-		if ops.TARGET_SEGMENTATION_INFO != 'logic':
+		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
-				self.extraSegmentationData.append('%s=%.2f'%(ops.TARGET_SEGMENTATION_INFO, self.whole.desc[ops.TARGET_SEGMENTATION_INFO].get(start, end) ))
+				self.extraSegmentationData.append('%s=%.2f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
 	
 		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
@@ -396,6 +398,8 @@ class target: # the target
 		fh.close()
 	########################################
 	def setupConcate(self, SdifInterface):
+		from UserClasses import SingleDescriptor as d
+		self.powerStats = getDescriptorStatistics(self.segs, d('power'))
 		# initalise mixture and add norm coeffs to mixables...
 		for seg in self.segs:
 			seg.initMixture(SdifInterface)

@@ -103,7 +103,7 @@ p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
 superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
-cps.setupCorpusConcatenationLimitations(tgt, SdifInterface)
+cps.setupConcate(tgt, SdifInterface)
 outputEvents = []
 
 #######################################
@@ -159,7 +159,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		##############################
 		## get valid corpus handles ##
 		##############################
-		validSegments = cps.evaluateValidSamples(tif, timeInSec, ops.ROTATE_VOICES, ops.VOICE_PATTERN, superimp)
+		validSegments = cps.evaluateValidSamples(tif, tgtseg.cluster, timeInSec, ops.ROTATE_VOICES, ops.VOICE_PATTERN, superimp)
 		if len(validSegments) == 0:
 			superimp.skip('no corpus sounds made it past restrictions and limitations', None, timeInSec)
 			segSeek += ops.SUPERIMPOSE.incr
@@ -208,10 +208,15 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		## subtract power and update onset detection ##
 		###################$###########################
 		if ops.SUPERIMPOSE.calcMethod != None:
-			samplePowers = selectCpsseg.desc['power'][:minLen]
-			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(samplePowers*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
-			# clip it so its above zero
-			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxint)
+			#oneInCorpusLand = (1-cps.powerStats['mean'])/cps.powerStats['stddev']
+			#normalizationPowerRatio = (oneInCorpusLand*tgt.powerStats['stddev'])+tgt.powerStats['mean']
+			
+			preSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
+			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
+			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxint) # clip it so its above zero
+			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
+			p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
+			
 			# recalculate onset envelope
 			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
 			for dobj in ComputedDescList:
@@ -233,7 +238,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
 
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR) )
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1)) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
 		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname)
@@ -263,13 +268,15 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
 
 p.logsection( "OUTPUT FILES" )
+allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
+
 ######################
 ## dict output file ##
 ######################
 if ops.DICT_OUTPUT_FILEPATH != None:
 	output = {}
-	output['target'] = None
-	output['corpus'] = None
+	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec,}
+	output['corpus_file_list'] = list(set(allusedcpsfiles))
 	output['selectedEvents'] = [oe.makeDictOutput() for oe in outputEvents]
 	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
@@ -281,10 +288,9 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 #####################################
 if ops.MAXMSP_OUTPUT_FILEPATH != None:
 	output = {}
-	allusedcpsfiles = [oe.filename for oe in outputEvents]
 	output['target_file'] = [tgt.filename, tgt.startSec*1000., tgt.endSec*1000.]
 	output['events'] = [oe.makeMaxMspListOutput() for oe in outputEvents]
-	output['corpus_files'] = list(set(allusedcpsfiles))
+	output['corpus_files'] = allusedcpsfiles
 	fh = open(ops.MAXMSP_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
 	fh.close()
@@ -344,7 +350,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
-		p.log( "Wrote csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
+		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 
 
 ####################

@@ -182,6 +182,8 @@ def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
 	except OSError:
 		error('commandline', 'Command line call failed: \n\n"%s"'%' '.join(commandArgs))
 	out, err = p.communicate()
+	#print out
+	#print err
 	# test for bad exit status
 	if exitOnError and err not in [0, '']:
 		error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(commandArgs), '\n--------\n\n', ''.join(out)))	

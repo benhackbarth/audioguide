@@ -64,7 +64,7 @@ The reason that segmentation and concatenation are separated into discrete steps
 \emph{Note}: If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip\footnote{But make sure tell \ag not to search for segmentation textfiles by setting the corpus attribute wholeFIle=True.  See the Manipulating How Directories Are Read subsection of the CORPUS options section for more info.} the \emph{Segmenting Corpus Soundfiles} section and proceed to the concatenation section.
 
 The script you use to segment your corpus files with a script called `agSegmentSf.py'.  AgSegmentSf.py automatically creates a textfile which denotes the start and stop times of sound segments in a continuous audiofile.  Once you find a segmentation that you're happy with you're ready to use this sound file in the agConcatenate.py script.
-Keep in mind that you do not \emph{need} to use agSegmentSf.py if you do not want to -- instead you could:
+Keep in mind that you do not \emph{need} to use agSegmentSf.py if you do not want to -- alternatively you could:
 \begin{enumerate}
 \item use whole soundfiles as segments
 \item create segmentation files by hand
@@ -467,13 +467,17 @@ SEARCH= [spass('closest', d('centroid'), d('effDur-seg', norm=1))]
 
 \item[normmethod*] How to normalize data -- either `stddev' or `minmax'.  minmax is more precise, stddev is more forgiving of `outliers.'
 
-\item[distance*] Only valid for time-varying descriptors.  How to arithmetically measure distance between target and corpus arrays.  `euclidean' does a simple least squares distance.  Other methods include `pearson'.
+\item[distance*] Only valid for time-varying descriptors.  How to arithmetically measure distance between target and corpus arrays.  
+\begin{description}
+\item[`euclidean'] does a simple least squares distance.
+\item[`pearson'] a pearson correlation measurement.
+\end{description}
 
 \begin{lstlisting}
 SEARCH= [spass('closest', d('centroid', distance='pearson'))] # uses a pearson correlation formula for determining distance between target and corpus centroid arrays.
 \end{lstlisting}
 
-\item[energyWeight] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments' energy values.  The means that softer frames will not affect distance as much as louder frames.
+\item[energyWeight] Only valid for time-varying descriptors.  Weight distance calculations with the corpus segments' energy values.  The means that softer frames will not affect distance as much as louder frames.  Only works if distance=`euclidean'.
 \end{description}
 
 

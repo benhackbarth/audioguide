@@ -40,11 +40,14 @@ class SdifInterface:
 		#############################################################################
 		## ensure that window and hop sizes are powers of two of the resample rate ##
 		#############################################################################
-		powersOfTwo = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
+		powersOfTwo = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
 		closestWinSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(userWinLengthSec*float(self.resampleRate))))]
 		closestHopSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(userHopLengthSec*float(self.resampleRate))))]
 		self.winLengthSec = closestWinSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
 		self.hopLengthSec = closestHopSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		self.IOBufferSize = min(4096, closestWinSize*4)
+		
+		
 		if self.p != None: 
 			self.p.log("SDIF CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
 			self.p.log("SDIF CONFIG: using analysis overlap of %.3f (%i samples)"%(self.hopLengthSec, closestHopSize))
@@ -100,7 +103,7 @@ class SdifInterface:
 ResampleTo = %i
 NormalizeSignal = 0
 SubtractMean = 1
-IOBufferSize = 2048
+IOBufferSize = %i
 SaveShortTermTMFeatures = 1
 WindowType = %s
 
@@ -130,7 +133,11 @@ HopSize = %f
 TextureWindowsFrames = -1
 TextureWindowsHopFrames = -1
 
-%s'''%(self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.numbMfccs, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, dlist, self.winLengthSec, self.hopLengthSec, edlist)
+%s'''%(self.resampleRate, self.IOBufferSize, self.windowType, self.winLengthSec, self.hopLengthSec, self.numbMfccs, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, dlist, self.winLengthSec, self.hopLengthSec, edlist)
+
+
+# error: The IOBufferSize must be shorter than 4 times the window size at the resampling rate.
+
 		# make a list of all possible descriptor objects
 		self.allDescriptors = []
 		from UserClasses import SingleDescriptor as d
@@ -171,8 +178,8 @@ TextureWindowsHopFrames = -1
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops)
 		# add segmentation data descriptor
-		if ops.TARGET_SEGMENTATION_INFO != 'logic':
-			self.addDescriptorIfNeeded(d(ops.TARGET_SEGMENTATION_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
+		if ops.SEGMENTATION_FILE_INFO != 'logic':
+			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
 		# add ordering by descriptor
 		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR, ops.ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH]:
 			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
@@ -279,11 +286,11 @@ TextureWindowsHopFrames = -1
 			fh.write(self.config_text)
 			fh.close()
 			command = [self.ircamdescriptor_bin, sffile, self.config_loc, '-o'+descriptorfile]
-			self.logcommand(command)
 			if self.p != None:
-				self.p.log("SDIF DATA: creating SDIF FILE '%s'"%command)
+				self.p.log("SDIF DATA: creating SDIF FILE '%s'"%descriptorfile)
+				self.p.log("RUNNING COMMAND: "+' '.join(command))
 			self.rawData[sffile]['info'] = util.popen_execute_command(command, stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)})
-			
+						
 			self.rawData[sffile]['info']['lengthsec'] = self.rawData[sffile]['info']['lengthsamples']/float(self.rawData[sffile]['info']['sr'])
 			jh = open(infofile, 'w')
 			json.dump(self.rawData[sffile]['info'], jh)
@@ -628,26 +635,6 @@ agDescriptToSdif = {
 
 
 
-def clusterAnalysis(clusteringMatrix, numb_clusters):# cluster analysis		
-	import numpy as np
-	import hcluster
-	Y = hcluster.pdist(clusteringMatrix)
-	Z = hcluster.linkage(Y, method='average')
-	clusterAssignment = hcluster.fcluster(Z, numb_clusters, criterion='maxclust') 
-	clusterAssignment -= 1
-	# get cluster centroids
-	# Sum the vectors in each cluster
-	lens = {}      # will contain the lengths for each cluster
-	centroids = {} # will contain the centroids of each cluster
-	for idx, clno in enumerate(clusterAssignment):
-		centroids.setdefault(clno, np.zeros(clusteringMatrix.shape[1])) 
-		centroids[clno] += clusteringMatrix[idx,:]
-		lens.setdefault(clno,0)
-		lens[clno] += 1
-	# Divide by number of observations in each cluster to get the centroid
-	for clno in centroids:
-		centroids[clno] /= float(lens[clno])
-	return clusterAssignment, centroids, lens
 
 
 

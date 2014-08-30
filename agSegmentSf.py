@@ -75,7 +75,7 @@ for file in args:
 	'TARGET_DESCRIPTORS_FILEPATH': None,
 	'TARGET_PLOT_DESCRIPTORS_FILEPATH': None,
 	'TARGET_SEGMENTATION_GRAPH_FILEPATH': plotMe,
-	'TARGET_SEGMENTATION_INFO': options.SEGMENTATION_INFO
+	'SEGMENTATION_FILE_INFO': options.SEGMENTATION_INFO
 	}
 
 	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))

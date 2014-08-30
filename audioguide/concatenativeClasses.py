@@ -10,9 +10,9 @@ class parseOptions:
 	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
 		from UserClasses import TargetOptionsEntry as tsf
 		from UserClasses import CorpusOptionsEntry as csf
-		from UserClasses import SingleDescriptor as d
 		from UserClasses import SearchPassOptionsEntry as spass
 		from UserClasses import SuperimpositionOptionsEntry as si
+		from UserClasses import SingleDescriptor as d
 		usrOptions = {}
 		if opsfile != None:
 			fh = open(opsfile)
@@ -357,8 +357,10 @@ class corpus:
 		if not cpsh.allowRepetition:
 			del self.data['postLimitSegmentDictVoice'][cpsh.voiceID] # remove it altogether
 	############################################################################
-	def setupCorpusConcatenationLimitations(self, tgtObj, SdifInterface):
+	def setupConcate(self, tgtObj, SdifInterface):
 		'''called when concate is initialized'''
+		from UserClasses import SingleDescriptor as d
+		self.powerStats = sfSegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
 		##########################################################
 		## set up voice restriction per second as a frame value ##
 		##########################################################
@@ -368,11 +370,11 @@ class corpus:
 				self.voiceRestrictPerFrame[voiceId] = SdifInterface.s2f(infoDict['restrictInTime'], tgtObj.filename)/2
 	############################################################################
 	############################################################################
-	def evaluateValidSamples(self, timeInFrames, timeInSec, rotateVoices, voicePattern, superimp):
+	def evaluateValidSamples(self, timeInFrames, clusterOrNone, timeInSec, rotateVoices, voicePattern, superimp):
 		# get which voices are valid at this selection time
 		if rotateVoices and self.data['lastVoice'] != None:
 			validVoices = [(self.data['lastVoice']+1)%self.data['numberVoices']]
-		elif voicePattern not in [None, []]: # not case sensative!, oes a search, so matches partial strings
+		elif voicePattern not in [None, []]: # not case sensative!, does a search, so matches partial strings
 			validVoices = []
 			for nidx, name in enumerate(self.data['vcToCorpusName']):
 				if util.matchString(name, voicePattern[superimp.cnt['selectionCount']%len(voicePattern)], caseSensative=False):
@@ -421,6 +423,12 @@ class corpus:
 				max_look = min(timeInFrames+h.lengthInFrames, len(superimp.cnt['cpsvc_overlap'][h.voiceID]))
 				maxOver = np.max(superimp.cnt['cpsvc_overlap'][h.voiceID][timeInFrames:max_look])
 				if maxOver >= h.restrictOverlaps: continue # skip this segment
+			
+			if clusterOrNone != None:
+				#print clusterOrNone, h.cluster, clusterOrNone != h.cluster
+				if clusterOrNone != h.cluster: continue
+
+
 			validSegments.append(h)
 		return validSegments
 
@@ -554,14 +562,14 @@ class SuperimposeTracker():
 		elif not trig and segidxt == 'force':
 			self.p.log( "SELECT @ %.2f -- target too soft but forced to by minSegment"%(timeinSec) )
 		else:
-			self.p.log( "SELECT @ %.2f"%(timeinSec) )
+			self.p.log( "SELECT @ %.2f (t=%.2f)"%(timeinSec, trigVal) )
 
 
 
 
 
 class outputEvent:
-	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, minOutputMidi=21):		
+	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, minOutputMidi=21):		
 		# soundfile stuff
 		self.filename = sfseghandle.concatFileName
 		self.printName = sfseghandle.printName
@@ -569,7 +577,7 @@ class outputEvent:
 		self.sfSkip = sfseghandle.segmentStartSec
 		self.duration = sfseghandle.segmentDurationSec
 		self.effDurSec = sfseghandle.desc['effDur-seg'].get(0, None)
-		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None)
+		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None) * f2s
 		self.powerSeg = sfseghandle.desc['power-seg'].get(0, None)
 		self.rmsSeg = util.ampToDb(self.powerSeg)
 		self.midiVelocity = self.rmsSeg+127
@@ -609,8 +617,13 @@ class outputEvent:
 	####################################	
 	def makeDictOutput(self):
 		dicty = {}
-		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'filename', 'midiFromFilename', 'peaktimeSec', 'powerSeg', 'sfSkip', 'simSelects', 'transposition', 'voiceID']:
+		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDecaySec', 'envSlope', 'filename', 'peaktimeSec', 'sfSkip', 'simSelects', 'transposition']:
 			dicty[key] = getattr(self, key)
+
+		dicty['peakRmsDb'] = util.ampToDb(self.powerSeg)
+		dicty['corpusId'] = self.voiceID
+		dicty['midiPitch'] = self.midiFromFilename
+		dicty['envScaleDb'] = self.envDb
 		return dicty
 	####################################	
 	def makeSegmentationDataText(self):
