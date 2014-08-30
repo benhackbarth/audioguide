@@ -289,8 +289,14 @@ TextureWindowsHopFrames = -1
 			if self.p != None:
 				self.p.log("SDIF DATA: creating SDIF FILE '%s'"%descriptorfile)
 				self.p.log("RUNNING COMMAND: "+' '.join(command))
-			self.rawData[sffile]['info'] = util.popen_execute_command(command, stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)})
-						
+			output, self.rawData[sffile]['info'] = util.popen_execute_command(command, stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)})
+			
+			
+			if not os.path.exists(descriptorfile):
+				print util.ladytext("Oh noos!  The ircamdescriptor binaary has fialed to create the requested SDFI file.  see the binary's output below for details.")
+				print output
+				sys.exit(1)
+					
 			self.rawData[sffile]['info']['lengthsec'] = self.rawData[sffile]['info']['lengthsamples']/float(self.rawData[sffile]['info']['sr'])
 			jh = open(infofile, 'w')
 			json.dump(self.rawData[sffile]['info'], jh)
@@ -314,7 +320,7 @@ TextureWindowsHopFrames = -1
 			print 
 			self.logcommand(command)
 
-			util.popen_execute_command(command.split()) 
+			#util.popen_execute_command(command.split()) 
 	########################################################
 	########################################################
 	def PeakAnalysis(self, sffile):
@@ -324,7 +330,7 @@ TextureWindowsHopFrames = -1
 			oversamp = self.winLengthSec/self.hopLengthSec
 			command = [self.supervp_bin, '-quiet', '-t', '-ns', '-U', '-S'+sffile, '-Apic', '25', 'n%i'%self.numbPeaks, '-Np0', '-M%fs'%self.winLengthSec, '-oversamp', '%i'%oversamp, '-Whamming', '-OS0', analfile]
 			self.logcommand(command)
-			util.popen_execute_command(command, exitOnError=False) 
+			#util.popen_execute_command(command, exitOnError=False) 
 			# supervp is fucked up and streams A LOT of data to stderr.  why would those mofos do something like that?
 	########################################################
 	########################################################

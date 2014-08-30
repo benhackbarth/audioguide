@@ -187,7 +187,7 @@ def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
 	# test for bad exit status
 	if exitOnError and err not in [0, '']:
 		error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(commandArgs), '\n--------\n\n', ''.join(out)))	
-	if stdoutReturnDict == None: return None
+	if stdoutReturnDict == None: return out
 	dictStore = {}
 	# fill output dict if requested
 	for o in out.split('\n'):
@@ -198,7 +198,7 @@ def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
 					dictStore[key] = o[valloc]
 					if valtype == int: dictStore[key] = int(dictStore[key])
 					if valtype == float: dictStore[key] = float(dictStore[key])
-	return dictStore
+	return out, dictStore
 
 
 
