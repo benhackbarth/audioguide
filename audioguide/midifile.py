@@ -16,7 +16,7 @@ import struct,  sys,  math
 # corresponds to one beat. This number is somewhat arbitrary, but should be chosen
 # to provide adequate temporal resolution.
 
-TICKSPERBEAT = 128
+TICKSPERBEAT = 1024 # EDITED BY BEN - 256 was too low for accuracy
 
 controllerEventTypes = {
                         'pan' : 0x0a
