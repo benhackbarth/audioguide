@@ -1,6 +1,6 @@
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "b.hackbarth@liv.ac.uk"
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 import sys, os, platform
 	
