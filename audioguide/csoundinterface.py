@@ -10,12 +10,13 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	elif channelRenderMethod == "oneChannelPerOverlap":
 		nchnls = maxOverlaps
 	else:
-		util.error("csdrenderer", "no know render method %s\n"%channelRenderMethod)
+		util.error("csdrenderer", "no know channel render method %s\n"%channelRenderMethod)
+
 
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
--o %s --format=%s
+-o %s --format=%s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=0 
 </CsOptions>
 <CsInstruments>
 sr = %i
@@ -23,7 +24,18 @@ ksmps = %i
 nchnls = %i
 
 giNoteCounter init 1
+gkTargetRms   init 0.
 0dbfs = 1
+
+
+opcode   getTargetDescriptorFromTable, k, i
+	iftable	xin
+	kabstime timek
+	kdesc    table3   kabstime, iftable, 0
+	printks "ktime = %%.5f val = %%.5f\\n", 0.1, kabstime, kdesc
+	xout	   kdesc	
+endop
+
 
 opcode	pvsbuffer_module, a, akkkiiii
 	ain, kspeed, kbuflen, kscale, iFFTsize, ioverlap, iwinsize, iwintype	xin
@@ -109,6 +121,14 @@ instr 1
 	aAmp = aAmp * ampdbfs(iCpsAmpDb)
 	asnd1 = asnd1 * aAmp
 	asnd2 = asnd2 * aAmp
+
+	if ($useTargetAmplitude == 1) then
+		krmscorpus   rms  ((asnd1+asnd2))
+		kampscalar   = gkTargetRms/krmscorpus
+		printks "tgt = %%.5f cps = %%.5f scalar = %%.5f\\n", 0.1, gkTargetRms, krmscorpus, kampscalar
+		asnd1 = asnd1 * kampscalar
+		asnd2 = asnd2 * kampscalar
+	endif
 	
 	; write to file
 	iStrCmpResult  strcmp   SchannelRenderType, "mix"
@@ -135,24 +155,21 @@ endin
 
 
 
-instr 2 ; simple player
+instr 2 ; target sound
 	iDur = p3
-	SCpsFile   strget   p4
-	iStartRead = p5
+	iScaleDb = p4
+	StgtFile   strget   p5
+	iStartRead = p6
 	
-	iFileChannels   filenchnls   SCpsFile
-	print giNoteCounter ; used by audioguide for its printed progress bar
+	iFileChannels   filenchnls   StgtFile
 
-	; get input sound for this corpus segment	
 	if (iFileChannels == 2) then ; STEREO
-		asnd1, asnd2  diskin2 SCpsFile, 1, iStartRead
+		asnd1, asnd2  diskin2 StgtFile, 1, iStartRead
 	elseif (iFileChannels == 1) then ; MONO
-		asnd1         diskin2 SCpsFile, 1, iStartRead
+		asnd1         diskin2 StgtFile, 1, iStartRead
 		asnd2 = asnd1 ; equal balance between L and R
 	endif 
-
-	outs asnd1, asnd2
-	giNoteCounter = giNoteCounter+1 ; increment note counter
+	gkTargetRms  rms  asnd1+asnd2
 endin
 
 </CsInstruments>
@@ -180,6 +197,71 @@ e
 </CsScore>
 </CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], sr, kr, nchnls, scoreText) )
 
+
+
+
+
+def makeSimpleCsdFile(outputCsdPath, outputSoundfilePath, sr, kr, scoreText):
+	fh = open(outputCsdPath, 'w')
+	fh.write( '''<CsoundSynthesizer>
+<CsOptions>
+-o %s --format=%s
+</CsOptions>
+<CsInstruments>
+sr = %i
+ksmps = %i
+nchnls = 2
+
+giNoteCounter init 1
+0dbfs = 1
+
+
+instr 1 ; simple player
+	iDur = p3
+	SCpsFile   strget   p4
+	iStartRead = p5
+	
+	iFileChannels   filenchnls   SCpsFile
+	print giNoteCounter ; used by audioguide for its printed progress bar
+
+	; get input sound for this corpus segment	
+	if (iFileChannels == 2) then ; STEREO
+		asnd1, asnd2  diskin2 SCpsFile, 1, iStartRead
+	elseif (iFileChannels == 1) then ; MONO
+		asnd1         diskin2 SCpsFile, 1, iStartRead
+		asnd2 = asnd1 ; equal balance between L and R
+	endif 
+
+	outs asnd1, asnd2
+	giNoteCounter = giNoteCounter+1 ; increment note counter
+endin
+
+</CsInstruments>
+<CsScore>
+%s
+e
+</CsScore>
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], sr, kr, scoreText) )
+
+
+
+
+def makeFtableFromDescriptor(descriptorArray, descriptorName, f2s, csoundSr, csoundKr, tabNumb=1):
+	import numpy as np
+	lastval = sys.maxint
+	lasttime = -1
+	control = int(csoundSr/csoundKr)
+	outputStr = 'f%i 0  %%i  -27'%(tabNumb)
+	for idx, thisval in enumerate(descriptorArray): 
+		if thisval == lastval: continue
+		thistime = int((idx*f2s)*control)
+		if thistime == lasttime: continue
+		outputStr += '  %i  %f'%(thistime, thisval)
+		lasttime = thistime
+		lastval = thisval
+	outputStr += '; %s\n'%descriptorName
+	outputStr = outputStr%util.nextPowerOfTwo(thistime) # add table length as power of two
+	return outputStr
 
 
 

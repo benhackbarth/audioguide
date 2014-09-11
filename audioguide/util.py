@@ -97,6 +97,10 @@ def interpArray(array, desiredSize, interpMask=None):
 		interpMask = linspace(0, len(array)-1, desiredSize)
 	return interp(interpMask, x, array)
 
+def nextPowerOfTwo(val):
+	result = 2.
+	while result < val: result *= 2.
+	return result
 
 def getDynamicFromFilename(file, notFound=-1000):
 	TYPICAL_DYNAMICS = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
@@ -353,7 +357,7 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('random'):
 		pieces = cpsseg.transMethod.split()
 		output = random.uniform(float(pieces[1]), float(pieces[2]))
-		return quantize(output, quantizef)
+		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0']:
 		tgtPitch = tgt.desc['f0-seg'].get(tgt.timeInFrames, thisTargetSegmentLength) 

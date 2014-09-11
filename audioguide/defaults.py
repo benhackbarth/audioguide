@@ -5,13 +5,12 @@ LOG_FILEPATH = 'output/log.txt'
 MIDI_FILEPATH = 'output/output.mid'
 TARGET_SEGMENT_LABELS_FILEPATH = 'output/targetlabels.txt'
 TARGET_SEGMENTATION_GRAPH_FILEPATH = None #'output/targetlabels.jpg'
-SUPERIMPOSITION_LABEL_FILEPATH = 'output/superimpositionlabels.txt'
+OUTPUT_LABEL_FILEPATH = 'output/outputlabels.txt'
 LISP_OUTPUT_FILEPATH = None #'output/output.lisp.txt'
 DATA_FROM_SEGMENTATION_FILEPATH = None #'output/datafromsegmentation.txt'
 DICT_OUTPUT_FILEPATH = 'output/output.json'
 MAXMSP_OUTPUT_FILEPATH = 'output/output.maxmsp.json'
 TARGET_DESCRIPTORS_FILEPATH = 'output/targetdescriptors.json'
-ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH = 'output/orderedcorpus.aiff'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 
 ##########  CORPUS   #######
@@ -19,7 +18,7 @@ SEARCH = []
 CORPUS_GLOBAL_ATTRIBUTES = {}
 VOICE_PATTERN = []
 ROTATE_VOICES = False
-ORDER_CORPUS_BY_DESCRIPTOR = 'centroid-seg'
+ORDER_CORPUS_BY_DESCRIPTOR = None
 
 #######  CONCATENATE SELECTION  #######
 SUPERIMPOSE = si()
@@ -35,7 +34,7 @@ OUTPUT_QUANTIZE_TIME_INTERVAL = 0.25
 
 ############  CSOUND RENDERING  ############
 CSOUND_SR = 48000
-CSOUND_KR = 128
+CSOUND_KSMPS = 128
 CSOUND_CHANNEL_RENDER_METHOD = "mix" # mix | oneChannelPerVoice | oneChannelPerOverlap
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 CSOUND_PLAY_RENDERED_FILE = True

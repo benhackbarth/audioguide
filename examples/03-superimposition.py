@@ -1,4 +1,4 @@
-TARGET = tsf('cage.aiff', thresh=-32, rise=1.2)
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 
 CORPUS = [
 csf('lachenmann.aiff'),
@@ -12,6 +12,34 @@ spass('ratio_limit', d('effDur-seg', norm=1), minratio=0.9, maxratio=1.1),
 spass('closest', d('mfccs'))
 ]
 
-#  Here we set the superimpose object to only allow one corpus segment to be selected for each target segment (maxSegment=1).  Since the first spass in SEARCH is using the descriptor effDur-seg, we can except to have somewhat similar durations for the selected corpus segments.  However, note that this might not be true, in particular if you use a corpus will wildly different segment durations that your target.  If you don't care about duration, you can remove the first spass object from SEARCH.  If you want durations to be rendered to match the target more precisely, see below.
-SUPERIMPOSE = si(maxSegment=10, minSegment=1)
+
+#####################################################################################
+#### si HAS THE FOLLOWING KEYWORD ARGUMENTS WHICH AFFECT CORPUS SUMPERIMPOSITION ####
+#####################################################################################
+
+#### minSegment, maxSegment ####  tell Ag how many corpus segments to pick for each target segment.  by default the minimum is 1; there is no maximum and Ag will stop picking corpus segments according to a subtractive amplitude model.
+
+#### minOnset, maxOnset ####  tell Ag how many corpus segments to pick for each analysis frame of each target segment.  frame speed is taken from DESCRIPTOR_HOP_SIZE_SEC, by default 0.01024 seconds.  by default there is no minimum or maximum and Ag will pick / not pick corpus segments according to a subtractive amplitude model.
+
+#### minOverlap, maxOverlap ####  tell Ag how many corpus segments must be playing during each target frame.  unlike minSegment/maxSegment/minOnset/maxOnset, overlap takes corpus sounds' duration into account.  by default there is no minimum or maximum.
+
+
+
+################################################
+#### TRY UNCOMMENTING ONE OF THE FOLLOWING: ####
+################################################
+
+SUPERIMPOSE = si(maxSegment=1) # ag is restricted to picking 1 corpus sound per target segment.
+
+#SUPERIMPOSE = si(maxSegment=4) # ag will pick between 1-4 corpus sounds for each target segment depending on the amplitude of the target and corpus segments.
+
+#SUPERIMPOSE = si(minSegment=4, maxSegment=8) # ag will pick betwwen 4-8 corpus sounds for each target segment depending on the amplitude of the target and corpus segments.  the concatenative algrithms will be forced to pick a 4th sound every segment (due to minSegment) even if one isn't "needed" according to the subtractive amplitude model.
+
+#SUPERIMPOSE = si(maxOnset=1) # ag is restricted to picking one corpus sound for each frame of a target segment.  this limits the number of sounds that may be selected at any single moment to 1.
+
+#SUPERIMPOSE = si(minOnset=2, maxOnset=4) # ag must pick between 2-4 corpus sounds for each frame of each target segment.  every frame must include two new corpus sounds up to a maximum of four.  this will result in a lot of segments!
+
+#SUPERIMPOSE = si(minOnset=4, maxSegment=4) # ag will pick 4 sounds in the first frame, then nothing for the rest of each target segments' duration.  like a temporally aligned "chord" of four elements.  due to the internal superimposition logic, minSegment/maxSegment always overrides minOnset/maxOnset.
+
+#SUPERIMPOSE = si(maxOverlap=4) # ag is restricted to picking corpus sounds such that a maximum of 4 may be overlapping at any given target frame.
 

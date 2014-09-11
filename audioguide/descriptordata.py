@@ -175,17 +175,18 @@ def descriptorSlope(handle, descriptName, start, NORMALIZE_FOR_DURATION=True):
 	# with Norbert Schnell
 	if start == None: effStart = 0
 	else: effStart = start
-	effDur = handle.segdata.get('effDur-seg', effStart, None)
+	effDur = handle.desc['effDur-seg'].get(effStart, None)
 	descript = handle.desc[descriptName][effStart:effStart+effDur]
 	start = int((len(descript))*0.2) # only take descriptor from %20-%80 
 	end = int((len(descript))*0.8)
-	values = np.array(descript.get(start, end))
-	if len(values) < 2: return [0.0] # nada
-	if NORMALIZE_FOR_DURATION:
-		cmpLine = np.linspace(0, 1, num=len(values))
-	else:
-		cmpLine = np.linspace(0, len(values), num=len(values))
+	values = np.array(descript[start:end])
+	if len(values) < 2: return 0.
+	if NORMALIZE_FOR_DURATION: cmpLine = np.linspace(0, 1, num=len(values))
+	else: cmpLine = np.linspace(0, len(values), num=len(values))
 	return np.polyfit(cmpLine, values, 1)[0]
+
+
+
 
 def MIDIPitchByFileName(name, midiPitchMethod, handle, notfound=-1):
 	# midiPitchMethod == 'filename' || int/float || yin-seg || centroid-seg

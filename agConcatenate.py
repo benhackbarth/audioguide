@@ -181,7 +181,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		######################################
 		## MODIFY CHOSEN SAMPLES AMPLITUDE? ##
 		######################################
-		minLen = min(tgtseg.lengthInFrames-segSeek, selectCpsseg.lengthInFrames)		
+		minLen = min(tgtseg.lengthInFrames-segSeek, selectCpsseg.lengthInFrames)	
 		if selectCpsseg.postSelectAmpBool:
 			if selectCpsseg.postSelectAmpMethod == "lstsqr":
 				try:
@@ -314,11 +314,11 @@ if ops.MIDI_FILEPATH != None:
 ###################################
 ## superimpose label output file ##
 ###################################
-if ops.SUPERIMPOSITION_LABEL_FILEPATH != None:
-	fh = open(ops.SUPERIMPOSITION_LABEL_FILEPATH, 'w')
+if ops.OUTPUT_LABEL_FILEPATH != None:
+	fh = open(ops.OUTPUT_LABEL_FILEPATH, 'w')
 	fh.write( ''.join([ oe.makeLabelText() for oe in outputEvents ]) )
 	fh.close()
-	p.log( "Wrote superimposition label file %s\n"%ops.SUPERIMPOSITION_LABEL_FILEPATH )
+	p.log( "Wrote superimposition label file %s\n"%ops.OUTPUT_LABEL_FILEPATH )
 
 ######################
 ## lisp output file ##
@@ -345,8 +345,10 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 if ops.CSOUND_CSD_FILEPATH != None:
 	import csoundinterface as csd
 	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
-	csSco = ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KR, csSco, cps.len, maxOverlaps)
+	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', SdifInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
+	csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(tgt.endSec-tgt.startSec, tgt.whole.envDb, tgt.filename, tgt.startSec)
+	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)

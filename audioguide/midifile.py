@@ -383,7 +383,7 @@ class MIDITrack:
         # Assumptions in the code expect the list to be time-sorted.
         # self.MIDIEventList.sort(lambda x, y: x.time - y.time)
 
-        self.MIDIEventList.sort(lambda x, y: int( 1000 * (x.time - y.time)))
+        self.MIDIEventList.sort(lambda x, y: int( round(1000 * (x.time - y.time), 0)))
 
         if self.deinterleave:    
             self.deInterleaveNotes()
@@ -409,7 +409,7 @@ class MIDITrack:
         # things in any order.
         
         self.eventList.sort(lambda x, y: cmp(x.type ,  y.type))
-        self.eventList.sort(lambda x, y: int( 1000 * (x.time - y.time))) #A bit of a hack.
+        self.eventList.sort(lambda x, y: int( round(1000 * (x.time - y.time), 0))) #A bit of a hack.
 
     def closeTrack(self):
         '''Called to close a track before writing
@@ -585,7 +585,7 @@ class MIDITrack:
         # and secondary key.
         
         self.MIDIEventList.sort(lambda x, y: cmp(x.type ,  y.type))
-        self.MIDIEventList.sort(lambda x, y: int( 1000 * (x.time - y.time)))
+        self.MIDIEventList.sort(lambda x, y: int(round( 1000 * (x.time - y.time), 0)))
 
     def adjustTime(self,origin):
         '''

@@ -181,7 +181,7 @@ TextureWindowsHopFrames = -1
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
 		# add ordering by descriptor
-		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR, ops.ORDER_CORPUS_BY_DESCRIPTOR_FILEPATH]:
+		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR]:
 			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
 		for dname, weight in self.tgtOnsetDescriptors.items():
 			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)

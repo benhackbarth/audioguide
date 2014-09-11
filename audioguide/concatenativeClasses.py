@@ -267,7 +267,7 @@ class corpus:
 					skip = False
 					if type(cobj.excludeTimes) not in [list, tuple]: cobj.excludeTimes = [cobj.excludeTimes] # force it to be a list
 					for timeTuple in cobj.excludeTimes:
-						if startSec >= timeTuple[0] and endSec <= timeTuple[1]: skip = True
+						if startSec >= timeTuple[0] and startSec < timeTuple[1]: skip = True
 					#print filehead, start, end, skip
 					if skip: continue
 				# see if there is any extra data from the segmentation file
