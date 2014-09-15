@@ -68,6 +68,7 @@ UserVar_types = {
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
 'LOG_FILEPATH': ['None', 'a string'],
 'MIDI_FILEPATH': ['None', 'a string'],
+'MIDIFILE_TEMPO': ['a number greater than zero'],
 'TARGET_SEGMENT_LABELS_FILEPATH': ['None', 'a string'],
 'SEGMENTATION_FILE_INFO': ['a string'],
 'TARGET_SEGMENTATION_GRAPH_FILEPATH': ['None', 'a string'],

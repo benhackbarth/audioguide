@@ -303,7 +303,7 @@ if ops.MIDI_FILEPATH != None:
 	import midifile
 	MyMIDI = midifile.MIDIFile(1)
 	MyMIDI.addTrackName(0, 0., "AudioGuide Track")
-	MyMIDI.addTempo(0, 0., 60.)
+	MyMIDI.addTempo(0, 0., ops.MIDIFILE_TEMPO)
 	for oe in outputEvents:
 		MyMIDI.addNote(0, 0, oe.midiPitch, oe.timeInScore, oe.duration, oe.midiVelocity)
 	binfile = open(ops.MIDI_FILEPATH, 'wb')

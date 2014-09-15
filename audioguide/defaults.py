@@ -3,6 +3,7 @@ CSOUND_CSD_FILEPATH = 'output/output.csd'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'
 LOG_FILEPATH = 'output/log.txt'
 MIDI_FILEPATH = 'output/output.mid'
+MIDIFILE_TEMPO = 60.
 TARGET_SEGMENT_LABELS_FILEPATH = 'output/targetlabels.txt'
 TARGET_SEGMENTATION_GRAPH_FILEPATH = None #'output/targetlabels.jpg'
 OUTPUT_LABEL_FILEPATH = 'output/outputlabels.txt'
