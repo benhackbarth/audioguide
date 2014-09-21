@@ -11,7 +11,7 @@ LISP_OUTPUT_FILEPATH = None #'output/output.lisp.txt'
 DATA_FROM_SEGMENTATION_FILEPATH = None #'output/datafromsegmentation.txt'
 DICT_OUTPUT_FILEPATH = 'output/output.json'
 MAXMSP_OUTPUT_FILEPATH = 'output/output.maxmsp.json'
-TARGET_DESCRIPTORS_FILEPATH = 'output/targetdescriptors.json'
+TARGET_DESCRIPTORS_FILEPATH = None # 'output/targetdescriptors.json'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 
 ##########  CORPUS   #######

@@ -235,6 +235,7 @@ class corpus:
 			# reset counters...
 			segCount = 0
 			windowDist = descriptordata.hannWin(len(timeList)*2)
+			
 			# segment list
 			for idx in range(len(timeList)): 
 				#thisSegDict = {}
@@ -280,7 +281,13 @@ class corpus:
 					if endSec != None and endSec-startSec > cobj.limitDur: endSec = start+cobj.limitDur
 				# see which sf to map sound concatenation onto...
 				if cobj.concatFileName == None: concatFileName = timeList[idx][0]
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData])
+				# get any metadata
+				metadata = ''
+				for mstring, mstart, mstop in cobj.metadata:
+					if startSec >= mstart and startSec <= mstop:
+						metadata += mstring + ' '
+				
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb} )	
 			###########################
@@ -596,6 +603,7 @@ class outputEvent:
 		self.midiFromFilename = sfseghandle.desc['MIDIPitch-seg'].get(0, None)
 		self.midiPitch = self.midiFromFilename + self.transposition
 		if self.midiPitch < minOutputMidi: self.midiPitch = minOutputMidi
+		self.metadata = sfseghandle.metadata
 		# amplitude envelope
 		self.envDb = ampBoost
 		self.envAttackSec = sfseghandle.envAttackSec
@@ -606,7 +614,9 @@ class outputEvent:
 		return "i%i  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(instru, self.timeInScore, self.duration, self.envDb, self.filename, self.sfSkip, self.transposition, self.rmsSeg, self.peaktimeSec, self.effDurSec, self.envAttackSec, self.envDecaySec, self.envSlope, self.voiceID, self.simSelects, self.tgtsegdur, self.tgtsegnumb, self.stretchcode, channelMethod)
 	####################################	
 	def makeLabelText(self):
-		if self.sfSkip == 0:
+		if self.metadata != '':
+			text=self.metadata
+		elif self.sfSkip == 0:
 			text = "%s"%(self.printName)
 		else:
 			text = "%s@%.2f"%(self.printName, self.sfSkip)

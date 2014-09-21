@@ -139,7 +139,7 @@ class SfSegment:
 class corpusSegment(SfSegment):
 	'''Inherits class of SfSegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
 		# initalise the sound segment object	
 		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
@@ -163,6 +163,7 @@ class corpusSegment(SfSegment):
 		self.selectionTimes = []
 		self.segfileData = segfileData
 		self.cluster = None
+		self.metadata = metadata
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
 		tgtvals = tgtseg.desc[dobj.name].getnorm(tgtSeek, tgtSeek+array_len)	
