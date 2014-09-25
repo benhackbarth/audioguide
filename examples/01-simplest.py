@@ -11,3 +11,4 @@ spass('closest', d('mfccs-seg'))
 ] # SEARCH documented in 02-searching.py
 
 SUPERIMPOSE = si(maxSegment=8) # SUPERIMPOSE documented in 03-superimposition.py
+

@@ -90,6 +90,9 @@ class SdifInterface:
 
 		self.rawData = {} # file, descriptdict
 		descriptors = ['SignalZeroCrossingRate', 'AutoCorrelation', 'TotalEnergy', 'SpectralCentroid', 'SpectralSpread', 'SpectralSkewness', 'SpectralKurtosis', 'SpectralSlope', 'SpectralDecrease', 'SpectralRolloff', 'SpectralVariation', 'Loudness', 'Spread', 'Sharpness', 'PerceptualSpectralCentroid', 'PerceptualSpectralSpread', 'PerceptualSpectralSkewness', 'PerceptualSpectralKurtosis', 'PerceptualSpectralSlope', 'PerceptualSpectralDecrease', 'PerceptualSpectralRolloff', 'PerceptualSpectralVariation', 'PerceptualSpectralDeviation', 'PerceptualOddToEvenRatio', 'PerceptualTristimulus', 'MFCC', 'SpectralFlatness', 'SpectralCrest', 'FundamentalFrequency', 'NoiseEnergy', 'Noisiness', 'Inharmonicity', 'HarmonicEnergy', 'HarmonicSpectralCentroid', 'HarmonicSpectralSpread', 'HarmonicSpectralSkewness', 'HarmonicSpectralKurtosis', 'HarmonicSpectralSlope', 'HarmonicSpectralDecrease', 'HarmonicSpectralRolloff', 'HarmonicSpectralVariation', 'HarmonicSpectralDeviation', 'HarmonicOddToEvenRatio', 'HarmonicTristimulus', 'Chroma']
+		
+		#descriptors.extend(['BandFluctuationStrength', 'BandRoughness', 'FluctuationStrength', ])
+		
 		energydescriptors = ['TemporalIncrease', 'TemporalDecrease', 'TemporalCentroid', 'EffectiveDuration', 'AmplitudeModulation', 'EnergyEnvelope']
 		dlist = ';~~~~~~~~~~~~~~~~~~~descriptors~~~~~~~~~~~~~~~~~~~~~\n'
 		for d in descriptors: dlist += d+'  = ShortTime\n'
@@ -144,9 +147,7 @@ TextureWindowsHopFrames = -1
 		for desc in self.agDescriptToSdif:
 			dobj = d(desc)
 			self.allDescriptors.append( dobj )
-			if not dobj.seg:
-				segmented = d(desc+'-seg')
-				self.allDescriptors.append( segmented )
+			if not dobj.seg: self.allDescriptors.append( d(desc+'-seg') )
 	#############################
 	def addDescriptorIfNeeded(self, dobjToCheck, ops, addParents=False):
 		from UserClasses import SingleDescriptor as d
@@ -461,12 +462,14 @@ TextureWindowsHopFrames = -1
 				sys.exit()
 			
 			sdfh = pysdif.SdifFile(file)
+			found_sigs = []
 			#self.sdif_testprint(file)
 			valid_f = 0
 			for f in sdfh:
 				if f.signature not in reqFrameTypes: continue
 				if len(f) <= 1: continue
 				for m in f:
+					if m.signature not in found_sigs: found_sigs.append(m.signature)
 					if not frameMatrixDict.has_key((f.signature, m.signature)): continue
 					for name, col, row in frameMatrixDict[(f.signature, m.signature)]:
 						self.rawData[sffile]['load'][name][valid_f] = m.get_data(copy=False)[col][row]
@@ -476,7 +479,8 @@ TextureWindowsHopFrames = -1
 				if valid_f > self.rawData[sffile]['arraylen']-1: break
 			sdfh.close()
 			self.logcommand("read %i frames from %s"%(valid_f, file))
-			#sys.exit()
+			#print found_sigs
+			##sys.exit()
 		self.rawData[sffile]['loaded'] = True
 	########################################################
 	########################################################

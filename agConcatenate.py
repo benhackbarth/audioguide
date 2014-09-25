@@ -304,8 +304,9 @@ if ops.MIDI_FILEPATH != None:
 	MyMIDI = midifile.MIDIFile(1)
 	MyMIDI.addTrackName(0, 0., "AudioGuide Track")
 	MyMIDI.addTempo(0, 0., ops.MIDIFILE_TEMPO)
+	temposcalar = ops.MIDIFILE_TEMPO/60.
 	for oe in outputEvents:
-		MyMIDI.addNote(0, 0, oe.midiPitch, oe.timeInScore, oe.duration, oe.midiVelocity)
+		MyMIDI.addNote(0, 0, oe.midiPitch, oe.timeInScore*temposcalar, oe.duration*temposcalar, oe.midiVelocity)
 	binfile = open(ops.MIDI_FILEPATH, 'wb')
 	MyMIDI.writeFile(binfile)
 	binfile.close()
