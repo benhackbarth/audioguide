@@ -81,9 +81,9 @@ class cpsLimit:
 		for ch in allcpshandles:
 			if ch.voiceID not in self.cpsScope: continue # skip if outside scope
 			if self.d.seg:
-				tmp_data.append( ch.segdata.getraw(self.d.name, 0, None) )
+				tmp_data.append( ch.desc[self.d.name].get(0, None)  )
 			else:
-				tmp_data.extend( ch.segdata.getraw(self.d.name, 0, None) )
+				tmp_data.extend( ch.desc[self.d.name].get(0, None)  )
 		tmp_data.sort()
 		self.value = tmp_data[ int((self.percent/100.)*(len(tmp_data)-1)) ]
 		del tmp_data
