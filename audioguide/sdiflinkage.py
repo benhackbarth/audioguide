@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import pysdif
 import numpy as np
 import util
+import time
 
 try:
 	import json as json
@@ -101,6 +102,15 @@ class SdifInterface:
 		### setup ircam binary config text file	
 		self.sdifdir = os.path.join(os.path.dirname(__file__), 'data_sdif')
 		if not os.path.exists(self.sdifdir): os.makedirs(self.sdifdir)
+		### setup sdif registry
+		self.sdifRegistryPath = os.path.join(os.path.dirname(__file__), 'data_sdif', 'registry.json')
+		if os.path.exists(self.sdifRegistryPath):
+			fh = open(self.sdifRegistryPath)
+			self.sdifRegistryData = json.load(fh)
+			fh.close()
+		else:
+			self.sdifRegistryData = {}
+
 		self.config_loc = os.path.join(self.sdifdir, 'ircamdescriptor.config.txt')
 		self.config_text = '''[Parameters]
 ResampleTo = %i
@@ -461,6 +471,7 @@ TextureWindowsHopFrames = -1
 				print "CANNOT FIND", file
 				sys.exit()
 			
+			self.sdifRegistryData[os.path.split(file)[1]] = time.time(), os.stat(file).st_size
 			sdfh = pysdif.SdifFile(file)
 			found_sigs = []
 			#self.sdif_testprint(file)
@@ -517,6 +528,15 @@ TextureWindowsHopFrames = -1
 		# close this sdif file handle
 		sdfh.close()
 		sys.exit()
+	########################################################
+	########################################################
+	def done(self):
+		totalBytes = 0
+		#for filename, (timestamp, bytes) in self.sdifRegistryData.items():
+		#	125000000
+	
+		fh = open(self.sdifRegistryPath, 'w')
+		json.dump(self.sdifRegistryData, fh)
 ########################################################
 ########################################################
 

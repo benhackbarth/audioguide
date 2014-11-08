@@ -38,6 +38,7 @@ CSOUND_SR = 48000
 CSOUND_KSMPS = 128
 CSOUND_CHANNEL_RENDER_METHOD = "mix" # mix | oneChannelPerVoice | oneChannelPerOverlap
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
+CSOUND_RENDER_DUR = 'cps' # cps | tgt
 CSOUND_PLAY_RENDERED_FILE = True
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################

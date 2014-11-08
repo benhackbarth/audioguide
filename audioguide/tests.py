@@ -99,6 +99,7 @@ UserVar_types = {
 'CSOUND_CHANNEL_RENDER_METHOD': ['mix', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
+'CSOUND_RENDER_DUR': ['cps', 'tgt'],
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],
 'DESCRIPTOR_WIN_SIZE_SEC': ['a number greater than zero'],

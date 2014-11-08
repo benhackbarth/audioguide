@@ -72,6 +72,11 @@ class SfSegment:
 		SdifDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
 		tmppy = {}
 		self.segmentStartSec, self.segmentEndSec, self.segmentStartFrame, self.lengthInFrames = SdifInterface.getDescriptorSegment(self.filename, self.segmentStartSec, self.segmentEndSec, SdifDescList, tmppy, self.envelopeMask)
+#		print "\n\n"
+#		print self.desc['power']
+#		print self.envelopeMask
+#		sys.exit()
+		
 		for dname, data in tmppy.items():
 			self.desc[dname] = data
 		del tmppy
@@ -278,7 +283,7 @@ class target: # the target
 		self.envDb = userOptsTargetObject.scaleDb
 		self.midiPitchMethod = userOptsTargetObject.midiPitchMethod
 		self.stretch = userOptsTargetObject.stretch
-		self.segmentationFilepath = userOptsTargetObject.segmentationFilepath
+		self.segmentationFilepath = userOptsTargetObject.segmentationFilepath		
 	########################################
 	def timeStretch(self, SdifInterface, ops, p):
 		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, p=p)
@@ -293,7 +298,7 @@ class target: # the target
 		if self.stretch != 1:
 			self.timeStretch(SdifInterface, ops, p)
 		# analise the whole target sound!
-		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface)
+		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=self.envDb)
 		self.startSec = self.whole.segmentStartSec
 		self.endSec = self.whole.segmentEndSec
 		self.whole.midiPitchMethod = self.midiPitchMethod

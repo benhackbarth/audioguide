@@ -46,10 +46,6 @@ if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
 ## target descriptors file ##
 #############################
 if ops.TARGET_DESCRIPTORS_FILEPATH != None:
-	try:
-		import json as json
-	except ImportError:
-		import simplejson as json
 	outputdict = tgt.whole.desc.getdict()
 	outputdict['frame2second'] = SdifInterface.f2s(1)
 	fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
@@ -96,11 +92,27 @@ for dobj in SdifInterface.normalizeDescriptors:
 	p.log( "%s (%i):"%(dobj.name, dobj.norm) )
 	p.log( "\ttarget: mean=%.2f  std=%.2f  corpus: mean=%.2f  std=%.2f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev']) )
 	
+#	import matplotlib.pyplot as plt
+#	fig = plt.figure(figsize=(25., 15.))
+#	tgtpowers = [s.desc['power-seg'].get(0, None) for s in tgt.segs]
+#	tgtnorms = [s.desc[dobj.name].getnorm(0, None) for s in tgt.segs]
+#	cpspowers = [s.desc['power-seg'].get(0, None) for s in cps.postLimitSegmentNormList]
+#	cpsnorms = [s.desc[dobj.name].getnorm(0, None) for s in cps.postLimitSegmentNormList]
+#	plt.plot(tgtnorms, tgtpowers, 'ro')
+#	plt.plot(cpsnorms, cpspowers, 'bo')
+#	plt.savefig('/Users/ben/Desktop/%s-norm.png'%dobj.name)
+#	plt.close()
+	
+	
+	
+	
+	
 ##############################
 ## initialise concatenation ##
 ##############################
 p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
+SdifInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
 superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
 cps.setupConcate(tgt, SdifInterface)
@@ -233,12 +245,12 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		## append selected corpus unit ##
 		#################################
 		transposition = util.getTransposition(tgtseg, selectCpsseg)
-		cps.updateWithSelection(selectCpsseg, timeInSec)
+		cps.updateWithSelection(selectCpsseg, timeInSec, segidx)
 		cpsEffDur = selectCpsseg.desc['effDur-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
 
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1)) )
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
 		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname)

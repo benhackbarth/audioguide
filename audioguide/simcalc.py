@@ -60,6 +60,7 @@ class distanceCalculations:
 				########################################################		
 				min_accum = sys.maxint
 				for c in self.corpusObjs:
+					#print c.filename, c.scaleDistance
 					c.sim_accum = 0.
 					tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
 					try:
@@ -70,6 +71,7 @@ class distanceCalculations:
 								if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
 									tgtvals *= random.uniform(self.segmentDensityAmpScalers[0], self.segmentDensityAmpScalers[1])							
 								dist = ((tgtvals-cpsvals)**2)*(d.weight*c.scaleDistance)
+								#print "\t", dist
 								c.sim_accum += dist
 								if c.sim_accum > min_accum and not spassobj.complete_results: raise BreakIt
 							else:
@@ -81,6 +83,9 @@ class distanceCalculations:
 					except BreakIt: pass
 				# sort by accum distance
 				self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
+				#for cidx, c in enumerate(self.corpusObjs):
+				#	print cidx, c.filename, c.sim_accum
+				
 				mind = self.corpusObjs[0].sim_accum
 				maxd = self.corpusObjs[-1].sim_accum
 				lastPass = spidx == len(seach_pass_objs)-1				

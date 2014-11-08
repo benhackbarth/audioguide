@@ -211,7 +211,7 @@ TARGET = tsf('cage.aiff', start=2, end=3, stretch=2) # only uses seconds 2-3, bu
 The CORPUS variable is defined as a list of csf() objects which require a path to a soundfile OR a directory.  File paths and/or directory paths may be full paths or relative paths to the location of the options file you're using or a path found in the SEARCH\_PATHS variable.  A csf() object required the soundfile/directory name, then takes the following optional keyword arguments:
 
 \begin{lstlisting}[language=python]
-csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], limit=[], wholeFile=False, recursive=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, onsetLen=0.01, offsetLen='30%', postSelectAmpBool=False, postSelectAmpMethod='power-mean-seg', postSelectAmpMin=-12, postSelectAmpMax=+12, midiPitchMethod='composite', transMethod=None,  transQuantize=0, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
+csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], limit=[], wholeFile=False, recursive=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, onsetLen=0.01, offsetLen='30%', postSelectAmpBool=False, postSelectAmpMethod='power-mean-seg', postSelectAmpMin=-12, postSelectAmpMax=+12, midiPitchMethod='composite', transMethod=None,  transQuantize=0, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, maxPercentTargetSegments=None, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
 \end{lstlisting}
 
 The simplest way to include a soundfile in your corpus is to use its path as the first argument of the csf() object:
@@ -372,6 +372,10 @@ csf('piano/', restrictRepetition=2.5) # Each segment is invalid to be picked if 
 \item[restrictOverlaps*] An integer specifying how many overlapping samples from this collection may be chosen by the concatenative algorithm at any given moment.  So, restrictOverlaps=2 only permits 2 overlapping voices at a time.
 
 \item[restrictInTime*] a time in seconds specifying how often a sample from this entry may be selected. -- for example restrictInTime=0.5 would permit segments from this collection to be select a maximum of once every 0.5 seconds.
+
+\item[maxPercentTargetSegments*] a float as a percentage value from 0-100.  This number limits the number of target segments that this corpus entry may be selected.  For example, a value of 50 means that this corpus entry is only valid for up to 50\% of target segments; after this threshold has been crossed, further selections are not possible.  None is the default, which has no effect.
+
+
 
 \item[scaleDistance*] Scale the resulting distance when executing a multidimensional search using on segments.  scaleDistance=2 will make these sounds twice as `far', and thus less likely to be selected by the search algorithm.  scaleDistance=0.25 makes 4 times more likely to be picked.
 

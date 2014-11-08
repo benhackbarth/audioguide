@@ -289,7 +289,7 @@ class corpus:
 				
 				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
 				vcCnt += 1
-			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb} )	
+			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': []} )	
 			###########################
 			## done with CORPUS loop ##
 			###########################
@@ -356,18 +356,17 @@ class corpus:
 				test = False
 		return test
 	############################################################################
-	def updateWithSelection(self, cpsh, timeInSec):
+	def updateWithSelection(self, cpsh, timeInSec, tgtsegidx):
 		self.data['lastVoice'] = cpsh.voiceID
 		self.data['selectionTimeByVoice'][cpsh.voiceID].append(timeInSec)
+		self.data['cspInfo'][cpsh.voiceID]['selectedTargetSegments'].append(tgtsegidx)
 		cpsh.selectionTimes.append(timeInSec)
-		
-		if not cpsh.allowRepetition:
-			del self.data['postLimitSegmentDictVoice'][cpsh.voiceID] # remove it altogether
 	############################################################################
 	def setupConcate(self, tgtObj, SdifInterface):
 		'''called when concate is initialized'''
 		from UserClasses import SingleDescriptor as d
 		self.powerStats = sfSegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
+		self.totalNumberOfTargetSegments = len(tgtObj.segs)
 		##########################################################
 		## set up voice restriction per second as a frame value ##
 		##########################################################
@@ -405,6 +404,12 @@ class corpus:
 			if self.simSelectRuleByCorpusId[vc] != None:
 				if not eval(str(superimp.cnt['overlap'][timeInFrames])+self.simSelectRuleByCorpusId[vc]):
 					if vc not in voicesToRemove: voicesToRemove.append(vc)
+		#
+		# look to see if maxPercentTargetSegments has been exceeded
+		for vc in validVoices:
+			percentageSegmentsChosen = (float(len(set(self.data['cspInfo'][vc]['selectedTargetSegments'])))/float(self.totalNumberOfTargetSegments))*100.
+			if percentageSegmentsChosen > self.data['cspInfo'][vc]['maxPercentTargetSegments']: voicesToRemove.append(vc)
+			
 		###############################################
 		## NOW remove any voices that should be here ##
 		###############################################
@@ -418,6 +423,10 @@ class corpus:
 		for h in self.postLimitSegmentNormList:
 			# no voices that didn't pass through...
 			if h.voiceID not in validVoices: continue
+
+			# if allowRepetition is False then test
+			if not h.allowRepetition and len(h.selectionTimes) > 0: continue # skip this segment
+
 			# restiction in seconds per sample
 			if h.restrictRepetition != None and len(h.selectionTimes) > 0:
 				passme = True
@@ -576,13 +585,13 @@ class SuperimposeTracker():
 
 
 class outputEvent:
-	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, minOutputMidi=21):		
-		# soundfile stuff
+	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, renderDur, minOutputMidi=21):		
+		# cps segment stuff
 		self.filename = sfseghandle.concatFileName
 		self.printName = sfseghandle.printName
 		self.timeInScore = timeInScore
 		self.sfSkip = sfseghandle.segmentStartSec
-		self.duration = sfseghandle.segmentDurationSec
+		self.cpsduration = sfseghandle.segmentDurationSec
 		self.effDurSec = sfseghandle.desc['effDur-seg'].get(0, None)
 		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None) * f2s
 		self.powerSeg = sfseghandle.desc['power-seg'].get(0, None)
@@ -609,6 +618,13 @@ class outputEvent:
 		self.envAttackSec = sfseghandle.envAttackSec
 		self.envDecaySec = sfseghandle.envDecaySec
 		self.envSlope = sfseghandle.envSlope
+		
+		# test for which duration to use - the target's or the corpus'
+		if renderDur == 'cps':
+			self.duration = self.cpsduration
+		elif renderDur == 'tgt':
+			self.duration = self.tgtsegdur
+		
 	####################################	
 	def makeCsoundOutputText(self, channelMethod, instru=1):		
 		return "i%i  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(instru, self.timeInScore, self.duration, self.envDb, self.filename, self.sfSkip, self.transposition, self.rmsSeg, self.peaktimeSec, self.effDurSec, self.envAttackSec, self.envDecaySec, self.envSlope, self.voiceID, self.simSelects, self.tgtsegdur, self.tgtsegnumb, self.stretchcode, channelMethod)

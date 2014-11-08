@@ -60,7 +60,7 @@ for file in args:
 		plotMe = None
 		
 	agopts = {
-	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
+	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, offsetThreshAbs=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.DB_OFFSET_ABSOLUTE, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
 	'VERBOSITY': 1,
 	'LOG_FILEPATH': None,
 	'CSOUND_CSD_FILEPATH': None,

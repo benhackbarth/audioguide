@@ -23,7 +23,7 @@ class TargetOptionsEntry(object):
 
 
 class CorpusOptionsEntry(object):
-	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[]):
+	def __init__(self, name,  allowRepetition=True, concatFileName=None,  end=None,  envelopeSlope=1,  excludeStr=None,  excludeTimes=[], includeStr=None,  includeTimes=[],  limit={},  limitDur=None,  midiPitchMethod='composite',  offsetLen='30%',  onsetLen=0.01,  recursive=True,  restrictInTime=0,  restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None):
 		self.name = name
 		self.start = start
 		self.end = end
@@ -56,6 +56,7 @@ class CorpusOptionsEntry(object):
 		self.transMethod = transMethod
 		self.transQuantize = transQuantize
 		self.metadata = metadata
+		self.maxPercentTargetSegments = maxPercentTargetSegments
 
 		
 
