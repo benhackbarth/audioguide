@@ -407,6 +407,7 @@ class corpus:
 		#
 		# look to see if maxPercentTargetSegments has been exceeded
 		for vc in validVoices:
+			if self.data['cspInfo'][vc]['maxPercentTargetSegments'] == None: continue
 			percentageSegmentsChosen = (float(len(set(self.data['cspInfo'][vc]['selectedTargetSegments'])))/float(self.totalNumberOfTargetSegments))*100.
 			if percentageSegmentsChosen > self.data['cspInfo'][vc]['maxPercentTargetSegments']: voicesToRemove.append(vc)
 			
