@@ -218,7 +218,7 @@ def getMidiPitchFromString(string):
 	import os, re
 	global FILENAME_PITCH_DICT
 	if FILENAME_PITCH_DICT.has_key(string): return FILENAME_PITCH_DICT[string]
-	pitchDict = {"c": 0,"cs": 1,"db": 1,"d": 2,"ds": 3,"eb": 3,"e": 4, 'fb': 4, "f": 5,"fs": 6,"gb": 6,"g": 7,"gs": 8,"ab": 8,"a": 9,"as": 10,"bb": 10, "b": 11, 'cb': 11}
+	pitchDict = {"c": 0,"cs": 1,"db": 1,"d": 2,"ds": 3,"eb": 3,"e": 4, 'fb': 4, "es": 5, "f": 5,"fs": 6,"gb": 6,"g": 7,"gs": 8,"ab": 8,"a": 9,"as": 10,"bb": 10, "b": 11, 'cb': 11}
 	results = []
 	results.extend(re.compile(r'[a-gA-G][sb\#][0123456789]').findall(string)) # re command for searching three element pattern
 	results.extend(re.compile(r'[a-gA-G][0123456789]').findall(string)) # no accidentals!!

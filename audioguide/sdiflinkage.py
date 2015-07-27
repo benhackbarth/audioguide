@@ -103,13 +103,13 @@ class SdifInterface:
 		self.sdifdir = os.path.join(os.path.dirname(__file__), 'data_sdif')
 		if not os.path.exists(self.sdifdir): os.makedirs(self.sdifdir)
 		### setup sdif registry
-		self.sdifRegistryPath = os.path.join(os.path.dirname(__file__), 'data_sdif', 'registry.json')
-		if os.path.exists(self.sdifRegistryPath):
-			fh = open(self.sdifRegistryPath)
-			self.sdifRegistryData = json.load(fh)
+		self.dataRegistryPath = os.path.join(os.path.dirname(__file__), 'data_registry.json')
+		if os.path.exists(self.dataRegistryPath):
+			fh = open(self.dataRegistryPath)
+			self.dataRegistry = json.load(fh)
 			fh.close()
 		else:
-			self.sdifRegistryData = {}
+			self.dataRegistry = {}
 
 		self.config_loc = os.path.join(self.sdifdir, 'ircamdescriptor.config.txt')
 		self.config_text = '''[Parameters]
@@ -187,7 +187,7 @@ TextureWindowsHopFrames = -1
 		# add limiting descriptors
 		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
-				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops)
+				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops, addParents=True)
 		# add segmentation data descriptor
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
@@ -217,7 +217,6 @@ TextureWindowsHopFrames = -1
 				if dobj.name == dname:
 					self.mixtureDescriptors.append(dobj)
 					break
-
 	########################################################
 	########################################################
 	def logcommand(self, command):
@@ -278,10 +277,10 @@ TextureWindowsHopFrames = -1
 		self.rawData[sffile] = {}
 		sfroot, sfhead = os.path.split(sffile)
 		sfheadroot, sfheadext = os.path.splitext(sfhead)
-		jsondir = os.path.join(os.path.dirname(__file__), 'data_json')
-		if not os.path.exists(jsondir): os.makedirs(jsondir)
+		self.jsondir = os.path.join(os.path.dirname(__file__), 'data_json')
+		if not os.path.exists(self.jsondir): os.makedirs(self.jsondir)
 		self.rawData[sffile]['sdiffileroot'] = os.path.join(self.sdifdir, sfheadroot)
-		self.rawData[sffile]['jsonfileroot'] = os.path.join(jsondir, sfheadroot)
+		self.rawData[sffile]['jsonfileroot'] = os.path.join(self.jsondir, sfheadroot)
 		self.rawData[sffile]['checksum'] = listToCheckSum([sffile, self.resampleRate, self.windowType, self.numbMfccs, self.numbMfccs, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality])
 
 		descriptorfile = self.getSdifFileName('descriptors', sffile)
@@ -471,7 +470,7 @@ TextureWindowsHopFrames = -1
 				print "CANNOT FIND", file
 				sys.exit()
 			
-			self.sdifRegistryData[os.path.split(file)[1]] = time.time(), os.stat(file).st_size
+			self.dataRegistry[os.path.splitext(os.path.split(file)[1])[0]] = time.time(), os.stat(file).st_size
 			sdfh = pysdif.SdifFile(file)
 			found_sigs = []
 			#self.sdif_testprint(file)
@@ -530,13 +529,33 @@ TextureWindowsHopFrames = -1
 		sys.exit()
 	########################################################
 	########################################################
-	def done(self):
+	def done(self, dataGbLimit=1, dataDayLimit=7):
+		import time
+		
+		byteLimit = dataGbLimit*125000000
+		secondLimit = dataDayLimit*24*60*60
+		
+		timeordered = []
+		for filename, (timestamp, bytes) in self.dataRegistry.items():
+			timeordered.append( (timestamp, bytes, filename) )
+		timeordered.sort(reverse=True)
 		totalBytes = 0
-		#for filename, (timestamp, bytes) in self.sdifRegistryData.items():
-		#	125000000
-	
-		fh = open(self.sdifRegistryPath, 'w')
-		json.dump(self.sdifRegistryData, fh)
+		currenttimestamp = time.time()
+		listToRemove = []
+		for timestamp, bytes, filename in timeordered:
+			timediff = currenttimestamp-timestamp
+			# if total bytes is over 1 gb and file hasn't been used for a week...
+			if timediff > secondLimit and totalBytes > byteLimit:
+				listToRemove.append(filename)
+				del self.dataRegistry[filename]
+				#print "RM "+os.path.join(self.sdifdir, filename+'.sdif')
+				#print "RM "+os.path.join(self.jsondir, filename+'.json')
+			totalBytes += bytes
+		
+
+		fh = open(self.dataRegistryPath, 'w')
+		json.dump(self.dataRegistry, fh)
+		fh.close()
 ########################################################
 ########################################################
 

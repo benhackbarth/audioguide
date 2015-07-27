@@ -258,11 +258,11 @@ csf('lachenmann.aiff', excludeTimes=[(30, 55)]) # use all segments except those 
 \item[limit*] A list of equation-like strings where segmented descriptor names are used to include/exclude segments from this file / directory.
 \end{description}
 \begin{lstlisting}
-csf('lachenmann.aiff', limit['centroid-seg >= 1000']) # segments whose centroid-seg is equal to or above 1000.
+csf('lachenmann.aiff', limit=['centroid-seg >= 1000']) # segments whose centroid-seg is equal to or above 1000.
 
-csf('lachenmann.aiff', limit['centroid-seg < 50%']) # only use 50% of segments with the lowest centroid-seg.
+csf('lachenmann.aiff', limit=['centroid-seg < 50%']) # only use 50% of segments with the lowest centroid-seg.
 
-csf('lachenmann.aiff', limit['power-seg < 50%', 'power-seg > 10%']) # only use segments whose power-seg falls between 10%-50% of the total range of power-seg's in this file/directory.
+csf('lachenmann.aiff', limit=['power-seg < 50%', 'power-seg > 10%']) # only use segments whose power-seg falls between 10%-50% of the total range of power-seg's in this file/directory.
 \end{lstlisting}
 \begin{description}
 \item[segmentationFile*] Manually specify the segmentation text file. By default, \ag automatically looks for a file with the same name as the soundfile plus the extension `.txt'. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.

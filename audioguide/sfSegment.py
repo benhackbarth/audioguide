@@ -216,13 +216,14 @@ class corpusSegment(SfSegment):
 
 class targetSegment(SfSegment):
 	'''Inherits class of SfSegment and adds additional attributes
-	used uniquely by target segments.'''
+	used by target segments.'''
 	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, midiPitchMethod):
 		# initalise the sound segment object	
 		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 		self.cluster = None
+		self.numberSelectedUnits = 0
 	###################################################
 	def initMixture(self, SdifInterface):
 		self.mixdesc = descriptordata.container(SdifInterface.mixtureDescriptors, self)
@@ -231,6 +232,7 @@ class targetSegment(SfSegment):
 			#	def setNorm(self, subtract, divide):
 			self.mixdesc[dobj.name] = np.zeros(self.lengthInFrames) # array of zeros
 		self.has_been_mixed = False
+		self.originalPeak = self.desc['peakTime-seg'].get(0, None) # keep original, unsubtacted peak
 	#################################
 	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, SdifInterface, v=True):
 		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
@@ -322,8 +324,7 @@ class target: # the target
 		self.segmentationInSec = []
 		self.extraSegmentationData = []
 		self.seglengths = []
-		
-	
+
 		if self.segmentationFilepath == None:
 			f = 0
 			while True:
@@ -355,7 +356,7 @@ class target: # the target
 					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
 						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' drop=%.2f'%util.ampToDb(self.whole.desc['power'][f+segLen])
+							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(self.whole.desc['power'][f+segLen])
 						break
 					# an offset if riseratio is too large
 					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
@@ -468,7 +469,7 @@ class target: # the target
 	
 
 
-def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True):
+def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True, stdDeltaDegreesOfFreedom=0):
 	if descriptorObj.seg:
 		allDescs = np.array([sfsObj.desc[descriptorObj.name].get(0, None) for sfsObj in listOfSegmentObjs])
 	else:
@@ -480,7 +481,7 @@ def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=Tru
 			effDur = sfsObj.desc['effDur-seg'].get(0, None)
 			allDescs[cnt:cnt+effDur] = sfsObj.desc[descriptorObj.name][:effDur]
 			cnt += effDur
-	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs) }
+	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }
 
 
 def applyDescriptorNormalisation(listOfSegmentObjs, dobj, descStatistics):

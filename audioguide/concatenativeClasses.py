@@ -14,9 +14,13 @@ class parseOptions:
 		from UserClasses import SuperimpositionOptionsEntry as si
 		from UserClasses import SingleDescriptor as d
 		usrOptions = {}
+		self.opsfileAsString = ''
+		self.opsfilehead = ''
 		if opsfile != None:
 			fh = open(opsfile)
-			exec(fh.read(), locals(), usrOptions)
+			self.opsfilehead = os.path.split(opsfile)[1]
+			self.opsfileAsString = fh.read()
+			exec(self.opsfileAsString, locals(), usrOptions)
 			fh.close()
 		if optsDict != None:
 			usrOptions.update(optsDict)
@@ -116,7 +120,7 @@ class cpsLimit:
 
 ################################################################################
 class corpus:
-	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, SdifInterface, p):
+	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, restrictCorpusSelectionsByFilenameString, SdifInterface, p):
 		self.preloadlist = []
 		self.preLimitSegmentList = []
 		self.postLimitSegmentNormList = []
@@ -207,7 +211,10 @@ class corpus:
 				#for segFile in cobj.segmentationFile:
 				if not cobj.wholeFile and not os.path.isfile(cobj.segmentationFile):
 					util.error('segmentation file', "Cannot find segmentation file '%s'"%cobj.segmentationFile)
-				times.extend(util.readAudacityLabelFile(cobj.segmentationFile))
+				if cobj.wholeFile:
+					times.append([0, None])
+				else:
+					times.extend(util.readAudacityLabelFile(cobj.segmentationFile))
 				for timeSeg in times:
 					writeLine = [cobj.name]
 					writeLine.extend(timeSeg)
@@ -237,27 +244,30 @@ class corpus:
 			windowDist = descriptordata.hannWin(len(timeList)*2)
 			
 			# segment list
+			stringMatchingWithFullPaths = True
 			for idx in range(len(timeList)): 
-				#thisSegDict = {}
-				filehead = os.path.split(timeList[idx][0])[1]
 				startSec = timeList[idx][1]
 				endSec = timeList[idx][2]
+				if cobj.start != None and startSec < cobj.start: continue # skip it
+				if cobj.end != None and startSec > cobj.end: continue # skip it				
 				# matchSting: includeStr/excludeStr
+				if stringMatchingWithFullPaths:
+					stringMatchPath = os.path.abspath(timeList[idx][0])
+				else:
+					stringMatchPath = os.path.split(timeList[idx][0])[1]
 				if cobj.includeStr != None:
 					skip = True
 					if type(cobj.includeStr) not in [list, tuple]: cobj.includeStr = [cobj.includeStr]
 					for test in cobj.includeStr:
-						if util.matchString(filehead, test, caseSensative=True): skip = False
+						if util.matchString(stringMatchPath, test, caseSensative=True): skip = False
 					if skip: continue
 				if cobj.excludeStr != None:
 					skip = False
 					if type(cobj.excludeStr) not in [list, tuple]: cobj.excludeStr = [cobj.excludeStr]
 					for test in cobj.excludeStr:
-						if util.matchString(filehead, test, caseSensative=True): skip = True
+						if util.matchString(stringMatchPath, test, caseSensative=True): skip = True
 					if skip: continue
 				#        minTime / maxTime
-				if cobj.start != None and startSec < cobj.start: continue # skip it
-				if cobj.end != None and startSec > cobj.end: continue # skip it
 				# matchTime: includeTimes/excludeTimes
 				if len(cobj.includeTimes) > 0:
 					skip = True
@@ -269,7 +279,7 @@ class corpus:
 					if type(cobj.excludeTimes) not in [list, tuple]: cobj.excludeTimes = [cobj.excludeTimes] # force it to be a list
 					for timeTuple in cobj.excludeTimes:
 						if startSec >= timeTuple[0] and startSec < timeTuple[1]: skip = True
-					#print filehead, start, end, skip
+					#print stringMatchPath, start, end, skip
 					if skip: continue
 				# see if there is any extra data from the segmentation file
 				if len(timeList[idx]) > 3:
@@ -286,6 +296,12 @@ class corpus:
 				for mstring, mstart, mstop in cobj.metadata:
 					if startSec >= mstart and startSec <= mstop:
 						metadata += mstring + ' '
+				
+				# see if global RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING applies
+				maxPercentTargetSegmentsByString = None
+				for restrictStr, restrictVal in restrictCorpusSelectionsByFilenameString.items():
+					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
+
 				
 				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
 				vcCnt += 1
@@ -441,6 +457,16 @@ class corpus:
 				maxOver = np.max(superimp.cnt['cpsvc_overlap'][h.voiceID][timeInFrames:max_look])
 				if maxOver >= h.restrictOverlaps: continue # skip this segment
 			
+			# user string overlap restriction
+			for str, (counter, limit) in superimp.cnt['corpusOverlapByString'].items():
+				if util.matchString(h.filename, str):
+					max_look = min(timeInFrames+h.lengthInFrames, len(superimp.cnt['corpusOverlapByString'][str][0]))
+					maxOver = np.max(superimp.cnt['corpusOverlapByString'][str][0][timeInFrames:max_look])
+					if maxOver >= limit: continue
+
+			
+
+			
 			if clusterOrNone != None:
 				#print clusterOrNone, h.cluster, clusterOrNone != h.cluster
 				if clusterOrNone != h.cluster: continue
@@ -534,9 +560,13 @@ class corpus:
 ################################################################################
 ################################################################################
 class SuperimposeTracker():
-	def __init__(self, tgtlength, tgtlengthsegs, overlap_inc_amp, peakAlign, peakAlignEnvelope, cpsentrylength, p):
+	def __init__(self, tgtlength, tgtlengthsegs, overlap_inc_amp, peakAlign, peakAlignEnvelope, cpsentrylength, corpusOverlapByStringDict, p):
 		self.p = p
-		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0, 'cpsnames': []}
+		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0, 'cpsnames': [], 'corpusOverlapByString': {}}
+		
+		for str, val in corpusOverlapByStringDict.items():
+			self.cnt['corpusOverlapByString'][str] = [np.zeros(tgtlength), val]
+
 		self.choiceCnt = 0 # tracks number of decisions made
 		self.overlap_inc_amp = util.dbToAmp(overlap_inc_amp)
 		self.peakAlign = peakAlign
@@ -546,10 +576,10 @@ class SuperimposeTracker():
 	def test(self, type, time, min, max):
 		pick = 'ok' # 'ok', 'notok', 'force'
 		if min != None and self.cnt[type][time] < min: pick = 'force'
-		if max != None and self.cnt[type][time] >= max: pick = 'notok'
+		if max != None and len(self.cnt[type]) > time and self.cnt[type][time] >= max: pick = 'notok'
 		return pick	
 	########################################
-	def increment(self, start, dur, segidx, cps_voiceid, powers, logtext, corpusname):
+	def increment(self, start, dur, segidx, cps_voiceid, powers, logtext, corpusname, cpsfilename):
 		self.p.log( logtext )
 		self.cnt['segidx'][segidx] += 1
 		self.cnt['onset'][start] += 1
@@ -562,6 +592,9 @@ class SuperimposeTracker():
 				if powers[f] >= self.overlap_inc_amp:
 					self.cnt['overlap'][start+f] += 1
 					self.cnt['cpsvc_overlap'][cps_voiceid][start+f] += 1
+					for str in self.cnt['corpusOverlapByString']:
+						if util.matchString(cpsfilename, str):
+							self.cnt['corpusOverlapByString'][str][0][start+f] += 1
 			except IndexError: break # cps handle data not long enough
 	########################################
 	def skip(self, reason, value, timeinSec):
@@ -586,11 +619,10 @@ class SuperimposeTracker():
 
 
 class outputEvent:
-	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, renderDur, minOutputMidi=21):		
+	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, renderDur, alignPeaksBool, minOutputMidi=21):		
 		# cps segment stuff
 		self.filename = sfseghandle.concatFileName
 		self.printName = sfseghandle.printName
-		self.timeInScore = timeInScore
 		self.sfSkip = sfseghandle.segmentStartSec
 		self.cpsduration = sfseghandle.segmentDurationSec
 		self.effDurSec = sfseghandle.desc['effDur-seg'].get(0, None)
@@ -601,6 +633,8 @@ class outputEvent:
 		if self.midiVelocity > 127: self.midiVelocity = 127
 		if self.midiVelocity < 10: self.midiVelocity = 10
 		# tgt stuff
+		self.tgtsegstart = tgtseg.segmentStartSec
+		self.tgtsegpeak = tgtseg.originalPeak*f2s
 		self.tgtsegdur = tgtsegdur
 		self.tgtsegnumb = tgtsegnumb
 		self.stretchcode = stretchcode
@@ -626,8 +660,19 @@ class outputEvent:
 		elif renderDur == 'tgt':
 			self.duration = self.tgtsegdur
 		
+		# align peak?
+		if alignPeaksBool:
+			eventPeak = timeInScore+self.peaktimeSec
+			tgtPeak = self.tgtsegstart+self.tgtsegpeak
+			self.timeInScore = timeInScore + tgtPeak-eventPeak
+			if self.timeInScore < 0: self.timeInScore = 0 # clip to 0!
+		else:
+			self.timeInScore = timeInScore
+		
+
+		
 	####################################	
-	def makeCsoundOutputText(self, channelMethod, instru=1):		
+	def makeCsoundOutputText(self, channelMethod, instru=1):
 		return "i%i  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(instru, self.timeInScore, self.duration, self.envDb, self.filename, self.sfSkip, self.transposition, self.rmsSeg, self.peaktimeSec, self.effDurSec, self.envAttackSec, self.envDecaySec, self.envSlope, self.voiceID, self.simSelects, self.tgtsegdur, self.tgtsegnumb, self.stretchcode, channelMethod)
 	####################################	
 	def makeLabelText(self):
@@ -644,9 +689,10 @@ class outputEvent:
 	####################################	
 	def makeDictOutput(self):
 		dicty = {}
-		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDecaySec', 'envSlope', 'filename', 'peaktimeSec', 'sfSkip', 'simSelects', 'transposition']:
+		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDecaySec', 'envSlope', 'filename', 'peaktimeSec', 'sfSkip', 'simSelects', 'transposition', 'tgtsegnumb', 'envDb']:
 			dicty[key] = getattr(self, key)
-
+	
+		dicty['peakRms'] = self.powerSeg
 		dicty['peakRmsDb'] = util.ampToDb(self.powerSeg)
 		dicty['corpusId'] = self.voiceID
 		dicty['midiPitch'] = self.midiFromFilename

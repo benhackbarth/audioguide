@@ -14,6 +14,13 @@ except ImportError:
 
 
 
+from optparse import OptionParser
+parser = OptionParser(usage="usage: %prog [options] configfile")
+parser.set_defaults(OUTPUT_FILE='')
+parser.add_option("-o", "--printoptions", action="store_true", dest="PRINT_OPTIONS", default=False, help="print all AG options and exit")
+(options, args) = parser.parse_args()
+if options.PRINT_OPTIONS:
+	sys.exit(0)
 
 
 
@@ -70,7 +77,7 @@ if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
 ## CORPUS ##
 ############
 p.logsection( "CORPUS" )
-cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, SdifInterface, p)
+cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, SdifInterface, p)
 
 ###################
 ## NORMALIZATION ##
@@ -80,17 +87,17 @@ for dobj in SdifInterface.normalizeDescriptors:
 	if dobj.norm == 1:
 		# normalize both together
 		allsegs = tgt.segs + cps.postLimitSegmentNormList
-		tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj)
+		tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 		sfSegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
 	elif dobj.norm == 2:
 		# normalize target
-		tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj)
+		tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 		sfSegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
 		# normalize corpus
-		cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj)
+		cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 		sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
 	p.log( "%s (%i):"%(dobj.name, dobj.norm) )
-	p.log( "\ttarget: mean=%.2f  std=%.2f  corpus: mean=%.2f  std=%.2f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev']) )
+	p.log( "\ttarget: mean=%.3f  std=%.3f  corpus: mean=%.3f  std=%.3f   norm delta freedom: %.3f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM) )
 	
 #	import matplotlib.pyplot as plt
 #	fig = plt.figure(figsize=(25., 15.))
@@ -114,7 +121,7 @@ p.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
 SdifInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
-superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), p)
+superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
 cps.setupConcate(tgt, SdifInterface)
 outputEvents = []
 
@@ -140,7 +147,8 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		########################################
 		## run selection superimposition test ##
 		########################################
-		tif = tgtseg.segmentStartFrame + segSeek
+		tif = tgtseg.segmentStartFrame+segSeek
+		if tif >= tgt.lengthInFrames: break
 		timeInSec = SdifInterface.f2s(tif)
 		tgtsegdur =  tgtseg.segmentDurationSec - SdifInterface.f2s(segSeek)
 		segidxt = superimp.test('segidx', segidx, ops.SUPERIMPOSE.minSegment, ops.SUPERIMPOSE.maxSegment)
@@ -250,10 +258,11 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
 
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR) )
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
-		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname)
+		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
+		tgtseg.numberSelectedUnits += 1
 
 		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
 		printLabel += ' '*(24-len(printLabel))
@@ -287,7 +296,19 @@ allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
 ######################
 if ops.DICT_OUTPUT_FILEPATH != None:
 	output = {}
-	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec,}
+	output['opsfilename'] = ops.opsfilehead
+	output['opsfiledata'] = ops.opsfileAsString
+	# make target segment dict list
+	tgt.segs.sort(key=operator.attrgetter('segmentStartSec'))
+	tgtSegDataList = []
+	for ts in tgt.segs:
+		thisSeg = {'startSec': ts.segmentStartSec, 'endSec': ts.segmentEndSec}
+		thisSeg['power'] = ts.desc['power-seg'].get(0, None)
+		thisSeg['numberSelectedUnits'] = ts.numberSelectedUnits
+		thisSeg['has_been_mixed'] = ts.has_been_mixed
+		tgtSegDataList.append(thisSeg)
+	# finish up
+	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec, 'segs': tgtSegDataList, 'fileduation': SdifInterface.rawData[tgt.filename]['info']['lengthsec'], 'chn': SdifInterface.rawData[tgt.filename]['info']['channels']} 
 	output['corpus_file_list'] = list(set(allusedcpsfiles))
 	output['selectedEvents'] = [oe.makeDictOutput() for oe in outputEvents]
 	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')

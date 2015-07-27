@@ -3,6 +3,7 @@ output/*
 tests/*
 corpi/*
 targets/*
+www/*
 *.bbprojectd
 *.rtf
 *.pyc

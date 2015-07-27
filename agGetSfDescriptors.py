@@ -15,13 +15,14 @@ except ImportError:
 #######################
 ## find options file ##
 #######################
-if len(sys.argv) == 1:
-	print('\nPlease specify a soundfile as the first argument\n')
+if len(sys.argv) < 3:
+	print('\nPlease specify a soundfile as the first argument, and a json dict to create as a second argument\n')
 	sys.exit(1)
 	
 	
 
 file = os.path.realpath(sys.argv[1])
+outputfile = os.path.realpath(sys.argv[2])
 if not os.path.exists(file):
 	print('\nCouldn\'t find a soundfile called "%s"\n'%file)
 	sys.exit(1)
@@ -34,7 +35,7 @@ SdifInterface = sdiflinkage.SdifInterface(pm2_bin=ops.PM2_BIN, supervp_bin=ops.S
 handle = sfSegment.SfSegment(file, None, None, SdifInterface.allDescriptors, SdifInterface)
 
 descriptorData = handle.desc.getdict()
-print descriptorData
-
-# or you can save to a json file:
-#json.dump(descriptorData, open('/my/path/mydict.json'))
+descriptorData['f2s'] = SdifInterface.f2s(1)
+fh = open(outputfile, 'w')
+json.dump(descriptorData, fh)
+fh.close()

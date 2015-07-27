@@ -84,7 +84,10 @@ UserVar_types = {
 'VOICE_PATTERN': ['a list of strings'],
 'ORDER_CORPUS_BY_DESCRIPTOR': ['a string', 'None'],
 'ROTATE_VOICES': ['True or False'],
+'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
+'RESTRICT_CORPUS_OVERLAP_BY_STRING': ['a dictionary'],
 ########  CONCATENATE SELECTION  #######
+'NORMALIZATION_DELTA_FREEDOM': ['a number greater than or equal to zero'], 
 'RANDOM_SEED': ['None', 'a number'],
 'OUTPUT_GAIN_DB': ['a number'],
 'OUTPUT_TIME_STRETCH': ['a number greater than zero'],
@@ -96,6 +99,7 @@ UserVar_types = {
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
+'CSOUND_ALIGN_PEAKS': ['True or False'],
 'CSOUND_CHANNEL_RENDER_METHOD': ['mix', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
