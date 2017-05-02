@@ -47,6 +47,8 @@ def testVariable(vtype, v):
 	# lists of things
 	elif vtype == 'a list of strings':
 		if not False in [isinstance(i, basestring) for i in v]: return True
+	elif vtype == 'a list of ints or lists':
+		if not False in [isinstance(i, list) or isinstance(i, int) for i in v]: return True
 	elif vtype == 'a list of spass() objects':
 		if not False in [testInstance(i, spass) for i in v]: return True
 	elif vtype == 'a list of csf() objects':
@@ -79,9 +81,11 @@ UserVar_types = {
 'MAXMSP_OUTPUT_FILEPATH': ['None', 'a string'],
 'TARGET_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'TARGET_PLOT_DESCRIPTORS_FILEPATH': ['None', 'a string'],
+'CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH': ['None', 'a string'],
 ##########  CORPUS   #######
 'CORPUS_GLOBAL_ATTRIBUTES': ['a dictionary'],
 'VOICE_PATTERN': ['a list of strings'],
+'VOICE_TO_ONSET_MAPPING': ['a list of ints or lists'],
 'ORDER_CORPUS_BY_DESCRIPTOR': ['a string', 'None'],
 'ROTATE_VOICES': ['True or False'],
 'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
@@ -96,6 +100,7 @@ UserVar_types = {
 'OUTPUT_QUANTIZE_TIME_INTERVAL': ['a number greater than zero'],
 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS': ['True or False'],
 'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION': ['True or False'],
+'CLUSTER_MAPPING': ['a dictionary'],
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],

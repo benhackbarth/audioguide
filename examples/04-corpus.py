@@ -1,16 +1,42 @@
-TARGET = tsf('soundfiles/cage.aiff', thresh=-32, rise=1.2)
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
+SEARCH = [spass('closest', d('mfccs'))]
+SUPERIMPOSE = si(maxSegment=1)
 
+
+################################################################################
+## The CORPUS variable is a list of csf objects.  This list may be of any     ##
+## length.  Each csf object specifies corpus soundfiles in the form of one    ##
+## long soundfile which is segmented or a folder of soundfiles which have     ##
+## already been segmented (see the "wholeFile" option in the readme.pdf for   ##
+## help on this).  There are many keyword arguments for csf which control     ##
+## what segments are used in concatenation.  Below are some examples to get   ##
+## you started thinking about how to compose your corpuses.                   ##
+################################################################################
 CORPUS = [
-csf('/Users/ben/Documents/audioGuide/examples/lachenmann.aiff'),
+csf('lachenmann.aiff'),
 ]
 
 
-SEARCH = [
-#spass('ratio_limit', d('effDur-seg', norm=1), minratio=0.9, maxratio=1.1),
-spass('closest_percent', d('power-seg', norm=2), percent=10),
-spass('closest', d('mfccs'))
-]
+##############################################################################
+## Adding another csf() object adds more soundfile segments to the corpus.  ##
+##############################################################################
+#CORPUS = [
+#csf('lachenmann.aiff'),
+#csf('heat sink.aiff'),
+#]
 
-#  Here we set the superimpose object to only allow one corpus segment to be selected for each target segment (maxSegment=1).  Since the first spass in SEARCH is using the descriptor effDur-seg, we can except to have somewhat similar durations for the selected corpus segments.  However, note that this might not be true, in particular if you use a corpus will wildly different segment durations that your target.  If you don't care about duration, you can remove the first spass object from SEARCH.  If you want durations to be rendered to match the target more precisely, see below.
-SUPERIMPOSE = si(maxSegment=10, minSegment=1)
 
+################################################################################
+## Descriptor limitations are very useful in that you can filter out portions ##
+## of a csf()'s segments based on averaged descriptor values.  These limits   ##
+## can be chained together.  For instance:                                    ##
+################################################################################
+#CORPUS = [
+#csf('lachenmann.aiff', limit=['power-seg < 50%']), # only uses the softest 50% of segments from this file
+#csf('heat sink.aiff', limit=['power-seg > 25%', 'centroid-seg < 2000']), # only uses the loudest 75% of segments from this file, then takes only those segments whos centroid is higher than 2000.
+#]
+
+
+##############################################################################
+## A lot more information can be found in the csf section of the readme.pdf ##
+##############################################################################

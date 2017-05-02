@@ -64,7 +64,9 @@ class cpsLimit:
 	def __init__(self, origString, cpsScope, SdifInterface):
 		self.origString = origString
 		limit_pieces = util.parseEquationString(origString, ['==', '!=', '<', '<=', '>', '>='])
+		assert limit_pieces[0] in [dobj.name for dobj in SdifInterface.requiredDescriptors]
 		for dobj in SdifInterface.requiredDescriptors:
+		#	print dobj, dobj.name, limit_pieces[0]
 			if dobj.name == limit_pieces[0]: break
 		self.d = dobj
 		self.symb = limit_pieces[1]
@@ -83,6 +85,7 @@ class cpsLimit:
 		# loop through corpus handles again, but only happens once per unique limit string
 		tmp_data = []
 		for ch in allcpshandles:
+			#print self.origString, self.d.name, ch.desc[self.d.name].get(0, None)
 			if ch.voiceID not in self.cpsScope: continue # skip if outside scope
 			if self.d.seg:
 				tmp_data.append( ch.desc[self.d.name].get(0, None)  )
@@ -392,7 +395,7 @@ class corpus:
 				self.voiceRestrictPerFrame[voiceId] = SdifInterface.s2f(infoDict['restrictInTime'], tgtObj.filename)/2
 	############################################################################
 	############################################################################
-	def evaluateValidSamples(self, timeInFrames, clusterOrNone, timeInSec, rotateVoices, voicePattern, superimp):
+	def evaluateValidSamples(self, timeInFrames, timeInSec, tgtSegIdx, rotateVoices, voicePattern, voiceToCorpusIdMapping, clusterMappingDict, tgtclusterId, superimp):
 		# get which voices are valid at this selection time
 		if rotateVoices and self.data['lastVoice'] != None:
 			validVoices = [(self.data['lastVoice']+1)%self.data['numberVoices']]
@@ -401,6 +404,12 @@ class corpus:
 			for nidx, name in enumerate(self.data['vcToCorpusName']):
 				if util.matchString(name, voicePattern[superimp.cnt['selectionCount']%len(voicePattern)], caseSensative=False):
 					validVoices.append(nidx)
+		elif voiceToCorpusIdMapping not in [None, [], {}]:
+			realidx = tgtSegIdx%len(voiceToCorpusIdMapping)
+			if type(voiceToCorpusIdMapping[realidx]) in [list, tuple]:
+				validVoices = voiceToCorpusIdMapping[realidx]
+			else:
+				validVoices = [ voiceToCorpusIdMapping[realidx] ]
 		else:
 			validVoices = range(self.data['numberVoices'])
 		########################################################
@@ -438,8 +447,14 @@ class corpus:
 		#####################################
 		validSegments = []
 		for h in self.postLimitSegmentNormList:
+
 			# no voices that didn't pass through...
 			if h.voiceID not in validVoices: continue
+
+			#########################################
+			## remove based on clustering if asked ##
+			#########################################
+			if clusterMappingDict != {} and h.cluster != None and h.cluster != tgtclusterId: continue
 
 			# if allowRepetition is False then test
 			if not h.allowRepetition and len(h.selectionTimes) > 0: continue # skip this segment
@@ -465,11 +480,6 @@ class corpus:
 					if maxOver >= limit: continue
 
 			
-
-			
-			if clusterOrNone != None:
-				#print clusterOrNone, h.cluster, clusterOrNone != h.cluster
-				if clusterOrNone != h.cluster: continue
 
 
 			validSegments.append(h)
@@ -642,6 +652,7 @@ class outputEvent:
 		self.sfchnls = sfseghandle.soundfileChns
 		# audioguide stuff
 		self.transposition = transposition
+		self.transratio = 2 ** (transposition/12.)
 		self.voiceID = sfseghandle.voiceID
 		self.extraDataFromSegmentationFile = sfseghandle.segfileData
 		self.midiFromFilename = sfseghandle.desc['MIDIPitch-seg'].get(0, None)
@@ -656,19 +667,17 @@ class outputEvent:
 		
 		# test for which duration to use - the target's or the corpus'
 		if renderDur == 'cps':
-			self.duration = self.cpsduration
+			self.duration = self.cpsduration * (1./self.transratio)
 		elif renderDur == 'tgt':
 			self.duration = self.tgtsegdur
 		
 		# align peak?
 		if alignPeaksBool:
-			eventPeak = timeInScore+self.peaktimeSec
+			eventPeak = timeInScore+(self.peaktimeSec*(1./self.transratio))
 			tgtPeak = self.tgtsegstart+self.tgtsegpeak
 			self.timeInScore = timeInScore + tgtPeak-eventPeak
-			if self.timeInScore < 0: self.timeInScore = 0 # clip to 0!
 		else:
 			self.timeInScore = timeInScore
-		
 
 		
 	####################################	

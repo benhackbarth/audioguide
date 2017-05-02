@@ -25,8 +25,8 @@ backgroundcolor=\color{lbcolor}, tabsize=3, rulecolor=\color{white}, language=py
 \end{figure}}
 
 \newcommand{\optEntry}[4]{\textbf{#1} (type={\color{red}#2}, default={\color{ForestGreen}#3}) #4\hspace{0.5em}\\}
-\newcommand{\ag}{audioguide1.1.0\xspace}
-\newcommand{\Ag}{Audioguide1.1.0\xspace}
+\newcommand{\ag}{audioguide1.2\xspace}
+\newcommand{\Ag}{Audioguide1.2\xspace}
 
 
 \begin{document}
@@ -36,7 +36,7 @@ backgroundcolor=\color{lbcolor}, tabsize=3, rulecolor=\color{white}, language=py
 \includegraphics[width=0.75\textwidth]{image0.png}
 
 By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno. \\
-Copyright Ben Hackbarth, 2011-2014.
+Copyright Ben Hackbarth, 2011-2017.
 \end{center}
 
 \tableofcontents
@@ -463,6 +463,8 @@ d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean'
 \end{lstlisting}
  
 \begin{description}
+\item[descriptor name] possible descriptors may be: centroid, chromas, chroma0, chroma1, chroma10, chroma11, chroma2, chroma3, chroma4, chroma5, chroma6, chroma7, chroma8, chroma9, crests, crest0, crest1, crest2, crest3, decrease, effDur-seg, energyenvelope, f0, flatnesses, flatness0, flatness1, flatness2, flatness3, harmoniccentroid, harmonicdecrease, harmonicdeviation, harmonicenergy, harmonickurtosis, harmonicoddevenratio, harmonicrolloff, harmonicskewness, harmonicslope, harmonicspread, harmonictristimulus0, harmonictristimulus1, harmonictristimulus2, harmonicvariation, inharmonicity, kurtosis, loudness, noiseenergy, noisiness, perceptualcentroid, perceptualdecrease, perceptualdeviation, perceptualkurtosis, perceptualoddtoevenratio, perceptualrolloff, perceptualskewness, perceptualslope, perceptualspread, perceptualtristimulus0, perceptualtristimulus1, perceptualtristimulus2, perceptualvariation, power, rolloff, sharpness, skewness, slope, spread, variation, zeroCross.  Note that appending `-seg' to most descriptors yields an average.
+
 \item[weight*] How to weight this descriptor in relation to other descriptors.
 
 \begin{lstlisting}

@@ -79,25 +79,46 @@ if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
 p.logsection( "CORPUS" )
 cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, SdifInterface, p)
 
+
+
+
+
 ###################
 ## NORMALIZATION ##
 ###################
 p.logsection( "NORMALISATION" )
-for dobj in SdifInterface.normalizeDescriptors:
-	if dobj.norm == 1:
-		# normalize both together
-		allsegs = tgt.segs + cps.postLimitSegmentNormList
-		tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-		sfSegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
-	elif dobj.norm == 2:
-		# normalize target
-		tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-		sfSegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
-		# normalize corpus
-		cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-		sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-	p.log( "%s (%i):"%(dobj.name, dobj.norm) )
-	p.log( "\ttarget: mean=%.3f  std=%.3f  corpus: mean=%.3f  std=%.3f   norm delta freedom: %.3f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM) )
+if ops.CLUSTER_MAPPING == {}:
+	for dobj in SdifInterface.normalizeDescriptors:
+		if dobj.norm == 1:
+			# normalize both together
+			allsegs = tgt.segs + cps.postLimitSegmentNormList
+			tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfSegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
+		elif dobj.norm == 2:
+			# normalize target
+			tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfSegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
+			# normalize corpus
+			cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
+		p.log( "%s (%i):"%(dobj.name, dobj.norm) )
+		p.log( "\ttarget: mean=%.3f  std=%.3f  corpus: mean=%.3f  std=%.3f   norm delta freedom: %.3f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM) )
+else:
+	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
+	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
+	clusteredSegLists = []
+	for segs, clustList in [(tgt.segs, tgtClusts), (cps.postLimitSegmentNormList, cpsClusts)]:
+		for cidx in clustList:
+			clusteredSegLists.append([seg for seg in segs if seg.cluster == cidx])
+	for segList in clusteredSegLists:
+		if len(segList) == 0: continue
+		for dobj in SdifInterface.normalizeDescriptors:
+			stats = sfSegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfSegment.applyDescriptorNormalisation(segList, dobj, stats)
+		
+	
+
+
 	
 #	import matplotlib.pyplot as plt
 #	fig = plt.figure(figsize=(25., 15.))
@@ -128,9 +149,12 @@ outputEvents = []
 #######################################
 ### sort segments by power if needed ##
 #######################################
+import operator
 if ops.SUPERIMPOSE.searchOrder == 'power':
-	import operator
 	tgt.segs = sorted(tgt.segs, key=operator.attrgetter("power"), reverse=True)
+else:
+	tgt.segs = sorted(tgt.segs, key=operator.attrgetter("segmentStartSec"))
+
 
 #########################
 ## TARGET SEGMENT LOOP ##
@@ -179,7 +203,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		##############################
 		## get valid corpus handles ##
 		##############################
-		validSegments = cps.evaluateValidSamples(tif, tgtseg.cluster, timeInSec, ops.ROTATE_VOICES, ops.VOICE_PATTERN, superimp)
+		validSegments = cps.evaluateValidSamples(tif, timeInSec, tgtseg.idx, ops.ROTATE_VOICES, ops.VOICE_PATTERN, ops.VOICE_TO_ONSET_MAPPING, ops.CLUSTER_MAPPING, tgtseg.cluster, superimp)
 		if len(validSegments) == 0:
 			superimp.skip('no corpus sounds made it past restrictions and limitations', None, timeInSec)
 			segSeek += ops.SUPERIMPOSE.incr
@@ -257,8 +281,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		cpsEffDur = selectCpsseg.desc['effDur-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
-
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, segidx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
 		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
@@ -354,6 +377,23 @@ if ops.OUTPUT_LABEL_FILEPATH != None:
 	fh.close()
 	p.log( "Wrote superimposition label file %s\n"%ops.OUTPUT_LABEL_FILEPATH )
 
+#######################################
+## corpus segmented features as json ##
+#######################################
+if ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH != None:
+	fh = open(ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH, 'w')
+	alldata = {}
+	for c in cps.postLimitSegmentNormList:
+		descs = {}
+		for name, obj in c.desc.nameToObjMap.items():
+			if name.find('-seg') != -1:
+				descs[ name ] = obj.get(0, c.desc.len)
+		alldata[(c.filename+'@'+str(c.segmentStartSec))] = descs
+	json.dump(alldata, fh)
+	fh.close()
+	p.log( "Wrote corpus segmented features file %s\n"%ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
+
+
 ######################
 ## lisp output file ##
 ######################
@@ -381,12 +421,86 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
 	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', SdifInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
 	csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(tgt.endSec-tgt.startSec, tgt.whole.envDb, tgt.filename, tgt.startSec)
+	
+	# just in case that there are negative p2 times!
+	minTime = min([ oe.timeInScore for oe in outputEvents ])
+	if minTime < 0:
+		for oe in outputEvents:
+			oe.timeInScore -= minTime
+	
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
+
+
+
+################################
+## SONIC VISUALISER DATA FILE ##
+################################
+if False:
+	layerCnt = 1
+	tgtSr = SdifInterface.rawData[tgt.filename]['info']['sr']
+	tgtDurationSamples = tgt.whole.segmentDurationSec * tgtSr
+	hopesize = SdifInterface.hopSamples
+	fh = open('/Users/ben/Desktop/ag.svl', 'w')
+	fh.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+	fh.write('<!DOCTYPE sonic-visualiser>\n')
+	fh.write('<sv>\n')
+	fh.write('  <data>\n')
+
+
+
+
+	fh.write('    <model id="1" name="Target Segmentation" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="3" resolution="1" notifyOnAdd="true" dataset="2"  subtype="region" valueQuantization="0" minimum="-1" maximum="1" units=""/>\n' % (tgtSr, tgtDurationSamples))
+	fh.write('    <dataset id="2" dimensions="3">\n')
+	for sidx, (startSec, stopSec) in enumerate(tgt.segmentationInSec):
+		fh.write('      <point frame="%i" value="1" duration="%i" label="peak dB: %.2f %s" />\n' % (startSec*tgtSr, (stopSec-startSec)*tgtSr, util.ampToDb(tgt.segs[sidx].desc['power-seg'].get(0, None)), tgt.extraSegmentationData[sidx]))
+	fh.write('    </dataset>\n')
+
+	minpower, maxpower = min(tgt.whole.desc['power']), max(tgt.whole.desc['power'])
+	fh.write('    <model id="3" name="Target Amplitude" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="2" resolution="%i" notifyOnAdd="true" dataset="4" minimum="%f" maximum="%f" />\n' % (tgtSr, tgtDurationSamples, hopesize, minpower, maxpower))
+	fh.write('    <dataset id="4" dimensions="2">\n')
+	for vidx, value in enumerate(tgt.whole.desc['power']):
+		fh.write('      <point frame="%i" value="%f" label="" />\n' % (int(SdifInterface.f2s(vidx)*tgtSr/2.), value))
+	fh.write('    </dataset>\n')
+
+
+
+
+	# TEXT Layer!
+#	fh.write('    <model id="3" name="Target Segmentation Info" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="2" resolution="1" notifyOnAdd="true" dataset="4"  subtype="text"/>\n' % (tgtSr, tgtDurationSamples))
+#	fh.write('    <dataset id="4" dimensions="2">\n')
+#	for sidx, (startSec, stopSec) in enumerate(tgt.segmentationInSec):
+#		fh.write('      <point frame="%i" height="0.9" label="bennys\nyes" />\n' % (startSec*tgtSr))
+#	fh.write('    </dataset>\n')
+#
+
+
+
+
+
+	fh.write('  </data>\n')
+	# display secton for linking display parameters with datasets
+	fh.write('  <display>\n')
+	fh.write('    <layer id="10" type="regions" name="Target Segmentation" model="1"  verticalScale="1" plotStyle="1" colourName="Green" colour="#008000" darkBackground="false" />\n')
+
+	fh.write('    <layer id="11" type="timevalues" name="Time Values" model="3"  colourMap="0" plotStyle="2" verticalScale="0" scaleMinimum="0" scaleMaximum="0" drawDivisions="true" derivative="false"  colourName="Purple" colour="#c832ff" darkBackground="false" />')
+
+
+
+#	fh.write('    <layer id="11" type="text" name="Target Segmentation Info" model="3" colourName="Orange" colour="#ff9632" darkBackground="false" />\n')
+	fh.write('  </display>\n')
+
+	# done!
+	fh.write('</sv>\n')
+	fh.close()
+	sys.exit()
+	#print dir(tgt)
+	#print dir(SdifInterface), SdifInterface.dataRegistry, 
+
 
 
 ####################

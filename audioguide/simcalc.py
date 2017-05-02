@@ -78,7 +78,7 @@ class distanceCalculations:
 								peaks = tgtseg.desc['peakTime-seg'].get(0, None), c.desc['peakTime-seg'].get(0, None)
 								dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc['power'], peaks=peaks)
 								c.sim_accum += dist*d.weight*c.scaleDistance
-								if c.sim_accum > min_accum and not spassobj.complete_results: raise BreakIt
+								if c.sim_accum > min_accum and not spassobj.complete_results and spassobj.method == 'closest': raise BreakIt
 						if c.sim_accum < min_accum: min_accum = c.sim_accum
 					except BreakIt: pass
 				# sort by accum distance

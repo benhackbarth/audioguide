@@ -99,7 +99,7 @@ class timeVaryingDescriptorData:
 			self.data[ args[0] ] = args[1]
 	##########
 	def getnorm(self, *args):
-		if self.datanorm == None: # do it!
+		if type(self.datanorm) == type(None): # do it!
 			self.datanorm = (self.data-self.normSubtract)/self.normDivide
 		if len(args) == 0: # return it all
 			return self.datanorm
@@ -155,6 +155,44 @@ class segmentedDescriptorData:
 
 
 
+class clusterAnalysis:
+	def __init__(self, paramDict, tgtSegObjs, cpsSegObjs, savepath):
+		from sompyv1 import functions as clusterFunc
+		self.savepath = savepath
+		self.paramDict = paramDict
+		self.targetData = self.buildFeatureArray(tgtSegObjs, paramDict['descriptors'])
+		self.corpusData = self.buildFeatureArray(cpsSegObjs, paramDict['descriptors'])
+		self.corpusDataNorm, self.targetDataNorm = clusterFunc.dataScaling(self.corpusData, self.targetData, paramDict['normalise'])
+
+		self.corpusData_loc, self.targetData_loc, self.clusterModel = clusterFunc.clusterSamples(paramDict['type'], self.corpusDataNorm, self.targetDataNorm, [paramDict['size'], paramDict['size'], paramDict['makeHitMap']])
+		# assign cluster nodes in segment objects
+		for lidx, loc in enumerate(self.targetData_loc): tgtSegObjs[lidx].cluster = loc				
+		for lidx, loc in enumerate(self.corpusData_loc): cpsSegObjs[lidx].cluster = loc				
+		if paramDict['makePickleFile']: self.makePickleFile()
+	####
+	def getClusterNumbers(self):
+		return set(self.targetData_loc), set(self.corpusData_loc)
+	####
+	def makePickleFile(self):
+		import pickle
+		picklePath = util.verifyOutputPath('output/clusterdata.pk1', self.savepath)		
+		data = {'params': self.paramDict, 'targetData': self.targetData, 'corpusData': self.corpusData}
+		output = open(picklePath, 'wb')
+		pickle.dump(data, output)			
+		output.close()
+	####
+	def buildFeatureArray(self, segmentObjList, featureList):
+		data = np.empty( (len(segmentObjList), len(featureList)) )
+		for sidx, seg in enumerate(segmentObjList):
+			for didx, d in enumerate(featureList):
+				data[sidx][didx] = seg.desc[d+'-seg'].get(0, None)
+		return data
+
+	
+
+
+
+
 
 def peakTimeSeg(powers):
 	return np.argmax(powers)+0.5 # the middle of the peak window, reduces error to +/-0.5
@@ -164,10 +202,12 @@ def logAttackTime(powers):
 	time = np.clip(ag.f2s(idx), 0.0001, sys.maxint)
 	return np.log(time) # the middle of the peak window, reduces error to +/-0.5
 
-def f0Seg(f0s):
-	idxs = np.nonzero(f0s)[0]
+def f0Seg(f0s, powers):
 	tmp = []
-	for idx in idxs: tmp.append(f0s[idx])
+	for vidx, f0 in enumerate(f0s):
+		if f0 == 0: continue
+		tmp.append(f0)
+		#print f0, powers[vidx]
 	if len(tmp) == 0: return 0. # 0 means f0 didn't find an estimate!
 	return np.median(tmp)
 
@@ -238,11 +278,7 @@ def getMidiPitchFromString(string):
 		return False # could'nt find one
 
 def percentInFile(handle, start, end):
-	if handle.typed == 'target':
-		output = (start/float(handle.lengthInFrames))*100. # computed in frames
-	else:
-		output = (handle.startSec/float(readsf.fileDuration(handle.filename)))*100. # computed in seconds
-	return output
+	return (handle.segmentStartSec/handle.soundfileTotalDuration)*100.
 
 def effectiveDur(handle, time, absThreshScalar=-60):
 	# RETURN SEGMENT LENGTH IN FRAMES
@@ -301,7 +337,7 @@ def DescriptorComputation(d, handle, start, end):
 		elif d.name == "percentInFile-seg":
 			output = percentInFile(handle, start, end)
 		elif d.name == "f0-seg":
-			output = f0Seg(handle.desc['f0'][start:end])
+			output = f0Seg(handle.desc['f0'][start:end], handle.desc['power'][start:end])
 		# DESCRIPTOR SLOPE
 		elif d.type == 'slope-regression':
 			output = descriptorSlope(handle, d.parents[0], start)

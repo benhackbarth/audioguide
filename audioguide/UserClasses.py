@@ -66,7 +66,7 @@ class SearchPassOptionsEntry(object):
 		self._all_args = args
 		self.method = args[0]
 		self.descriptor_list = args[1:]
-		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False}
+		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
 		for k in kwargs:
 			if not _defaults.has_key(k):
 				print('options', 'csf object does not have a keyword argument "%s"'%k)

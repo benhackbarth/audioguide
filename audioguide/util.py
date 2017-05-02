@@ -337,10 +337,19 @@ def parseEquationString(mstr, symbs):
 def getTransposition(tgtseg, cpsseg):
 	# NADA
 	if cpsseg.transMethod == None: return quantize(0, cpsseg.transQuantize)
+	# FORCE A SEMITONE TRANSPOSITION
+	elif cpsseg.transMethod.startswith('semitone'):
+		trans = int(cpsseg.transMethod.split()[1])
+		return trans
 	# FORCE A SINGLE CHROMA
 	elif cpsseg.transMethod.startswith('single-pitch'):
 		pitch = int(cpsseg.transMethod.split()[1])
 		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
+		print "single-pitch", pitch, srcPitch, pitch-srcPitch
+		print "single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch
+		print "single-pitch", pitch, srcPitch, pitch-srcPitch
+		print "single-pitch", pitch, srcPitch, pitch-srcPitch
+		print "single-pitch", pitch, srcPitch, pitch-srcPitch
 		return pitch-srcPitch
 	# FORCE A PITCH RANGE!   KINDA HACKY, GOTTA FIND A BETTER WAY TO CODE THIS UI
 	elif cpsseg.transMethod.startswith('pitch-range'):

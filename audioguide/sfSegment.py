@@ -217,13 +217,14 @@ class corpusSegment(SfSegment):
 class targetSegment(SfSegment):
 	'''Inherits class of SfSegment and adds additional attributes
 	used by target segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, midiPitchMethod):
+	def __init__(self, filename, segmentidx, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, midiPitchMethod):
 		# initalise the sound segment object	
 		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 		self.cluster = None
 		self.numberSelectedUnits = 0
+		self.idx = segmentidx
 	###################################################
 	def initMixture(self, SdifInterface):
 		self.mixdesc = descriptordata.container(SdifInterface.mixtureDescriptors, self)
@@ -326,6 +327,28 @@ class target: # the target
 		self.seglengths = []
 
 		if self.segmentationFilepath == None:
+#			print "ALTERNATIVE SEGMENTAITON IN SfSegment.py"
+#			triggerThresh = -32
+#			riseDb = 3
+#			
+#			powers = [util.ampToDb(pw) for pw in self.whole.desc['power']]
+#			while powers[np.argmax(powers)] >= triggerThresh:
+#				peakpower = powers[np.argmax(powers)]
+#				startIdx = np.argmax(powers)
+#				endIdx = startIdx
+#				while startIdx > 0:
+#					if powers[startIdx-1] < triggerThresh or (powers[startIdx-1]-powers[startIdx] > riseDb): break
+#					startIdx -= 1
+#				while endIdx < len(powers)-1:
+#					if powers[endIdx] < triggerThresh or (powers[endIdx+1]-powers[endIdx] > riseDb): break
+#					endIdx += 1
+#				print powers[startIdx:endIdx],  'for', util.ampToDb(triggerThresh)
+#				self.extraSegmentationData.append('%.2f -> %.2f -> %.2f (%.2f %.2f)'%(powers[startIdx], peakpower, powers[endIdx], SdifInterface.f2s(startIdx), SdifInterface.f2s(endIdx)))
+#				self.segmentationInFrames.append((startIdx, endIdx))
+#				for i in range(startIdx, endIdx): powers[i] = -260
+#			print self.segmentationInFrames
+#			sys.exit()
+		
 			f = 0
 			while True:
 				if f >= self.whole.lengthInFrames: break # we are done!
@@ -386,13 +409,13 @@ class target: # the target
 		
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
-				self.extraSegmentationData.append('%s=%.2f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
+				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
 	
 		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
-			segment = targetSegment(self.filename, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
+			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
 			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
 			self.segs.append(segment)
 		p.percentageBarClose(txt=closebartxt)

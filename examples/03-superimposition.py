@@ -6,16 +6,14 @@ csf('heat sink.aiff'),
 csf('dream.aiff'),
 ]
 
-
 SEARCH = [
 spass('ratio_limit', d('effDur-seg', norm=1), minratio=0.9, maxratio=1.1),
 spass('closest', d('mfccs'))
 ]
 
 
-#####################################################################################
-#### si HAS THE FOLLOWING KEYWORD ARGUMENTS WHICH AFFECT CORPUS SUMPERIMPOSITION ####
-#####################################################################################
+The si() object stands for superimpose.  When AudioGuide begins a concatenation, the target soundfile is broken into several sound segements and then the sfotware steps through them one by one, selecting corpus sounds to represent them.  si() controls how many corpus sounds AudioGuide is permitted to select for each target sound segment.  si() uses keyword arguments to do this.  They are as follows:
+
 
 #### minSegment, maxSegment ####  tell Ag how many corpus segments to pick for each target segment.  by default the minimum is 1; there is no maximum and Ag will stop picking corpus segments according to a subtractive amplitude model.
 
@@ -25,9 +23,11 @@ spass('closest', d('mfccs'))
 
 
 
-################################################
-#### TRY UNCOMMENTING ONE OF THE FOLLOWING: ####
-################################################
+################################################################################
+## The following examples demonstrate different ways of defining corpus       ##
+## superimposition.  Uncomment one and then run AudioGuide to hear the        ##
+## result.  Remember that you may only have one si() object.                  ##
+################################################################################
 
 SUPERIMPOSE = si(maxSegment=1) # ag is restricted to picking 1 corpus sound per target segment.
 

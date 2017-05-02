@@ -46,6 +46,7 @@ class SdifInterface:
 		closestHopSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(userHopLengthSec*float(self.resampleRate))))]
 		self.winLengthSec = closestWinSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
 		self.hopLengthSec = closestHopSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		self.hopSamples = closestHopSize
 		self.IOBufferSize = min(4096, closestWinSize*4)
 		
 		
@@ -187,7 +188,15 @@ TextureWindowsHopFrames = -1
 		# add limiting descriptors
 		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
+				print stringy.split()[0], 'GLOBAL_LIMIT'
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops, addParents=True)
+		for csfObj in ops.CORPUS:
+			for stringy in csfObj.limit:
+				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
+		# add CLUSTER descriptors
+		if ops.CLUSTER_MAPPING.has_key('descriptors'):
+			for s in ops.CLUSTER_MAPPING['descriptors']:
+				self.addDescriptorIfNeeded(d(s+'-seg', origin='CLUSTER_MAPPING'), ops, addParents=True)
 		# add segmentation data descriptor
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
@@ -507,7 +516,11 @@ TextureWindowsHopFrames = -1
 		#sys.exit()
 		for d in self.rawData[sffile]['load']:
 			dataDest[d] = self.rawData[sffile]['load'][d][startf:startf+durf]
-		if envelopeMask != None:
+#		print type(envelopeMask)
+#		print type(envelopeMask)
+#		print type(envelopeMask)
+#		print type(envelopeMask)
+		if type(envelopeMask) != type(None):
 			for d in dataDest: 
 				filetype, energyBool, mixBool, frame, matrix, row, col = agDescriptToSdif[d]
 				if energyBool: dataDest[d] *= envelopeMask
@@ -583,20 +596,20 @@ agDescriptToSdif = {
 # peakamps get automatically added here based on numbPeaks
 # partialfrqs get automatically added here based on maxpartials
 # partialamps get automatically added here based on maxpartials
-"autocorr0":                     ('descriptors', False, True,  '1DSC', '1ARR', 0, 0),
-"autocorr1":                     ('descriptors', False, True,  '1DSC', '1ARR', 1, 0),
-"autocorr2":                     ('descriptors', False, True,  '1DSC', '1ARR', 2, 0),
-"autocorr3":                     ('descriptors', False, True,  '1DSC', '1ARR', 3, 0),
-"autocorr4":                     ('descriptors', False, True,  '1DSC', '1ARR', 4, 0),
-"autocorr5":                     ('descriptors', False, True,  '1DSC', '1ARR', 5, 0),
-"autocorr6":                     ('descriptors', False, True,  '1DSC', '1ARR', 6, 0),
-"autocorr7":                     ('descriptors', False, True,  '1DSC', '1ARR', 7, 0),
-"autocorr8":                     ('descriptors', False, True,  '1DSC', '1ARR', 8, 0),
-"autocorr9":                     ('descriptors', False, True,  '1DSC', '1ARR', 9, 0),
-"autocorr10":                    ('descriptors', False, True,  '1DSC', '1ARR', 10, 0),
-"autocorr11":                    ('descriptors', False, True,  '1DSC', '1ARR', 11, 0),
-"bandflux":                      ('descriptors', True,  True,  '1DSC', '1BFL', 0, 0),
-"bandroughness":                 ('descriptors', False, True,  '1DSC', '1BRG', 0, 0),
+#"autocorr0":                     ('descriptors', False, True,  '1DSC', '1ARR', 0, 0),
+#"autocorr1":                     ('descriptors', False, True,  '1DSC', '1ARR', 1, 0),
+#"autocorr2":                     ('descriptors', False, True,  '1DSC', '1ARR', 2, 0),
+#"autocorr3":                     ('descriptors', False, True,  '1DSC', '1ARR', 3, 0),
+#"autocorr4":                     ('descriptors', False, True,  '1DSC', '1ARR', 4, 0),
+#"autocorr5":                     ('descriptors', False, True,  '1DSC', '1ARR', 5, 0),
+#"autocorr6":                     ('descriptors', False, True,  '1DSC', '1ARR', 6, 0),
+#"autocorr7":                     ('descriptors', False, True,  '1DSC', '1ARR', 7, 0),
+#"autocorr8":                     ('descriptors', False, True,  '1DSC', '1ARR', 8, 0),
+#"autocorr9":                     ('descriptors', False, True,  '1DSC', '1ARR', 9, 0),
+#"autocorr10":                    ('descriptors', False, True,  '1DSC', '1ARR', 10, 0),
+#"autocorr11":                    ('descriptors', False, True,  '1DSC', '1ARR', 11, 0),
+#"bandflux":                      ('descriptors', True,  True,  '1DSC', '1BFL', 0, 0),
+#"bandroughness":                 ('descriptors', False, True,  '1DSC', '1BRG', 0, 0),
 "centroid":                      ('descriptors', False, True,  '1DSC', '1SCN', 0, 0),
 "chroma0":                       ('descriptors', False, True,  '1DSC', '1CHR', 0, 0),
 "chroma1":                       ('descriptors', False, True,  '1DSC', '1CHR', 1, 0),
@@ -614,14 +627,14 @@ agDescriptToSdif = {
 "crest1":                        ('descriptors', False, True,  '1DSC', '1SCM', 1, 0),
 "crest2":                        ('descriptors', False, True,  '1DSC', '1SCM', 2, 0),
 "crest3":                        ('descriptors', False, True,  '1DSC', '1SCM', 3, 0),
-"decrease":                      ('descriptors', False, True,  '1DSC', '1SDE', 0, 0),
+#"decrease":                      ('descriptors', False, True,  '1DSC', '1SDE', 0, 0),
 "energyenvelope":                ('descriptors', True,  True,  '1DSC', '1EEV', 0, 0),
 "f0":                            ('descriptors', False, False, '1DSC', '1FQ0', 0, 0),
 "flatness0":                     ('descriptors', False, True,  '1DSC', '1SFM', 0, 0),
 "flatness1":                     ('descriptors', False, True,  '1DSC', '1SFM', 1, 0),
 "flatness2":                     ('descriptors', False, True,  '1DSC', '1SFM', 2, 0),
 "flatness3":                     ('descriptors', False, True,  '1DSC', '1SFM', 3, 0),
-"flux":                          ('descriptors', True,  True,  '1DSC', '1FLS', 0, 0),
+#"flux":                          ('descriptors', True,  True,  '1DSC', '1FLS', 0, 0),
 "harmoniccentroid":              ('descriptors', False, True,  '1DSC', '1HCN', 0, 0),
 "harmonicdecrease":              ('descriptors', False, True,  '1DSC', '1HDE', 0, 0),
 "harmonicdeviation":             ('descriptors', False, True,  '1DSC', '1HSD', 0, 0),
@@ -639,15 +652,15 @@ agDescriptToSdif = {
 "inharmonicity":                 ('descriptors', False, True,  '1DSC', '1INH', 0, 0),
 "kurtosis":                      ('descriptors', False, True,  '1DSC', '1SKU', 0, 0),
 "loudness":                      ('descriptors', True,  True,  '1DSC', '1LDN', 0, 0),
-"noisecentroid":                 ('descriptors', False, True,  '1DSC', '1NCN', 0, 0),
-"noisedecrease":                 ('descriptors', False, True,  '1DSC', '1NDE', 0, 0),
-"noiseenergy":                   ('descriptors', False, True,  '1DSC', '1NEN', 0, 0),
-"noisekurtosis":                 ('descriptors', False, True,  '1DSC', '1NKU', 0, 0),
-"noiserolloff":                  ('descriptors', False, True,  '1DSC', '1NRO', 0, 0),
-"noiseskewness":                 ('descriptors', False, True,  '1DSC', '1NSK', 0, 0),
-"noiseslope":                    ('descriptors', False, True,  '1DSC', '1NSL', 0, 0),
-"noisespread":                   ('descriptors', False, True,  '1DSC', '1NSP', 0, 0),
-"noisevariation":                ('descriptors', False, True,  '1DSC', '1NVA', 0, 0),
+#"noisecentroid":                 ('descriptors', False, True,  '1DSC', '1NCN', 0, 0),
+#"noisedecrease":                 ('descriptors', False, True,  '1DSC', '1NDE', 0, 0),
+#"noiseenergy":                   ('descriptors', False, True,  '1DSC', '1NEN', 0, 0),
+#"noisekurtosis":                 ('descriptors', False, True,  '1DSC', '1NKU', 0, 0),
+#"noiserolloff":                  ('descriptors', False, True,  '1DSC', '1NRO', 0, 0),
+#"noiseskewness":                 ('descriptors', False, True,  '1DSC', '1NSK', 0, 0),
+#"noiseslope":                    ('descriptors', False, True,  '1DSC', '1NSL', 0, 0),
+#"noisespread":                   ('descriptors', False, True,  '1DSC', '1NSP', 0, 0),
+#"noisevariation":                ('descriptors', False, True,  '1DSC', '1NVA', 0, 0),
 "noisiness":                     ('descriptors', False, True,  '1DSC', '1NSN', 0, 0),
 "perceptualcentroid":            ('descriptors', False, True,  '1DSC', '1PCN', 0, 0),
 "perceptualdecrease":            ('descriptors', False, True,  '1DSC', '1PDE', 0, 0),
