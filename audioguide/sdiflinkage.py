@@ -190,9 +190,10 @@ TextureWindowsHopFrames = -1
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
 				print stringy.split()[0], 'GLOBAL_LIMIT'
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops, addParents=True)
-		for csfObj in ops.CORPUS:
-			for stringy in csfObj.limit:
-				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
+		if hasattr(ops, 'CORPUS'):
+			for csfObj in ops.CORPUS:
+				for stringy in csfObj.limit:
+					self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
 		# add CLUSTER descriptors
 		if ops.CLUSTER_MAPPING.has_key('descriptors'):
 			for s in ops.CLUSTER_MAPPING['descriptors']:
