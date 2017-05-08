@@ -3,7 +3,6 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 CORPUS = [
 csf('lachenmann.aiff'),
 csf('heat sink.aiff'),
-csf('dream.aiff'),
 ]
 
 SEARCH = [
@@ -12,14 +11,19 @@ spass('closest', d('mfccs'))
 ]
 
 
-The si() object stands for superimpose.  When AudioGuide begins a concatenation, the target soundfile is broken into several sound segements and then the sfotware steps through them one by one, selecting corpus sounds to represent them.  si() controls how many corpus sounds AudioGuide is permitted to select for each target sound segment.  si() uses keyword arguments to do this.  They are as follows:
+################################################################################
+## When AudioGuide begins a concatenation, the target soundfile is broken     ##
+## into several sound segments and then the software steps through them one   ##
+## by one, selecting corpus sounds to match them.  si() controls how many     ##
+## corpus sounds AudioGuide is permitted to select for each target sound      ##
+## segment.  si() uses keyword arguments to do this.  They are as follows:    ##
+################################################################################
 
+#### minSegment, maxSegment - tell Ag how many corpus segments to pick for each target segment.  by default the minimum is 1; there is no maximum and Ag will stop picking corpus segments according to a subtractive amplitude model.
 
-#### minSegment, maxSegment ####  tell Ag how many corpus segments to pick for each target segment.  by default the minimum is 1; there is no maximum and Ag will stop picking corpus segments according to a subtractive amplitude model.
+#### minOnset, maxOnset - tell Ag how many corpus segments to pick for each analysis frame of each target segment.  frame speed is taken from DESCRIPTOR_HOP_SIZE_SEC, by default 0.01024 seconds.  by default there is no minimum or maximum and Ag will pick / not pick corpus segments according to a subtractive amplitude model.
 
-#### minOnset, maxOnset ####  tell Ag how many corpus segments to pick for each analysis frame of each target segment.  frame speed is taken from DESCRIPTOR_HOP_SIZE_SEC, by default 0.01024 seconds.  by default there is no minimum or maximum and Ag will pick / not pick corpus segments according to a subtractive amplitude model.
-
-#### minOverlap, maxOverlap ####  tell Ag how many corpus segments must be playing during each target frame.  unlike minSegment/maxSegment/minOnset/maxOnset, overlap takes corpus sounds' duration into account.  by default there is no minimum or maximum.
+#### minOverlap, maxOverlap - tell Ag how many corpus segments must be playing during each target frame.  unlike minSegment/maxSegment/minOnset/maxOnset, overlap takes corpus sounds' duration into account.  by default there is no minimum or maximum.
 
 
 

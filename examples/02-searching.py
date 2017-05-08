@@ -31,6 +31,7 @@ SEARCH = [
 spass('closest', d('mfccs'), d('effDur-seg', norm=1))
 ]
 
+# try uncommenting below...
 #SEARCH = [
 #spass('closest_percent', d('effDur-seg', norm=1), percent=25),
 #spass('closest', d('mfccs'))
