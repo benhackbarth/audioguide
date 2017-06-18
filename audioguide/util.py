@@ -1,3 +1,8 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 from math import log10, log
 import sys, os, subprocess, random
 
@@ -12,7 +17,7 @@ audioguide_lady = '''
         ) `.___,'/ (/)
            |    | (/)
          _.'    ,\(/)__
-     _.-"   `AG'   (/) ".
+     _.-"   `__'   (/) ".
    ,"               ^    \\
   /                      |
 '''
@@ -39,11 +44,6 @@ def ladytext(string):
 	
 
 def exit(*args):
-#	ALERT_ON_ERROR = False
-#	if ALERT_ON_ERROR:  # beep?
-#		sys.stdout.write('\a')
-#		sys.stdout.flush()
-#	print "\n"
 	sys.exit(1)
 
 
@@ -206,18 +206,6 @@ def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
 
 
 
-#def trunc(f, n):
-#    '''Truncates/pads a float f to n decimal places without rounding'''
-#    slen = len('%.*f' % (n, f))
-#    return str(f)[:slen]
-
-
-#def chain(iterables):
-#	output = []
-#	for it in iterables:
-#		output.extend(it)
-#	return output
-
 
 def histogram(l):
 	# returns sorted list histogram with highest value first.
@@ -232,17 +220,6 @@ def histogram(l):
 	sorty.reverse()
 	return sorty
 
-
-#def sliceListIntoEvenlySpacedLists(l, sliceSize, lowVal, highVal):
-#	# for use with quantize and histograms...
-#	l.sort()
-#	numberSlices = int((highVal-lowVal+1)/sliceSize) # add an extra second just to be sure
-#	slices = []
-#	for i in range(numberSlices): # fill with enough empty lists
-#		slices.append([])
-#	for item in l:
-#		slices[int((item-lowVal)/sliceSize)].append(item)
-#	return slices
 
 
 
@@ -456,39 +433,6 @@ def getTransposition(tgtseg, cpsseg):
 
 
 
-#def printableList(listOfLists):
-#	# find max list length
-#	maxLength = 0
-#	for line in listOfLists:
-#		if len(line) > maxLength: maxLength = len(line)
-#	# make a list of the longest string lengths for each field
-#	maxStrLen = [0]*maxLength
-#	for line in listOfLists:
-#		if line[0][0] == ";": continue # just a comment
-#		for (idx, val) in enumerate(line):
-#			if len(val) > maxStrLen[idx]: maxStrLen[idx] = len(val)
-#	outputListOfLists = []
-#	# makes sure that each param has a fixed number of chars
-#	for line in listOfLists:
-#		if line[0][0] == ";":
-#			outputListOfLists.append(' '.join(line)) # comment
-#			continue
-#		outStr = ""
-#		for idx, val in enumerate(line):
-#			outStr += str(val)+(" "*(maxStrLen[idx]-len(val)+1))
-#		outputListOfLists.append(outStr+'\n')
-#	return outputListOfLists
-#	
-#
-#def getTargetCorpusTimbreRemapChecksum(tgt, agSourceHandles, descriptorList):
-#	clusterChecksumItems = [tgt.name, tgt.scaleDb]
-#	for tup in enumerate(tgt.segFrames): clusterChecksumItems.extend(list(tup))
-#	for handle in agSourceHandles:
-#		clusterChecksumItems.extend([handle.name, handle.startSec, handle.endSec, handle.scaleDb])
-#	for d in descriptorList:
-#		clusterChecksumItems.extend([d.name, d.weight])
-#	return listToCheckSum(clusterChecksumItems)
-
 
 
 def listToCheckSum(items):
@@ -509,6 +453,6 @@ def getDurationFromValueOrString(input1, input2):
 	elif type(input1) in [float, int]:
 		return input1
 	else:
-		print("ERROR in % string here : '%s'!"%input1)
+		print("ERROR in %% string here : '%s'!"%input1)
 		sys.exit(1)
 

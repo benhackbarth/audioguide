@@ -1,3 +1,8 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 #sys.path.append('/Users/ben/Documents/audioGuide/audioguide')
@@ -252,6 +257,8 @@ def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAm
 	cps_vals = cpssegh.desc[dobj.name][cpsseek:cpsseek+mix_dur]
 	if dobj.describes_energy: # powers are summed
 		mixture = tgt_vals + (cps_vals*cpsAmpScale)
+	elif dobj.name == 'zeroCross': 
+		mixture = np.max(tgt_vals, cps_vals)	
 	else: # power averaged
 		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
 		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale

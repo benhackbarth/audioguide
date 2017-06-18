@@ -1,6 +1,11 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "b.hackbarth@liv.ac.uk"
-__version__ = "1.2"
+__version__ = "1.21"
 
 import sys, os, platform
 	

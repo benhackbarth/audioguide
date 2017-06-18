@@ -1,3 +1,8 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, os, subprocess
 sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import pysdif
@@ -688,7 +693,7 @@ agDescriptToSdif = {
 #"temporalDecrease-seg":          ('descriptors', False, True,  '1TDE', '1EEV', 0, 0),
 #"temporalIncrease-seg":          ('descriptors', False, True,  '1TIN', '1EEV', 0, 0),
 "variation":                     ('descriptors', False, True,  '1DSC', '1SVA', 0, 0),
-"zeroCross":                     ('descriptors', False, False, '1DSC', '1ZCR', 0, 0),
+"zeroCross":                     ('descriptors', False, True, '1DSC', '1ZCR', 0, 0),
 #'logAttackTime-seg': ('descriptors', '1LAT', 'IDSC', 0, 0),
 #'temporalIncrease-seg': ('descriptors', '1TIN', '1EEV', 0, 0),
 #'temporalDecrease-seg': ('descriptors', '1TDE', '1EEV', 0, 0),

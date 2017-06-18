@@ -1,3 +1,8 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, os, types
 import util, descriptordata, sfSegment, tests
 import numpy as np

@@ -1,3 +1,8 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 import sdiflinkage, util, sdiflinkage, descriptordata, util

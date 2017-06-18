@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, os, random
 
 from optparse import OptionParser
