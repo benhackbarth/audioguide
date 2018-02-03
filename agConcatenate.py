@@ -121,8 +121,7 @@ else:
 		for dobj in SdifInterface.normalizeDescriptors:
 			stats = sfSegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 			sfSegment.applyDescriptorNormalisation(segList, dobj, stats)
-		
-	
+
 
 
 	
@@ -306,6 +305,13 @@ if ops.PRINT_SELECTION_HISTO:
 	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
 
 
+#targetvalues = [{'x': t.desc['power-seg'].get(0, None), 'y': t.desc['centroid-seg'].get(0, None)} for t in tgt.segs]
+#corpusvalues = [{'x': c.desc['power-seg'].get(0, None), 'y': c.desc['centroid-seg'].get(0, None)} for c in cps.postLimitSegmentNormList]
+#util.makeHtml5ScatterChart(targetvalues, corpusvalues, tgt.whole.desc['power'], superimp.cnt['cpsnames'], ["%i notes"%(v) for v in superimp.cnt['segidx']])
+#sys.exit()
+
+
+
 #####################################
 ## sort outputEvents by start time ##
 #####################################
@@ -441,71 +447,6 @@ if ops.CSOUND_CSD_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 
-
-
-################################
-## SONIC VISUALISER DATA FILE ##
-################################
-if False:
-	layerCnt = 1
-	tgtSr = SdifInterface.rawData[tgt.filename]['info']['sr']
-	tgtDurationSamples = tgt.whole.segmentDurationSec * tgtSr
-	hopesize = SdifInterface.hopSamples
-	fh = open('/Users/ben/Desktop/ag.svl', 'w')
-	fh.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-	fh.write('<!DOCTYPE sonic-visualiser>\n')
-	fh.write('<sv>\n')
-	fh.write('  <data>\n')
-
-
-
-
-	fh.write('    <model id="1" name="Target Segmentation" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="3" resolution="1" notifyOnAdd="true" dataset="2"  subtype="region" valueQuantization="0" minimum="-1" maximum="1" units=""/>\n' % (tgtSr, tgtDurationSamples))
-	fh.write('    <dataset id="2" dimensions="3">\n')
-	for sidx, (startSec, stopSec) in enumerate(tgt.segmentationInSec):
-		fh.write('      <point frame="%i" value="1" duration="%i" label="peak dB: %.2f %s" />\n' % (startSec*tgtSr, (stopSec-startSec)*tgtSr, util.ampToDb(tgt.segs[sidx].desc['power-seg'].get(0, None)), tgt.extraSegmentationData[sidx]))
-	fh.write('    </dataset>\n')
-
-	minpower, maxpower = min(tgt.whole.desc['power']), max(tgt.whole.desc['power'])
-	fh.write('    <model id="3" name="Target Amplitude" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="2" resolution="%i" notifyOnAdd="true" dataset="4" minimum="%f" maximum="%f" />\n' % (tgtSr, tgtDurationSamples, hopesize, minpower, maxpower))
-	fh.write('    <dataset id="4" dimensions="2">\n')
-	for vidx, value in enumerate(tgt.whole.desc['power']):
-		fh.write('      <point frame="%i" value="%f" label="" />\n' % (int(SdifInterface.f2s(vidx)*tgtSr/2.), value))
-	fh.write('    </dataset>\n')
-
-
-
-
-	# TEXT Layer!
-#	fh.write('    <model id="3" name="Target Segmentation Info" sampleRate="%i" start="0" end="%i" type="sparse" dimensions="2" resolution="1" notifyOnAdd="true" dataset="4"  subtype="text"/>\n' % (tgtSr, tgtDurationSamples))
-#	fh.write('    <dataset id="4" dimensions="2">\n')
-#	for sidx, (startSec, stopSec) in enumerate(tgt.segmentationInSec):
-#		fh.write('      <point frame="%i" height="0.9" label="bennys\nyes" />\n' % (startSec*tgtSr))
-#	fh.write('    </dataset>\n')
-#
-
-
-
-
-
-	fh.write('  </data>\n')
-	# display secton for linking display parameters with datasets
-	fh.write('  <display>\n')
-	fh.write('    <layer id="10" type="regions" name="Target Segmentation" model="1"  verticalScale="1" plotStyle="1" colourName="Green" colour="#008000" darkBackground="false" />\n')
-
-	fh.write('    <layer id="11" type="timevalues" name="Time Values" model="3"  colourMap="0" plotStyle="2" verticalScale="0" scaleMinimum="0" scaleMaximum="0" drawDivisions="true" derivative="false"  colourName="Purple" colour="#c832ff" darkBackground="false" />')
-
-
-
-#	fh.write('    <layer id="11" type="text" name="Target Segmentation Info" model="3" colourName="Orange" colour="#ff9632" darkBackground="false" />\n')
-	fh.write('  </display>\n')
-
-	# done!
-	fh.write('</sv>\n')
-	fh.close()
-	sys.exit()
-	#print dir(tgt)
-	#print dir(SdifInterface), SdifInterface.dataRegistry, 
 
 
 

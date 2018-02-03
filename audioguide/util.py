@@ -346,16 +346,16 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0']:
-		tgtPitch = tgt.desc['f0-seg'].get(tgt.timeInFrames, thisTargetSegmentLength) 
+		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
 		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
 		else:
 			output = frq2Midi(tgtPitch)-frq2Midi(srcPitch)
-		return quantize(output, quantizef)
+		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0-chroma']:
-		tgtPitch = tgt.desc['f0-seg'].get(tgt.timeInFrames, tgt.timeInFrames+thisTargetSegmentLength) 
+		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
 		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
@@ -365,7 +365,7 @@ def getTransposition(tgtseg, cpsseg):
 			output = tgtmid-cpsmid
 			if output > 6: output = ((output*-1)%12)*-1
 			# flip octaves to make smallest possible transposition
-		return quantize(output, quantizef)
+		return quantize(output, cpsseg.transQuantize)
 
 
 # MARKOV
@@ -455,4 +455,9 @@ def getDurationFromValueOrString(input1, input2):
 	else:
 		print("ERROR in %% string here : '%s'!"%input1)
 		sys.exit(1)
+
+
+
+
+
 

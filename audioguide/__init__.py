@@ -4,8 +4,8 @@
 ############################################################################
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
-__author_email__ = "b.hackbarth@liv.ac.uk"
-__version__ = "1.21"
+__author_email__ = "hackbarth@gmail.com"
+__version__ = "1.22"
 
 import sys, os, platform
 	

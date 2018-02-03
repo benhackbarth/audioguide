@@ -7,8 +7,8 @@ import numpy as np
 np.seterr(invalid='ignore')
 import sys, os
 import util
-sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-sys.path.append('/Users/ben/Documents/audioGuide/0-new/pylib2.7-darwin-64')
+#sys.path.append('/Users/ben/Documents/audioGuide/0-new')
+#sys.path.append('/Users/ben/Documents/audioGuide/0-new/pylib2.7-darwin-64')
 
 
 
@@ -27,7 +27,7 @@ class container:
 		'''Find out which descriptors get loaded from disk,
 		which are transformed, which are averaged.'''
 		loadDesc = []
-		onflyDesc = [] # computed after diskn read
+		onflyDesc = [] # computed after read from disk
 		onflyDescSeg = [] # computed when needed
 		for dobj in self.dobjList:
 			if dobj.type == 'rawsdif':
@@ -162,7 +162,8 @@ class segmentedDescriptorData:
 
 class clusterAnalysis:
 	def __init__(self, paramDict, tgtSegObjs, cpsSegObjs, savepath):
-		from sompyv1 import functions as clusterFunc
+		#from sompy_wrapper import functions as clusterFunc
+		import sompy_wrapper as clusterFunc
 		self.savepath = savepath
 		self.paramDict = paramDict
 		self.targetData = self.buildFeatureArray(tgtSegObjs, paramDict['descriptors'])

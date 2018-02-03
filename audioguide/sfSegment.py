@@ -7,6 +7,7 @@ import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 #sys.path.append('/Users/ben/Documents/audioGuide/audioguide')
 sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib2.7-darwin-64')
+sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib')
 import util, descriptordata
 import numpy as np
 
@@ -147,7 +148,7 @@ class SfSegment:
 
 
 class corpusSegment(SfSegment):
-	'''Inherits class of SfSegment and adds additional attributes
+	'''Inherits SfSegment and adds additional attributes
 	used uniquely by corpus segments.'''
 	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
 		# initalise the sound segment object	

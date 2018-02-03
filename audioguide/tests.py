@@ -115,6 +115,7 @@ UserVar_types = {
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_RENDER_DUR': ['cps', 'tgt'],
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
+'DESCRIPTOR_OVERRIDE_DATA_PATH': ['None', 'a string'],
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],
 'DESCRIPTOR_WIN_SIZE_SEC': ['a number greater than zero'],
 'DESCRIPTOR_HOP_SIZE_SEC': ['a number greater than zero'],

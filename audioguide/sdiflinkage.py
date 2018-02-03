@@ -34,7 +34,14 @@ class SdifInterface:
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
 	tgtOnsetDescriptors = {'power-odf-7': 1}
 
-	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[]):	
+	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, resampleRate=12500, windowType='blackman', numbMfccs=23, F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
+		# establish data directory
+		if dataDirectoryLocation == None:
+			self.dataDirectory = os.path.dirname(__file__)
+		else:
+			self.dataDirectory = os.path.abspath(dataDirectoryLocation)
+			if not os.path.exists(self.dataDirectory): os.makedirs(self.dataDirectory)
+
 		self.p = p
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		assert os.path.exists(self.ircamdescriptor_bin)
@@ -106,10 +113,10 @@ class SdifInterface:
 		edlist = ';~~~~~~~~~~~~~~~~energy descriptors~~~~~~~~~~~~~~~~\n'
 		for d in energydescriptors: edlist += d+'  = 1\n'
 		### setup ircam binary config text file	
-		self.sdifdir = os.path.join(os.path.dirname(__file__), 'data_sdif')
+		self.sdifdir = os.path.join(self.dataDirectory, 'data_sdif')
 		if not os.path.exists(self.sdifdir): os.makedirs(self.sdifdir)
 		### setup sdif registry
-		self.dataRegistryPath = os.path.join(os.path.dirname(__file__), 'data_registry.json')
+		self.dataRegistryPath = os.path.join(self.dataDirectory, 'data_registry.json')
 		if os.path.exists(self.dataRegistryPath):
 			fh = open(self.dataRegistryPath)
 			self.dataRegistry = json.load(fh)
@@ -292,7 +299,7 @@ TextureWindowsHopFrames = -1
 		self.rawData[sffile] = {}
 		sfroot, sfhead = os.path.split(sffile)
 		sfheadroot, sfheadext = os.path.splitext(sfhead)
-		self.jsondir = os.path.join(os.path.dirname(__file__), 'data_json')
+		self.jsondir = os.path.join(self.dataDirectory, 'data_json')
 		if not os.path.exists(self.jsondir): os.makedirs(self.jsondir)
 		self.rawData[sffile]['sdiffileroot'] = os.path.join(self.sdifdir, sfheadroot)
 		self.rawData[sffile]['jsonfileroot'] = os.path.join(self.jsondir, sfheadroot)
