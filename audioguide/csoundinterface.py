@@ -116,8 +116,9 @@ instr 1
 		iCpsSegDur = iCpsSegDur * (1/istretch)
 		iDecayTime = iDecayTime * (1/istretch)
 		p3 = iTgtSegDur
-		kbuflen = 100
-		asnd1    pvsbuffer_module   asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		kbuflen = 1
+		asnd1    pvsbuffer_module  asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		asnd2   pvsbuffer_module   asnd2, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
 	endif
 
 	; do envelope

@@ -2,6 +2,7 @@
 CSOUND_CSD_FILEPATH = 'output/output.csd'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'
 LOG_FILEPATH = 'output/log.txt'
+HTML_LOG_FILEPATH = 'output/log.html'
 MIDI_FILEPATH = 'output/output.mid'
 MIDIFILE_TEMPO = 60.
 TARGET_SEGMENT_LABELS_FILEPATH = 'output/targetlabels.txt'

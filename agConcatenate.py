@@ -10,7 +10,7 @@ defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, sdiflinkage
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, sdiflinkage, html5output
 # import all other modules
 import numpy as np
 try:
@@ -37,24 +37,25 @@ ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, s
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 p.printProgramInfo(audioguide.__version__)
 SdifInterface = ops.createSdifInterface(p)
+html = html5output.htmloutput()
 p.middleprint('SOUNDFILE CONCATENATION')
 
 
 ############
 ## TARGET ##
 ############
-p.logsection( "TARGET" )
+html.logsection( "TARGET" )
 tgt = sfSegment.target(ops.TARGET)
 tgt.initAnal(SdifInterface, ops, p)
 if len(tgt.segs) == 0:
 	util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(tgt.filename))
-p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(tgt.segs), np.average(tgt.seglengths)))
+html.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(tgt.segs), np.average(tgt.seglengths)))
 #######################
 ## target label file ##
 #######################
 if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
 	tgt.writeSegmentationFile(ops.TARGET_SEGMENT_LABELS_FILEPATH)
-	p.log( "TARGET: wrote segmentation label file %s"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
+	html.log( "TARGET: wrote segmentation label file %s"%ops.TARGET_SEGMENT_LABELS_FILEPATH )
 #############################
 ## target descriptors file ##
 #############################
@@ -64,7 +65,7 @@ if ops.TARGET_DESCRIPTORS_FILEPATH != None:
 	fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
 	json.dump(outputdict, fh)
 	fh.close()
-	p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
+	html.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
 ##############################
 ## target descriptor graphs ##
 ##############################
@@ -82,7 +83,7 @@ if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
 ############
 ## CORPUS ##
 ############
-p.logsection( "CORPUS" )
+html.logsection( "CORPUS" )
 cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, SdifInterface, p)
 
 
@@ -92,8 +93,9 @@ cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 ###################
 ## NORMALIZATION ##
 ###################
-p.logsection( "NORMALISATION" )
+html.logsection( "NORMALISATION" )
 if ops.CLUSTER_MAPPING == {}:
+	html.log( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>", p=False )
 	for dobj in SdifInterface.normalizeDescriptors:
 		if dobj.norm == 1:
 			# normalize both together
@@ -107,8 +109,11 @@ if ops.CLUSTER_MAPPING == {}:
 			# normalize corpus
 			cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 			sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-		p.log( "%s (%i):"%(dobj.name, dobj.norm) )
-		p.log( "\ttarget: mean=%.3f  std=%.3f  corpus: mean=%.3f  std=%.3f   norm delta freedom: %.3f"%(tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM) )
+		
+		
+		html.log( "<tr><td>%s</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td></tr>"%(dobj.name, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM), p=False )
+	html.log( "</table>" , p=False)
+
 else:
 	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
 	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
@@ -123,27 +128,41 @@ else:
 			sfSegment.applyDescriptorNormalisation(segList, dobj, stats)
 
 
+# for html plotting
+scatter1 = {}
+scatter2 = {}
+scatter1['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
+scatter1['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
+scatter1['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
+scatter2['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
+scatter2['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
+scatter2['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
 
-	
-#	import matplotlib.pyplot as plt
-#	fig = plt.figure(figsize=(25., 15.))
-#	tgtpowers = [s.desc['power-seg'].get(0, None) for s in tgt.segs]
-#	tgtnorms = [s.desc[dobj.name].getnorm(0, None) for s in tgt.segs]
-#	cpspowers = [s.desc['power-seg'].get(0, None) for s in cps.postLimitSegmentNormList]
-#	cpsnorms = [s.desc[dobj.name].getnorm(0, None) for s in cps.postLimitSegmentNormList]
-#	plt.plot(tgtnorms, tgtpowers, 'ro')
-#	plt.plot(cpsnorms, cpspowers, 'bo')
-#	plt.savefig('/Users/ben/Desktop/%s-norm.png'%dobj.name)
-#	plt.close()
-	
-	
+for tidx, ts in enumerate(tgt.segs):
+	for didx, dn in enumerate(scatter1['descnames']):
+		scatter1['tgt'][tidx][didx] = ts.desc[dn].get(0, None)
+		scatter2['tgt'][tidx][didx] = ts.desc[dn].getnorm(0, None)
+
+for cidx, cs in enumerate(cps.postLimitSegmentNormList):
+	for didx, dn in enumerate(scatter1['descnames']):
+		scatter1['cps'][cidx][didx] = cs.desc[dn].get(0, None)
+		scatter2['cps'][cidx][didx] = cs.desc[dn].getnorm(0, None)
+html.addchart(scatter1, type='normscatter', title='Raw')
+html.addchart(scatter2, type='normscatter', title='Normalization')
+
+
+
+
+
+
+
 	
 	
 	
 ##############################
 ## initialise concatenation ##
 ##############################
-p.logsection( "CONCATENATION" )
+html.logsection( "CONCATENATION" )
 tgt.setupConcate(SdifInterface)
 SdifInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
@@ -253,6 +272,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 			sourceAmpScale = 1
 		# apply amp scaling
 		sourceAmpScale *= util.dbToAmp(ops.OUTPUT_GAIN_DB)
+		sourceAmpScale *= util.dbToAmp(selectCpsseg.envDb)
 		###################$###########################
 		## subtract power and update onset detection ##
 		###################$###########################
@@ -264,7 +284,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
 			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxint) # clip it so its above zero
 			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
-			p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
+			#html.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
 			
 			# recalculate onset envelope
 			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
@@ -298,17 +318,22 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
 
 p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
-p.logsection( "CONCATENATION SUMMARY" )
-if ops.PRINT_SIM_SELECTION_HISTO:
-	p.printListLikeHistogram('Simultaneous Selection Histogram', ["%i notes"%(v) for v in superimp.cnt['segidx']])
-if ops.PRINT_SELECTION_HISTO:
-	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
+
+#if ops.PRINT_SIM_SELECTION_HISTO:
+#	p.printListLikeHistogram('Simultaneous Selection Histogram', ["%i notes"%(v) for v in superimp.cnt['segidx']])
+#if ops.PRINT_SELECTION_HISTO:
+#	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
 
 
-#targetvalues = [{'x': t.desc['power-seg'].get(0, None), 'y': t.desc['centroid-seg'].get(0, None)} for t in tgt.segs]
-#corpusvalues = [{'x': c.desc['power-seg'].get(0, None), 'y': c.desc['centroid-seg'].get(0, None)} for c in cps.postLimitSegmentNormList]
-#util.makeHtml5ScatterChart(targetvalues, corpusvalues, tgt.whole.desc['power'], superimp.cnt['cpsnames'], ["%i notes"%(v) for v in superimp.cnt['segidx']])
-#sys.exit()
+
+html.addchart(["%i notes"%(v) for v in superimp.cnt['segidx']], type='barchart', title='Simultaneous Selection Histogram')
+
+html.addchart(superimp.cnt['cpsnames'], type='barchart', title='Corpus Selection Histogram')
+
+
+#html.addchart(list(tgt.whole.desc['power']), type='line', title='Target Amplitude')
+
+
 
 
 
@@ -323,7 +348,7 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ###########################
 concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
 
-p.logsection( "OUTPUT FILES" )
+html.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
 
 ######################
@@ -349,7 +374,7 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
 	fh.close()
-	p.log( "Wrote JSON dict file %s\n"%ops.DICT_OUTPUT_FILEPATH )
+	html.log( "Wrote JSON dict file %s\n"%ops.DICT_OUTPUT_FILEPATH )
 
 #####################################
 ## maxmsp list output pour gilbert ##
@@ -362,7 +387,7 @@ if ops.MAXMSP_OUTPUT_FILEPATH != None:
 	fh = open(ops.MAXMSP_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
 	fh.close()
-	p.log( "Wrote MAX/MSP JSON lists to file %s\n"%ops.MAXMSP_OUTPUT_FILEPATH )
+	html.log( "Wrote MAX/MSP JSON lists to file %s\n"%ops.MAXMSP_OUTPUT_FILEPATH )
 	
 ######################
 ## midi output file ##
@@ -378,7 +403,7 @@ if ops.MIDI_FILEPATH != None:
 	binfile = open(ops.MIDI_FILEPATH, 'wb')
 	MyMIDI.writeFile(binfile)
 	binfile.close()
-	p.log( "Wrote MIDIfile %s\n"%ops.MIDI_FILEPATH )
+	html.log( "Wrote MIDIfile %s\n"%ops.MIDI_FILEPATH )
 
 ###################################
 ## superimpose label output file ##
@@ -387,7 +412,7 @@ if ops.OUTPUT_LABEL_FILEPATH != None:
 	fh = open(ops.OUTPUT_LABEL_FILEPATH, 'w')
 	fh.write( ''.join([ oe.makeLabelText() for oe in outputEvents ]) )
 	fh.close()
-	p.log( "Wrote superimposition label file %s\n"%ops.OUTPUT_LABEL_FILEPATH )
+	html.log( "Wrote superimposition label file %s\n"%ops.OUTPUT_LABEL_FILEPATH )
 
 #######################################
 ## corpus segmented features as json ##
@@ -403,7 +428,7 @@ if ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH != None:
 		alldata[(c.filename+'@'+str(c.segmentStartSec))] = descs
 	json.dump(alldata, fh)
 	fh.close()
-	p.log( "Wrote corpus segmented features file %s\n"%ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
+	html.log( "Wrote corpus segmented features file %s\n"%ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
 
 
 ######################
@@ -413,7 +438,7 @@ if ops.LISP_OUTPUT_FILEPATH != None:
 	fh = open(ops.LISP_OUTPUT_FILEPATH, 'w')
 	fh.write('(' + ''.join([ oe.makeLispText() for oe in outputEvents ]) +')')
 	fh.close()
-	p.log( "Wrote lisp output file %s\n"%ops.LISP_OUTPUT_FILEPATH )
+	html.log( "Wrote lisp output file %s\n"%ops.LISP_OUTPUT_FILEPATH )
 
 ########################################
 ## data from segmentation file output ##
@@ -423,7 +448,7 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 	for line in [oe.makeSegmentationDataText() for oe in outputEvents]:
 		fh.write(line)
 	fh.close()
-	p.log( "Wrote data from segmentation file to textfile %s\n"%ops.DATA_FROM_SEGMENTATION_FILEPATH )
+	html.log( "Wrote data from segmentation file to textfile %s\n"%ops.DATA_FROM_SEGMENTATION_FILEPATH )
 
 ########################
 ## csound output file ##
@@ -442,18 +467,18 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps)
-	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
+	html.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
-		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
-
+		html.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 
 
 
 ####################
 ## close log file ##
 ####################
-p.close()
+if ops.HTML_LOG_FILEPATH != None:
+	html.writefile(ops.HTML_LOG_FILEPATH)
 	
 if ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
 	csd.playFile( ops.CSOUND_RENDER_FILEPATH )

@@ -74,6 +74,7 @@ UserVar_types = {
 'CSOUND_CSD_FILEPATH': ['None', 'a string'],
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
 'LOG_FILEPATH': ['None', 'a string'],
+'HTML_LOG_FILEPATH': ['None', 'a string'],
 'MIDI_FILEPATH': ['None', 'a string'],
 'MIDIFILE_TEMPO': ['a number greater than zero'],
 'TARGET_SEGMENT_LABELS_FILEPATH': ['None', 'a string'],
