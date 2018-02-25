@@ -129,34 +129,35 @@ else:
 
 
 # for html plotting
-scatter1 = {}
-scatter2 = {}
-scatter1['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
-scatter1['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
-scatter1['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
-scatter2['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
-scatter2['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
-scatter2['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
-
-for tidx, ts in enumerate(tgt.segs):
-	for didx, dn in enumerate(scatter1['descnames']):
-		scatter1['tgt'][tidx][didx] = ts.desc[dn].get(0, None)
-		scatter2['tgt'][tidx][didx] = ts.desc[dn].getnorm(0, None)
-
-for cidx, cs in enumerate(cps.postLimitSegmentNormList):
-	for didx, dn in enumerate(scatter1['descnames']):
-		scatter1['cps'][cidx][didx] = cs.desc[dn].get(0, None)
-		scatter2['cps'][cidx][didx] = cs.desc[dn].getnorm(0, None)
-html.addchart(scatter1, type='normscatter', title='Raw')
-html.addchart(scatter2, type='normscatter', title='Normalization')
-
-
-
-
-
-
-
+if False:
+	scatter1 = {}
+	scatter2 = {}
+	scatter1['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
+	scatter1['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
+	scatter1['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
+	scatter2['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
+	scatter2['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
+	scatter2['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
 	
+	for tidx, ts in enumerate(tgt.segs):
+		for didx, dn in enumerate(scatter1['descnames']):
+			scatter1['tgt'][tidx][didx] = ts.desc[dn].get(0, None)
+			scatter2['tgt'][tidx][didx] = ts.desc[dn].getnorm(0, None)
+	
+	for cidx, cs in enumerate(cps.postLimitSegmentNormList):
+		for didx, dn in enumerate(scatter1['descnames']):
+			scatter1['cps'][cidx][didx] = cs.desc[dn].get(0, None)
+			scatter2['cps'][cidx][didx] = cs.desc[dn].getnorm(0, None)
+	html.addchart(scatter1, type='normscatter', title='Raw')
+	html.addchart(scatter2, type='normscatter', title='Normalization')
+	
+	
+	
+	
+	
+	
+	
+		
 	
 	
 ##############################
