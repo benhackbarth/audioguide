@@ -7,7 +7,7 @@ import subprocess, platform, sys, os, util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, maxOverlaps):
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, maxOverlaps, bits=32):
 	if channelRenderMethod in ["mix", None]:
 		nchnls = 2 # mono of stereo depending on corpus sf
 	elif channelRenderMethod == "oneChannelPerVoice":
@@ -17,11 +17,18 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	else:
 		util.error("csdrenderer", "no know channel render method %s\n"%channelRenderMethod)
 
+	if bits == 16:
+		bitflag = '-s'
+	elif bits == 24:
+		bitflag = '-3'
+	elif bits == 32:
+		bitflag = '-f'
+
 
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
--o %s --format=%s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=0 
+-o %s --format=%s %s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=0 
 </CsOptions>
 <CsInstruments>
 sr = %i
@@ -201,7 +208,7 @@ endin
 %s
 e
 </CsScore>
-</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], sr, kr, nchnls, scoreText) )
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, sr, kr, nchnls, scoreText) )
 
 
 
@@ -286,6 +293,29 @@ def render(file, totalEvents, printerobj=None):
 			if printerobj != None: printerobj.percentageBarNext(lowerLabel="f")
 			eventCounter += 1
 	if printerobj != None: printerobj.percentageBarClose(txt="Rendered %i events."%eventCounter)
+
+
+
+
+
+
+
+
+def normalize(file, db=-3):
+	cs = subprocess.Popen('scale -F 0.0 %s'%file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	while True:
+		o = cs.stderr.readline()
+		if o == '' and cs.poll() != None: break
+		if o.startswith('Max scale factor'):
+			scalefactor = float(o.split()[4]) * util.dbToAmp(db)
+	# scale to temporary file
+	cs = subprocess.Popen("scale -o /tmp/%s -F %f %s"%(os.path.split(file)[1], scalefactor, file), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	while True:
+		o = cs.stderr.readline()
+		if o == '' and cs.poll() != None: break
+	# replace file with new file
+	cs = subprocess.call("mv /tmp/%s %s"%(os.path.split(file)[1], file), shell=True)
+
 
 
 

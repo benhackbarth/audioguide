@@ -110,11 +110,13 @@ UserVar_types = {
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
+'CSOUND_BITS': ['an integer greater than zero'],
 'CSOUND_ALIGN_PEAKS': ['True or False'],
 'CSOUND_CHANNEL_RENDER_METHOD': ['mix', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_RENDER_DUR': ['cps', 'tgt'],
+'CSOUND_NORMALIZE': ['True or False'],
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_OVERRIDE_DATA_PATH': ['None', 'a string'],
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],

@@ -94,6 +94,9 @@ cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 ## NORMALIZATION ##
 ###################
 html.logsection( "NORMALISATION" )
+html.log( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>", p=False )
+
+
 if ops.CLUSTER_MAPPING == {}:
 	html.log( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>", p=False )
 	for dobj in SdifInterface.normalizeDescriptors:
@@ -467,12 +470,14 @@ if ops.CSOUND_CSD_FILEPATH != None:
 			oe.timeInScore -= minTime
 	
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps, bits=ops.CSOUND_BITS)
 	html.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		html.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
-
+	
+	if True:#ops.CSOUND_NORMALIZE:
+		csd.normalize(ops.CSOUND_RENDER_FILEPATH, db=ops.CSOUND_NORMALIZE_PEAK_DB)
 
 
 ####################
