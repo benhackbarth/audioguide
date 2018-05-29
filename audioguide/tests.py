@@ -112,7 +112,7 @@ UserVar_types = {
 'CSOUND_KSMPS': ['an integer greater than zero'],
 'CSOUND_BITS': ['an integer greater than zero'],
 'CSOUND_ALIGN_PEAKS': ['True or False'],
-'CSOUND_CHANNEL_RENDER_METHOD': ['mix', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
+'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_RENDER_DUR': ['cps', 'tgt'],

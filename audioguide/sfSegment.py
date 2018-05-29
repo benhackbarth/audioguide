@@ -472,6 +472,29 @@ class target: # the target
 			plt.savefig(savepath)
 			plt.close()
 	########################################
+	def NEWplotMetrics(self, outputpath, SdifInterface, p):
+		import matplotlib.pyplot as plt
+		import matplotlib.ticker as ticker
+
+
+		p = {'outputdir': '/Users/ben/Desktop', 'descriptors': [('mfcc1',), ('mfcc1', 'mfcc2', 'mfcc3', 'mfcc4'), ('mfcc1', 'power')], 'diminches': (10, 4), 'ext': '.jpg', }
+		assert os.path.isdir(p['outputdir'])
+
+		timearray = [SdifInterface.f2s(i) for i in range(len(self.whole.desc[p['descriptors'][0][0]][:]))]
+		for dlist in p['descriptors']:
+			savepath = os.path.join(p['outputdir'], '-'.join([d for d in dlist]) + p['ext'])
+			
+			
+			fig, ax = plt.subplots(figsize=p['diminches'])
+			for d in dlist:
+				ax.plot(timearray, self.whole.desc[d][:], ls='steps-post', lw=1)
+			
+			formatter = ticker.FormatStrFormatter('%1.1f')
+			ax.xaxis.set_major_formatter(formatter)
+			plt.savefig(savepath, bbox_inches=0, pad_inches=0.0)
+			plt.close()
+
+	########################################
 	def plotSegmentation(self, outputpath, SdifInterface, p):
 		import matplotlib.pyplot as plt
 		powers = self.whole.desc['power'][:]

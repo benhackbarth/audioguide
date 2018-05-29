@@ -208,14 +208,46 @@ def logAttackTime(powers):
 	time = np.clip(ag.f2s(idx), 0.0001, sys.maxint)
 	return np.log(time) # the middle of the peak window, reduces error to +/-0.5
 
+
+
+
 def f0Seg(f0s, powers):
 	tmp = []
 	for vidx, f0 in enumerate(f0s):
-		if f0 == 0: continue
+		if f0 == 0: continue # 0 means yin has no results
 		tmp.append(f0)
-		#print f0, powers[vidx]
 	if len(tmp) == 0: return 0. # 0 means f0 didn't find an estimate!
 	return np.median(tmp)
+
+
+
+
+def f0SegV2(f0s, inharmonicities, powers, minAbsDb=-60, minRelDb=-16, inharmThreshold=0.1):
+	tmp = []
+	minRelDb = util.ampToDb(np.max(powers))+minRelDb
+	for vidx, f0 in enumerate(f0s):
+		if f0 == 0: continue # 0 means yin has no results
+		if powers[vidx] < util.dbToAmp(minAbsDb): continue # too soft abs amp
+		if powers[vidx] < minRelDb: continue # too soft rel amp
+		if inharmonicities[vidx] > inharmThreshold: continue
+		tmp.append((powers[vidx], f0, inharmonicities[vidx]))
+		
+		
+			#print "nope", f0, inharmonicities[vidx]
+		#	continue
+		#print "YES", f0, inharmonicities[vidx]
+		#tmp.append(f0)
+	#sys.exit()
+	tmp.sort(reverse=True)
+	if len(tmp) == 0: return 0. # 0 means f0 didn't find an estimate!
+	return np.median([f0 for power, f0, inharm in tmp[0:3]])
+
+
+
+
+
+
+
 
 def descriptorSlope(handle, descriptName, start, NORMALIZE_FOR_DURATION=True):
 	# with Norbert Schnell

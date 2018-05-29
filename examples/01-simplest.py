@@ -2,7 +2,6 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 
 CORPUS = [
 csf('lachenmann.aiff'),
-
 ] # CORPUS documented in 04-corpus.py
 
 SEARCH = [

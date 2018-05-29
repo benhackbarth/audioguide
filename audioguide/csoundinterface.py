@@ -7,8 +7,10 @@ import subprocess, platform, sys, os, util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, maxOverlaps, bits=32):
-	if channelRenderMethod in ["mix", None]:
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, bits=32):	
+	if channelRenderMethod == "corpusmax":
+		nchnls = max(listOfSfchannelsInScore) # use maximum number of channels for a corpus item
+	elif channelRenderMethod in ["mix", "stereo"]:
 		nchnls = 2 # mono of stereo depending on corpus sf
 	elif channelRenderMethod == "oneChannelPerVoice":
 		nchnls = cpsLength
@@ -17,12 +19,9 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	else:
 		util.error("csdrenderer", "no know channel render method %s\n"%channelRenderMethod)
 
-	if bits == 16:
-		bitflag = '-s'
-	elif bits == 24:
-		bitflag = '-3'
-	elif bits == 32:
-		bitflag = '-f'
+	if bits == 16: bitflag = '-s'
+	elif bits == 24: bitflag = '-3'
+	elif bits == 32: bitflag = '-f'
 
 
 	fh = open(outputCsdPath, 'w')
@@ -97,7 +96,6 @@ instr 1
 	SstretchCode   strget   p18
 	SchannelRenderType   strget   p19
 	
-	iFileChannels   filenchnls   SCpsFile
 	print giNoteCounter ; used by audioguide for its printed progress bar
 
 	iStrCmpResult  strcmp   SstretchCode, "transpose"
@@ -109,13 +107,34 @@ instr 1
 		p3 = iTgtSegDur
 	endif 
 
+	; do envelope
+	aAmp    linseg   0, iAttackTime, 1, iCpsSegDur-iDecayTime-iAttackTime, 1, iDecayTime, 0
+	aAmp   pow    aAmp, iEnvSlope
+	aAmp = aAmp * ampdbfs(iCpsAmpDb)
+
+
+	asnd1 init 0
+	asnd2 init 0
+	asnd3 init 0
+	asnd4 init 0
+	
 	; get input sound for this corpus segment	
-	if (iFileChannels == 2) then ; STEREO
+	iFileChannels   filenchnls   SCpsFile
+	if (iFileChannels == 1) then
+		asnd1     diskin2 SCpsFile, iTransposition, iStartRead
+		asnd1 = asnd1 * aAmp
+	elseif (iFileChannels == 2) then
 		asnd1, asnd2  diskin2 SCpsFile, iTransposition, iStartRead
-	elseif (iFileChannels == 1) then ; MONO
-		asnd1         diskin2 SCpsFile, iTransposition, iStartRead
-		asnd2 = asnd1 ; equal balance between L and R
+		asnd1 = asnd1 * aAmp
+		asnd2 = asnd2 * aAmp
+	elseif (iFileChannels == 4) then
+		asnd1, asnd2, asnd3, asnd4  diskin2 SCpsFile, iTransposition, iStartRead
+		asnd1 = asnd1 * aAmp
+		asnd2 = asnd2 * aAmp
+		asnd3 = asnd3 * aAmp
+		asnd4 = asnd4 * aAmp
 	endif 
+
 
 	iStrCmpResult  strcmp   SstretchCode, "pv"
 	if (iStrCmpResult == 0) then ; DO PHASE VOCODER TIME STRETCHING
@@ -124,45 +143,117 @@ instr 1
 		iDecayTime = iDecayTime * (1/istretch)
 		p3 = iTgtSegDur
 		kbuflen = 1
-		asnd1    pvsbuffer_module  asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
-		asnd2   pvsbuffer_module   asnd2, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		if (iFileChannels == 1) then
+			asnd1   pvsbuffer_module   asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		elseif (iFileChannels == 2) then
+			asnd1   pvsbuffer_module   asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+			asnd2   pvsbuffer_module   asnd2, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		elseif (iFileChannels == 4) then
+			asnd1   pvsbuffer_module   asnd1, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+			asnd2   pvsbuffer_module   asnd2, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+			asnd3   pvsbuffer_module   asnd3, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+			asnd4   pvsbuffer_module   asnd4, istretch, kbuflen, iTransposition, 1024, 256, 1024, 1
+		endif 
 	endif
-
-	; do envelope
-	aAmp    linseg   0, iAttackTime, 1, iCpsSegDur-iDecayTime-iAttackTime, 1, iDecayTime, 0
-	aAmp   pow    aAmp, iEnvSlope
-	aAmp = aAmp * ampdbfs(iCpsAmpDb)
-	asnd1 = asnd1 * aAmp
-	asnd2 = asnd2 * aAmp
 
 	if ($useTargetAmplitude == 1) then
-		krmscorpus   rms  ((asnd1+asnd2))
+		krmscorpus   rms  (asnd1)
 		kampscalar   = gkTargetRms/krmscorpus
 		printks "tgt = %%.5f cps = %%.5f scalar = %%.5f\\n", 0.1, gkTargetRms, krmscorpus, kampscalar
-		asnd1 = asnd1 * kampscalar
-		asnd2 = asnd2 * kampscalar
-	endif
-	
-	; write to file
-	iStrCmpResult  strcmp   SchannelRenderType, "mix"
-	if (iStrCmpResult == 0) then
-		iOutCh1 = 1
-		iOutCh2 = 2
-	endif
-	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerVoice"
-	if (iStrCmpResult == 0) then
-		iOutCh1 = p14+1
-		iOutCh2 = p14+1
-	endif
-	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerOverlap"
-	if (iStrCmpResult == 0) then
-		iOutCh1 = p15+1
-		iOutCh2 = p15+1
+		if (iFileChannels == 1) then
+			asnd1 = asnd1 * kampscalar
+		elseif (iFileChannels == 2) then
+			asnd1 = asnd1 * kampscalar
+			asnd2 = asnd2 * kampscalar
+		elseif (iFileChannels == 4) then
+			asnd1 = asnd1 * kampscalar
+			asnd2 = asnd2 * kampscalar
+			asnd3 = asnd3 * kampscalar
+			asnd4 = asnd4 * kampscalar
+		endif 
 	endif
 
-	outch     int(iOutCh1), asnd1, int(iOutCh2), asnd2
+
+
+
+
+
+	; NEW write to file
+	anull init 0
+	iStrCmpResult  strcmp   SchannelRenderType, "corpusmax"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then ; MONO SOUNDS go into ALL CHANNELS
+			if (nchnls == 1) then
+				out    asnd1
+			elseif (nchnls == 2) then
+				outs   asnd1, asnd1
+			elseif (nchnls == 4) then
+				outq   asnd1, asnd1, asnd1, asnd1
+			endif 
+		elseif (iFileChannels == 2) then ; STEREO SOUNDS
+			if (nchnls == 1) then
+				out    asnd1+asnd2
+			elseif (nchnls == 2) then
+				outs   asnd1, asnd2
+			elseif (nchnls == 4) then
+				outq   asnd1, asnd2, asnd1, asnd2
+			endif 
+		elseif (iFileChannels == 4) then; QUAD SOUNDS
+			if (nchnls == 1) then
+				out    asnd1+asnd2+asnd3+asnd4
+			elseif (nchnls == 2) then
+				outs   asnd1+asnd2, asnd3+asnd4
+			elseif (nchnls == 4) then
+				outq   asnd1, asnd2, asnd3, asnd4
+			endif 			
+		endif 
+	endif
+
+
+	iStrCmpResult  strcmp   SchannelRenderType, "stereo"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then ; a MONO file
+			outs   asnd1, asnd1
+		elseif (iFileChannels == 2) then
+			outs   asnd1, asnd2
+		elseif (iFileChannels == 4) then
+			outs   asnd1+asnd2, asnd3+asnd4 ; hmmmmm..
+		endif 
+	endif
+
+	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerVoice"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then
+			outch     int(p14+1), asnd1
+		elseif (iFileChannels == 2) then
+			outch     int(p14+1), asnd1+asnd2
+		elseif (iFileChannels == 4) then
+			outch     int(p14+1), asnd1+asnd2+asnd3+asnd4
+		endif 
+	endif
+
+	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerOverlap"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then
+			outch     int(p15+1), asnd1
+		elseif (iFileChannels == 2) then
+			outch     int(p15+1), asnd1+asnd2
+		elseif (iFileChannels == 4) then
+			outch     int(p15+1), asnd1+asnd2+asnd3+asnd4
+		endif 
+	endif
+	
+	
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin
+
+
+
+
+
+
+
+
 
 
 

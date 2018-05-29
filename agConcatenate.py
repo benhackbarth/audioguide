@@ -89,6 +89,14 @@ cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 
 
 
+#cps.postLimitSegmentNormList.sort()
+#for tgtseg in cps.postLimitSegmentNormList:
+#	tgtseg.desc['f0-seg'].get(0, None)
+#	print tgtseg.segmentStartSec, tgtseg.desc['f0-seg'].get(0, None)
+##	for fidx, f0 in enumerate(tgtseg.desc['f0']):
+##		print fidx, f0, tgtseg.desc['inharmonicity'][fidx]
+#sys.exit()
+
 
 ###################
 ## NORMALIZATION ##
@@ -355,6 +363,8 @@ concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD,
 html.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
 
+
+
 ######################
 ## dict output file ##
 ######################
@@ -468,9 +478,8 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	if minTime < 0:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
-	
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, maxOverlaps, bits=ops.CSOUND_BITS)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, bits=ops.CSOUND_BITS)
 	html.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
