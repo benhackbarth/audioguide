@@ -1,11 +1,21 @@
+############################################################################
+## This software is distributed for free, without warranties of any kind. ##
+## Send bug reports or suggestions to hackbarth@gmail.com                 ##
+############################################################################
+
 import sys, util
+import numpy as np
+
+
+
 
 
 class htmloutput:
 	def __init__(self,):
 		self.htmlHead = '''<!doctype html>
 	<title>AudioGuide Concatenation Log</title>
-	<script src="http://www.chartjs.org/dist/2.7.0/Chart.bundle.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+	<script src="http://www.chartjs.org/dist/2.7.2/Chart.js"></script>
 	<script src="http://www.chartjs.org/samples/latest/utils.js"></script>
 	<style>
 	canvas {
@@ -16,8 +26,6 @@ class htmloutput:
 	</style>
 '''
 		self.htmlBody = ''
-		self.scriptvars = ''
-		self.onload = ''
 		self.chartcnt = 0
 	
 	def log(self, text, p=True):
@@ -34,117 +42,268 @@ class htmloutput:
 </head>
 <body>
 %s
-<script>
-var color = Chart.helpers.color;
-%s
-
-  window.onload = function() {
-%s
-};
-</script>
 </body>
-</html>'''%(self.htmlHead, self.htmlBody, self.scriptvars, self.onload))
+</html>'''%(self.htmlHead, self.htmlBody))
 		fh.close()
 
 
-	def addchart(self, data, type='barchart', title='My Chart'):
-
-		self.htmlBody +=  '''<div style="width:75%%">
-	<canvas id="chart%i"></canvas>
-</div>\n'''%(self.chartcnt)
-
-
-		if type == 'barchart':
-			datas = util.histogram(data)
-			chartlabels = str([d[1] for d in datas])
-			chartdata = str([d[0] for d in datas])
-			self.scriptvars +=  '''
-  var barChartData%i = {
-		labels: %s,
-		datasets: [{
-			 backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-			 borderColor: window.chartColors.red,
-			 borderWidth: 1,
-			 data: %s,
-		}]
-  };'''%(self.chartcnt, chartlabels, chartdata)
-
-
-			self.onload += '''	var Cfx%i = document.getElementById("chart%i").getContext("2d");
-	window.myBar = new Chart(Cfx%i, {type: 'bar', data: barChartData%i, options: {responsive: true, title: {display: true, text: '%s'}}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
-
-
-
-
-		elif type == 'normscatter':
-			tgtData = [{'x': arr[0], 'y': arr[1]} for arr in data['tgt']]
-			cpsData = [{'x': arr[0], 'y': arr[1]} for arr in data['cps']]
-
-			self.scriptvars +=  '''
-        var scatterChartData%i = {
-            datasets: [{
-                label: "Target Segments",
-                borderColor: window.chartColors.red,
-                backgroundColor: color(window.chartColors.red).alpha(0.2).rgbString(),
-                data: %s
-            }, {
-                label: "Corpus Segments",
-                borderColor: window.chartColors.blue,
-                backgroundColor: color(window.chartColors.blue).alpha(0.2).rgbString(),
-                data: %s
-            }]
-        };'''%(self.chartcnt, str(tgtData), str(cpsData))
-
-
-			self.onload += '''
-	var ctx%i = document.getElementById("chart%i").getContext("2d");
-   window.myScatter = Chart.Scatter(ctx%i, {data: scatterChartData%i, options: {title: {display: true, text: '%s'},}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
-
-
-
+	def jschart_timeseries(self, widthpx=1000, heightpx=300, maxlength=500, yarray=[0, 1, 2, 3, 4, 5], xarrays=[[5, 4, 3, 2, 1, 5]], ylabel='time in seconds', xlabels=['descriptorname']):
+		id = 'chart%i'%self.chartcnt
+		datasetstring = ''
+		for idx, xar in enumerate(xarrays):
+			datasetstring += '''\t\t{label: '%s', data: %s, type: 'line', pointRadius: 0, fill: false, lineTension: 0, borderWidth: 2},
+	'''%(xlabels[idx], np.array2string(util.interpArray(xar, maxlength), precision=2, separator=',').replace('\n', ''))
 	
-		elif type == 'line':
-			data = [1, 2, 3, 4, 3, 2, 1]
-			self.scriptvars +=  '''
-		var lineconfig%i = {
+		self.htmlBody += '''<div style="width:%ipx">
+		<canvas id="%s"></canvas>
+	</div>
+	<script>
+		var ctx = document.getElementById('%s').getContext('2d');
+		ctx.canvas.width = %i;
+		ctx.canvas.height = %i;
+		var cfg = {
 			type: 'bar',
 			data: {
-				labels: labels,
-				datasets: [{
-					label: "%s",
-					data: %s,
-					type: 'line',
-					pointRadius: 0,
-					fill: false,
-					lineTension: 0,
-					borderWidth: 2
-				}]
+				labels: %s,
+				datasets: [%s]
 			},
 			options: {
 				scales: {
 					xAxes: [{
-						type: 'time',
 						distribution: 'series',
 						ticks: {
 							source: 'labels'
-						}
+						},
 					}],
 					yAxes: [{
 						scaleLabel: {
 							display: true,
-							labelString: 'Amplitude'
+							labelString: 'normalized values'
 						}
 					}]
 				}
 			}
-		};\n'''%(self.chartcnt, title, str(data))
-		
-	
-			#self.onload += '''window.myBar = new Chart(document.getElementById("chart%i").getContext("2d"), lineconfig%i);\n\n'''%(self.chartcnt, self.chartcnt)
-	
-	
-	
-
-
+		};
+		var chart = new Chart(ctx, cfg);
+		document.getElementById('update').addEventListener('click', function() {
+			var type = document.getElementById('type').value;
+			chart.update();
+		}
+		);
+	</script>'''%(widthpx, id, id, widthpx, heightpx, np.array2string(util.interpArray(yarray, maxlength), precision=2, separator=',').replace('\n', ''), datasetstring)
 		self.chartcnt += 1
+
+
+
+	def addScatter2dAxisChoice(self, datadict, name='myscat', axisdefaults=['effDur-seg', 'power-seg']):
+		id = 'chart%i'%self.chartcnt
+		#startingDesc = datadict['descnames'][:2]
+		html_xaxis_options = ''
+		for dname in datadict['tgt'].keys():
+			if dname==axisdefaults[0]: extra = 'selected="selected"'
+			else: extra = ''
+			html_xaxis_options += '\n\t\t<option value="%s" %s>%s</option>'%(dname, extra, dname)
+		html_yaxis_options = ''
+		for dname in datadict['tgt'].keys():
+			if dname==axisdefaults[1]: extra = 'selected="selected"'
+			else: extra = ''
+			html_yaxis_options += '\n\t\t<option value="%s" %s>%s</option>'%(dname, extra, dname)
+		
+		
+		descOptions = '\n\t\t'.join(['<option value="%s">%s</option>'%(dname, dname) for dname in datadict['tgt'].keys()])
+		tgtdata = ''
+		for dn, dv in datadict['tgt'].items():
+			tgtdata += "'%s': [%s],"%(dn, ', '.join(['%.3f'%(f) for f in dv]))
+		cpsdata = ''
+		for dn, dv in datadict['cps'].items():
+			cpsdata += "'%s': [%s],"%(dn, ', '.join(['%.3f'%(f) for f in dv]))
+		self.htmlBody += '''\t<div style="width:100%%">
+		<canvas id="%s"></canvas>
+	</div>
+	<audio controls="controls" id="audiosource">
+		<source type="audio/aif"/>
+		<source type="audio/wav"/>
+	</audio>
+
+	x axis: <select id="%s-xaxis">		%s
+	</select>
+	y axis: <select id="%s-yaxis">		%s
+	</select>
+	<button id="%s-update">update</button>
+	<script>
+		var color = Chart.helpers.color;
+		
+		var tgtdata = {%s};
+		var cpsdata = {%s};
+		
+		function pullValues(chartobj, xaxis_name, yaxis_name) {
+			var tgtcoors = [];
+			for (i = 0; i < tgtdata[xaxis_name].length; i++) { 
+    			tgtcoors.push({'x': tgtdata[xaxis_name][i], 'y': tgtdata[yaxis_name][i]});
+			};
+			var cpscoors = [];
+			for (i = 0; i < cpsdata[xaxis_name].length; i++) { 
+    			cpscoors.push({'x': cpsdata[xaxis_name][i], 'y': cpsdata[yaxis_name][i]});
+			};
+			chartobj.config.data.datasets[0].data = tgtcoors;
+			chartobj.config.options.scales.xAxes[0].scaleLabel.labelString = xaxis_name;
+			chartobj.config.data.datasets[1].data = cpscoors;
+			chartobj.config.options.scales.yAxes[0].scaleLabel.labelString = yaxis_name;
+			chartobj.update();
+		};
+
+		window.onload = function() {
+			var ctx = document.getElementById('%s').getContext('2d');
+			window.myScatter = Chart.Scatter(ctx, {
+				data: {
+					datasets: [{label: 'Target Segments', borderColor: window.chartColors.red, backgroundColor: color(window.chartColors.red).alpha(0.2).rgbString(), data: []}, {label: 'Corpus Segments', borderColor: window.chartColors.blue, backgroundColor: color(window.chartColors.blue).alpha(0.2).rgbString(), data: []}]
+				},
+				options: {
+					title: {
+						display: true,
+						text: '%s'
+					},
+					scales: {
+						xAxes: [{
+							scaleLabel: {
+								display: true,
+								labelString: ''
+							}
+						}],
+						yAxes: [{
+							scaleLabel: {
+								display: true,
+								labelString: ''
+							}
+						}]
+					},
+
+
+  hover: { 
+     onHover: function(evt, item) { 
+        if (item.length) {
+        		var audio = document.getElementById("audiosource");
+        		audio.setAttribute("src", "/Users/ben/Documents/sfdb/noiseTimbres/BClBb-aeol-A#2-p.aif");
+
+				audio.play();
+        }
+     }
+  },
+
+
+
+				}
+			});
+			pullValues(window.myScatter, "%s", "%s");
+		};
+
+		document.getElementById('%s-update').addEventListener('click', function() {
+			var xaxis_name = document.getElementById('%s-xaxis').value;
+			var yaxis_name = document.getElementById('%s-yaxis').value;
+			pullValues(window.myScatter, xaxis_name, yaxis_name);
+		});
+	</script>'''%(id, id, html_xaxis_options, id, html_yaxis_options, id, tgtdata, cpsdata, id, name, axisdefaults[0], axisdefaults[1], id, id, id)
+		self.chartcnt += 1
+
+
+
+#	def addchart(self, data, type='barchart', title='My Chart'):
+#
+#		self.htmlBody +=  '''<div style="width:75%%">
+#	<canvas id="chart%i"></canvas>
+#</div>\n'''%(self.chartcnt)
+#
+#
+#		if type == 'barchart':
+#			datas = util.histogram(data)
+#			chartlabels = str([d[1] for d in datas])
+#			chartdata = str([d[0] for d in datas])
+#			self.scriptvars +=  '''
+#  var barChartData%i = {
+#		labels: %s,
+#		datasets: [{
+#			 backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+#			 borderColor: window.chartColors.red,
+#			 borderWidth: 1,
+#			 data: %s,
+#		}]
+#  };'''%(self.chartcnt, chartlabels, chartdata)
+#
+#
+#			self.onload += '''	var Cfx%i = document.getElementById("chart%i").getContext("2d");
+#	window.myBar = new Chart(Cfx%i, {type: 'bar', data: barChartData%i, options: {responsive: true, title: {display: true, text: '%s'}}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
+#
+#
+#
+#
+#		elif type == 'normscatter':
+#			tgtData = [{'x': arr[0], 'y': arr[1]} for arr in data['tgt']]
+#			cpsData = [{'x': arr[0], 'y': arr[1]} for arr in data['cps']]
+#
+#			self.scriptvars +=  '''
+#        var scatterChartData%i = {
+#            datasets: [{
+#                label: "Target Segments",
+#                borderColor: window.chartColors.red,
+#                backgroundColor: color(window.chartColors.red).alpha(0.2).rgbString(),
+#                data: %s
+#            }, {
+#                label: "Corpus Segments",
+#                borderColor: window.chartColors.blue,
+#                backgroundColor: color(window.chartColors.blue).alpha(0.2).rgbString(),
+#                data: %s
+#            }]
+#        };'''%(self.chartcnt, str(tgtData), str(cpsData))
+#
+#
+#			self.onload += '''
+#	var ctx%i = document.getElementById("chart%i").getContext("2d");
+#   window.myScatter = Chart.Scatter(ctx%i, {data: scatterChartData%i, options: {title: {display: true, text: '%s'},}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
+#
+#
+#
+#	
+#		elif type == 'line':
+#			data = [1, 2, 3, 4, 3, 2, 1]
+#			self.scriptvars +=  '''
+#		var lineconfig%i = {
+#			type: 'bar',
+#			data: {
+#				labels: labels,
+#				datasets: [{
+#					label: "%s",
+#					data: %s,
+#					type: 'line',
+#					pointRadius: 0,
+#					fill: false,
+#					lineTension: 0,
+#					borderWidth: 2
+#				}]
+#			},
+#			options: {
+#				scales: {
+#					xAxes: [{
+#						type: 'time',
+#						distribution: 'series',
+#						ticks: {
+#							source: 'labels'
+#						}
+#					}],
+#					yAxes: [{
+#						scaleLabel: {
+#							display: true,
+#							labelString: 'Amplitude'
+#						}
+#					}]
+#				}
+#			}
+#		};\n'''%(self.chartcnt, title, str(data))
+#		
+#	
+#			#self.onload += '''window.myBar = new Chart(document.getElementById("chart%i").getContext("2d"), lineconfig%i);\n\n'''%(self.chartcnt, self.chartcnt)
+#	
+#	
+#	
+#
+#		self.chartcnt += 1
 

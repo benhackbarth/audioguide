@@ -10,7 +10,7 @@ defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, sdiflinkage, html5output
+from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, anallinkage, html5output
 # import all other modules
 import numpy as np
 try:
@@ -36,7 +36,7 @@ if options.PRINT_OPTIONS:
 ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 p.printProgramInfo(audioguide.__version__)
-SdifInterface = ops.createSdifInterface(p)
+AnalInterface = ops.createAnalInterface(p)
 html = html5output.htmloutput()
 p.middleprint('SOUNDFILE CONCATENATION')
 
@@ -46,7 +46,7 @@ p.middleprint('SOUNDFILE CONCATENATION')
 ############
 html.logsection( "TARGET" )
 tgt = sfSegment.target(ops.TARGET)
-tgt.initAnal(SdifInterface, ops, p)
+tgt.initAnal(AnalInterface, ops, p)
 if len(tgt.segs) == 0:
 	util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(tgt.filename))
 html.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(tgt.segs), np.average(tgt.seglengths)))
@@ -61,7 +61,7 @@ if ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
 #############################
 if ops.TARGET_DESCRIPTORS_FILEPATH != None:
 	outputdict = tgt.whole.desc.getdict()
-	outputdict['frame2second'] = SdifInterface.f2s(1)
+	outputdict['frame2second'] = AnalInterface.f2s(1)
 	fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
 	json.dump(outputdict, fh)
 	fh.close()
@@ -70,21 +70,32 @@ if ops.TARGET_DESCRIPTORS_FILEPATH != None:
 ## target descriptor graphs ##
 ##############################
 if ops.TARGET_PLOT_DESCRIPTORS_FILEPATH != None:
-	tgt.plotMetrics(ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, SdifInterface, p)
+	tgt.plotMetrics(ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, AnalInterface, p)
 ###############################
 ## target segmentation graph ##
 ###############################
 if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
-	tgt.plotSegmentation(ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, SdifInterface, p)
+	tgt.plotSegmentation(ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, AnalInterface, p)
 
-
+descriptors = []
+dnames = []
+for dobj in AnalInterface.requiredDescriptors:
+	if dobj.seg or dobj.name in ['power']: continue
+	d = np.array(tgt.whole.desc[dobj.name][:])
+	d -= np.min(d)
+	d /= np.max(d)
+	d = np.around(d, 2)
+	
+	descriptors.append(d)
+	dnames.append(dobj.name)
+html.jschart_timeseries(yarray=np.array([AnalInterface.f2s(i) for i in range(tgt.whole.lengthInFrames)]), xarrays=descriptors, ylabel='time in seconds', xlabels=dnames)
 
 
 ############
 ## CORPUS ##
 ############
 html.logsection( "CORPUS" )
-cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, SdifInterface, p)
+cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
 
 
 
@@ -101,13 +112,12 @@ cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 ###################
 ## NORMALIZATION ##
 ###################
-html.logsection( "NORMALISATION" )
-html.log( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>", p=False )
+html.logsection( "NORMALIZATION" )
 
 
-if ops.CLUSTER_MAPPING == {}:
+if ops.NORMALIZATION_METHOD == 'standard':
 	html.log( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>", p=False )
-	for dobj in SdifInterface.normalizeDescriptors:
+	for dobj in AnalInterface.normalizeDescriptors:
 		if dobj.norm == 1:
 			# normalize both together
 			allsegs = tgt.segs + cps.postLimitSegmentNormList
@@ -120,12 +130,10 @@ if ops.CLUSTER_MAPPING == {}:
 			# normalize corpus
 			cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 			sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-		
-		
 		html.log( "<tr><td>%s</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td></tr>"%(dobj.name, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM), p=False )
 	html.log( "</table>" , p=False)
 
-else:
+elif ops.NORMALIZATION_METHOD == 'cluster':
 	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
 	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
 	clusteredSegLists = []
@@ -134,38 +142,41 @@ else:
 			clusteredSegLists.append([seg for seg in segs if seg.cluster == cidx])
 	for segList in clusteredSegLists:
 		if len(segList) == 0: continue
-		for dobj in SdifInterface.normalizeDescriptors:
+		for dobj in AnalInterface.normalizeDescriptors:
 			stats = sfSegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 			sfSegment.applyDescriptorNormalisation(segList, dobj, stats)
 
 
-# for html plotting
-if False:
-	scatter1 = {}
-	scatter2 = {}
-	scatter1['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
-	scatter1['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
-	scatter1['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
-	scatter2['descnames'] = [dobj.name for dobj in SdifInterface.normalizeDescriptors]
-	scatter2['cps'] = np.empty((len(cps.postLimitSegmentNormList), len(scatter1['descnames'])))
-	scatter2['tgt'] = np.empty((len(tgt.segs), len(scatter1['descnames'])))
+
+
+scatterRaw = {'tgt': {}, 'cps': {}}
+for dname in [dobj.name for dobj in AnalInterface.requiredDescriptors if dobj.seg]:
+	scatterRaw['tgt'][dname] = []
+	scatterRaw['cps'][dname] = []
+
+
+scatterNorm = {'tgt': {}, 'cps': {}}
+for dname in [dobj.name for dobj in AnalInterface.normalizeDescriptors if dobj.seg]:
+	scatterNorm['tgt'][dname] = []
+	scatterNorm['cps'][dname] = []
+
+for tidx, ts in enumerate(tgt.segs):
+	for dname in scatterRaw['tgt'].keys():
+		scatterRaw['tgt'][dname].append(ts.desc[dname].get(0, None))
+	for dname in scatterNorm['tgt'].keys():
+		scatterNorm['tgt'][dname].append(ts.desc[dname].getnorm(0, None))
+
+for cidx, cs in enumerate(cps.postLimitSegmentNormList):
+	for dname in scatterRaw['cps'].keys():
+		scatterRaw['cps'][dname].append(cs.desc[dname].get(0, None))
+	for dname in scatterNorm['cps'].keys():
+		scatterNorm['cps'][dname].append(cs.desc[dname].get(0, None))
+
+
+html.addScatter2dAxisChoice(scatterRaw, name='Unnormalized Descriptor Data', axisdefaults=['effDur-seg', 'power-seg'])
+#html.addScatter2dAxisChoice(scatterNorm, name='Normalized Descriptor Data', axisdefaults=[AnalInterface.normalizeDescriptors[0], AnalInterface.normalizeDescriptors[1]])
 	
-	for tidx, ts in enumerate(tgt.segs):
-		for didx, dn in enumerate(scatter1['descnames']):
-			scatter1['tgt'][tidx][didx] = ts.desc[dn].get(0, None)
-			scatter2['tgt'][tidx][didx] = ts.desc[dn].getnorm(0, None)
-	
-	for cidx, cs in enumerate(cps.postLimitSegmentNormList):
-		for didx, dn in enumerate(scatter1['descnames']):
-			scatter1['cps'][cidx][didx] = cs.desc[dn].get(0, None)
-			scatter2['cps'][cidx][didx] = cs.desc[dn].getnorm(0, None)
-	html.addchart(scatter1, type='normscatter', title='Raw')
-	html.addchart(scatter2, type='normscatter', title='Normalization')
-	
-	
-	
-	
-	
+
 	
 	
 		
@@ -175,11 +186,11 @@ if False:
 ## initialise concatenation ##
 ##############################
 html.logsection( "CONCATENATION" )
-tgt.setupConcate(SdifInterface)
-SdifInterface.done()
-distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, SdifInterface, p)
+tgt.setupConcate(AnalInterface)
+AnalInterface.done()
+distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, p)
 superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
-cps.setupConcate(tgt, SdifInterface)
+cps.setupConcate(tgt, AnalInterface)
 outputEvents = []
 
 #######################################
@@ -209,12 +220,12 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		########################################
 		tif = tgtseg.segmentStartFrame+segSeek
 		if tif >= tgt.lengthInFrames: break
-		timeInSec = SdifInterface.f2s(tif)
-		tgtsegdur =  tgtseg.segmentDurationSec - SdifInterface.f2s(segSeek)
+		timeInSec = AnalInterface.f2s(tif)
+		tgtsegdur =  tgtseg.segmentDurationSec - AnalInterface.f2s(segSeek)
 		segidxt = superimp.test('segidx', segidx, ops.SUPERIMPOSE.minSegment, ops.SUPERIMPOSE.maxSegment)
 		overt = superimp.test('overlap', tif, ops.SUPERIMPOSE.minOverlap, ops.SUPERIMPOSE.maxOverlap)
 		onsett = superimp.test('onset', tif, ops.SUPERIMPOSE.minOnset, ops.SUPERIMPOSE.maxOnset)
-		trigVal = tgtseg.thresholdTest(segSeek, SdifInterface.tgtOnsetDescriptors)
+		trigVal = tgtseg.thresholdTest(segSeek, AnalInterface.tgtOnsetDescriptors)
 		trig = trigVal >= tgt.segmentationThresh
 		####################################################
 		# skip selecting if some criteria doesn't match!!! #
@@ -309,19 +320,19 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		## mix chosen sample's descriptors ##
 		#####################################
 		if ops.SUPERIMPOSE.calcMethod == "mixture":
-			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, segSeek, SdifInterface)
+			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, segSeek, AnalInterface)
 		#################################
 		## append selected corpus unit ##
 		#################################
 		transposition = util.getTransposition(tgtseg, selectCpsseg)
 		cps.updateWithSelection(selectCpsseg, timeInSec, segidx)
-		cpsEffDur = selectCpsseg.desc['effDur-seg'].get(0, None)
+		cpsEffDur = selectCpsseg.desc['effDurFrames-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, SdifInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
+		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
-		superimp.increment(tif, tgtseg.desc['effDur-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
+		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
 		tgtseg.numberSelectedUnits += 1
 
 		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
@@ -338,9 +349,10 @@ p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
 
 
-html.addchart(["%i notes"%(v) for v in superimp.cnt['segidx']], type='barchart', title='Simultaneous Selection Histogram')
+#html.addchart(["%i notes"%(v) for v in superimp.cnt['segidx']], type='barchart', title='Simultaneous Selection Histogram')
 
-html.addchart(superimp.cnt['cpsnames'], type='barchart', title='Corpus Selection Histogram')
+
+#html.addchart(superimp.cnt['cpsnames'], type='barchart', title='Corpus Selection Histogram')
 
 
 #html.addchart(list(tgt.whole.desc['power']), type='line', title='Target Amplitude')
@@ -382,7 +394,7 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 		thisSeg['has_been_mixed'] = ts.has_been_mixed
 		tgtSegDataList.append(thisSeg)
 	# finish up
-	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec, 'segs': tgtSegDataList, 'fileduation': SdifInterface.rawData[tgt.filename]['info']['lengthsec'], 'chn': SdifInterface.rawData[tgt.filename]['info']['channels']} 
+	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec, 'segs': tgtSegDataList, 'fileduation': AnalInterface.rawData[tgt.filename]['info']['lengthsec'], 'chn': AnalInterface.rawData[tgt.filename]['info']['channels']} 
 	output['corpus_file_list'] = list(set(allusedcpsfiles))
 	output['selectedEvents'] = [oe.makeDictOutput() for oe in outputEvents]
 	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
@@ -470,7 +482,7 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 if ops.CSOUND_CSD_FILEPATH != None:
 	import csoundinterface as csd
 	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
-	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', SdifInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
+	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', AnalInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
 	csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(tgt.endSec-tgt.startSec, tgt.whole.envDb, tgt.filename, tgt.startSec)
 	
 	# just in case that there are negative p2 times!

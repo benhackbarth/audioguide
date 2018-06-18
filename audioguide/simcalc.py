@@ -16,7 +16,7 @@ class BreakIt(Exception):
 
 
 class distanceCalculations:
-	def __init__(self, superimposeObj, randomseed, SdifInterface, p):
+	def __init__(self, superimposeObj, randomseed, AnalInterface, p):
 		random.seed(randomseed)
 		self.p = p
 		self.searchResults = []
@@ -135,7 +135,7 @@ class distanceCalculations:
 		if superimposeObj.simCalcDur == "corpusDur":	
 			cps_len = cpsseg.lengthInFrames
 		else:
-			cps_len = cpsseg.desc['effDur-seg'].get(0, None)
+			cps_len = cpsseg.desc['effDurFrames-seg'].get(0, None)
 		array_len = min(tgt_len, cps_len)
 		return tgtstart, array_len
 

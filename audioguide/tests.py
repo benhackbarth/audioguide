@@ -96,8 +96,13 @@ UserVar_types = {
 'ROTATE_VOICES': ['True or False'],
 'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
 'RESTRICT_CORPUS_OVERLAP_BY_STRING': ['a dictionary'],
-########  CONCATENATE SELECTION  #######
+
+########  NORMALIZATION  #######
+'NORMALIZATION_METHOD': ['standard', 'cluster'],
 'NORMALIZATION_DELTA_FREEDOM': ['a number greater than or equal to zero'], 
+'CLUSTER_MAPPING': ['a dictionary'],
+
+########  CONCATENATE SELECTION  #######
 'RANDOM_SEED': ['None', 'a number'],
 'OUTPUT_GAIN_DB': ['a number'],
 'OUTPUT_TIME_STRETCH': ['a number greater than zero'],
@@ -106,7 +111,6 @@ UserVar_types = {
 'OUTPUT_QUANTIZE_TIME_INTERVAL': ['a number greater than zero'],
 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS': ['True or False'],
 'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION': ['True or False'],
-'CLUSTER_MAPPING': ['a dictionary'],
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
@@ -123,9 +127,9 @@ UserVar_types = {
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],
 'DESCRIPTOR_WIN_SIZE_SEC': ['a number greater than zero'],
 'DESCRIPTOR_HOP_SIZE_SEC': ['a number greater than zero'],
+'DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC': ['a number greater than zero'],
 'IRCAMDESCRIPTOR_RESAMPLE_RATE': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_WINDOW_TYPE': ['blackman', 'hanning', 'hamming', 'hanning2'],
-'IRCAMDESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_MIN_FREQUENCY': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_MAX_FREQUENCY': ['an integer greater than zero'],

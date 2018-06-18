@@ -5,7 +5,7 @@
 
 import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-import sdiflinkage, util, sdiflinkage, descriptordata, util
+import anallinkage, util, descriptordata, util
 import numpy as np
 
 
@@ -116,7 +116,7 @@ class SuperimpositionOptionsEntry(object):
 
 class SingleDescriptor(object):
 	def __init__(self, name, weight=1., norm=2., normmethod='stddev', distance='euclidean', limit=False, simultaneous=None, energyWeight=False, origin='SEARCH', neededBy=['target', 'corpus'], packagename=None):
-		singleNumberDescriptors = ['effDur-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
+		singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
 		#neverRecalculate = ['zeroCross', 'f0', 'peakamp', 'peakfrq']
 		self.name = name
 		self.weight = weight
@@ -171,16 +171,11 @@ class SingleDescriptor(object):
 				cnt += 1
 		self.describes_energy = False
 		self.is_mixable = False
-		if sdiflinkage.agDescriptToSdif.has_key(name):
-			filetype, energyBool, mixBool, frame, matrix, row, col = sdiflinkage.agDescriptToSdif[name]
-			self.describes_energy = energyBool
-			self.is_mixable = mixBool
-		else:
-			for pname in self.parents:
-				if sdiflinkage.agDescriptToSdif.has_key(pname):
-					filetype, energyBool, mixBool, frame, matrix, row, col = sdiflinkage.agDescriptToSdif[pname]
-					if energyBool: self.describes_energy = True
-					if mixBool: self.is_mixable = True
+		if name in anallinkage.descriptIsAmp: self.describes_energy = True
+		if name not in anallinkage.descriptNotMixable: self.is_mixable = True
+		for pname in self.parents:
+			if pname in anallinkage.descriptIsAmp: self.describes_energy = True
+			if pname not in anallinkage.descriptNotMixable: self.is_mixable = True
 	########################################
 	def __repr__(self):
 		return self.name

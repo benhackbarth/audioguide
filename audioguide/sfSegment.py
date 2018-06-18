@@ -14,10 +14,10 @@ import numpy as np
 
 
 class SfSegment:
-	def __init__(self, filename, startSec, endSec, descriptors, SdifInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
-		self.filename = util.verifyPath(filename, SdifInterface.searchPaths)
+	def __init__(self, filename, startSec, endSec, descriptors, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
+		self.filename = util.verifyPath(filename, AnalInterface.searchPaths)
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
-		self.soundfileTotalDuration, self.soundfileChns = SdifInterface.validateSdifResource(self.filename)
+		self.soundfileTotalDuration, self.soundfileChns = AnalInterface.validateSdifResource(self.filename)
 		self.segmentStartSec = startSec
 		self.segmentEndSec = endSec
 		self.envDb = envDb
@@ -31,10 +31,12 @@ class SfSegment:
 		if self.segmentEndSec == None: self.segmentEndSec = self.soundfileTotalDuration
 		else: self.segmentEndSec = self.segmentEndSec
 		self.segmentDurationSec = self.segmentEndSec-self.segmentStartSec		
+		self.lengthInFrames = AnalInterface.getSegmentFrameLength(self.segmentDurationSec, self.filename)
+		self.f2s = AnalInterface.f2s(1)
 		##############################################################
 		## check to make sure all user supplied values check out OK ##
 		##############################################################
-		self.testForInitErrors(SdifInterface)
+		self.testForInitErrors(AnalInterface)
 		################
 		## other shit ##
 		################
@@ -49,9 +51,8 @@ class SfSegment:
 		self.envDecaySec = util.getDurationFromValueOrString(self.envDecaySec, self.segmentDurationSec)
 		if (self.envAttackSec+self.envDecaySec+envAttackenvDecayCushionSec) > self.segmentDurationSec:
 			self.envDecaySec = self.segmentDurationSec-self.envAttackSec-envAttackenvDecayCushionSec
-		self.envAttackFrames = int(round(SdifInterface.s2f(self.envAttackSec, self.filename)))
-		self.envDecayFrames = int(round(SdifInterface.s2f(self.envDecaySec, self.filename)))
-		self.lengthInFrames = SdifInterface.s2f(self.segmentDurationSec, self.filename, minimum=1)
+		self.envAttackFrames = int(round(AnalInterface.s2f(self.envAttackSec, self.filename)))
+		self.envDecayFrames = int(round(AnalInterface.s2f(self.envDecaySec, self.filename)))
 		if (self.envAttackFrames+self.envDecayFrames) > self.lengthInFrames:
 			if self.envAttackFrames > self.envDecayFrames:
 				self.envAttackFrames = self.lengthInFrames-self.envDecayFrames
@@ -67,6 +68,12 @@ class SfSegment:
 				self.envelopeMask[self.envDecayFrames*-1:] = np.linspace(1, 1/float(self.envDecayFrames), num=self.envDecayFrames)
 			self.envelopeMask = np.power(self.envelopeMask, self.envSlope)
 			self.envelopeMask *= util.dbToAmp(self.envDb)
+		########################################
+		## manage duration and time-in-frames ##
+		########################################
+		self.segmentStartFrame = AnalInterface.getSegmentStartInFrames(self.filename, self.segmentStartSec, self.segmentEndSec, self.lengthInFrames)
+
+
 		###############################
 		## initalise descriptor data ##
 		###############################
@@ -75,17 +82,11 @@ class SfSegment:
 		#	SdifDescList - loaded from SDIF analyses
 		#	ComputedDescList - transformed from loaded descriptor data - delta, deltadelta, odf, etc.
 		#	AveragedDescList - averaged descriptors from loaded descriptor data
-		SdifDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
-		tmppy = {}
-		self.segmentStartSec, self.segmentEndSec, self.segmentStartFrame, self.lengthInFrames = SdifInterface.getDescriptorSegment(self.filename, self.segmentStartSec, self.segmentEndSec, SdifDescList, tmppy, self.envelopeMask)
-#		print "\n\n"
-#		print self.desc['power']
-#		print self.envelopeMask
-#		sys.exit()
-		
-		for dname, data in tmppy.items():
-			self.desc[dname] = data
-		del tmppy
+		AnalDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
+
+		for d in AnalDescList:
+			self.desc[d.name] = AnalInterface.getDescriptorForSfSegment(self.filename, self.segmentStartFrame, self.lengthInFrames, d, self.envelopeMask)
+
 		for dobj in ComputedDescList:
 			self.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, self, None, None)
 		self.triggerinit = False
@@ -114,12 +115,12 @@ class SfSegment:
 		return util.ampToDb(trig)/weightsum
 	#################################
 	#################################
-	def testForInitErrors(self, SdifInterface):
+	def testForInitErrors(self, AnalInterface):
 		# test self.filename
-		oneframesec = SdifInterface.f2s(1)
+		oneframesec = AnalInterface.f2s(1)
 		if not os.path.exists(self.filename):
 			util.error('sfSegment init', 'file does not exist: \t%s\n'%self.filename)
-		if self.soundfileExtension.lower() not in SdifInterface.validSfExtensions:
+		if self.soundfileExtension.lower() not in AnalInterface.validSfExtensions:
 			util.error('sfSegment init', 'file is not an accepted soundfile type: \t%s\n'%self.filename)
 		# test that startSec is sane
 		if self.segmentStartSec < 0:
@@ -150,9 +151,9 @@ class SfSegment:
 class corpusSegment(SfSegment):
 	'''Inherits SfSegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		SfSegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
 		self.userCpsStr = userCpsStr
 		self.concatFileName = concatFileName
@@ -223,27 +224,27 @@ class corpusSegment(SfSegment):
 class targetSegment(SfSegment):
 	'''Inherits class of SfSegment and adds additional attributes
 	used by target segments.'''
-	def __init__(self, filename, segmentidx, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, SdifInterface, midiPitchMethod):
+	def __init__(self, filename, segmentidx, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, midiPitchMethod):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		SfSegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 		self.cluster = None
 		self.numberSelectedUnits = 0
 		self.idx = segmentidx
 	###################################################
-	def initMixture(self, SdifInterface):
-		self.mixdesc = descriptordata.container(SdifInterface.mixtureDescriptors, self)
-		for dobj in SdifInterface.mixtureDescriptors:
+	def initMixture(self, AnalInterface):
+		self.mixdesc = descriptordata.container(AnalInterface.mixtureDescriptors, self)
+		for dobj in AnalInterface.mixtureDescriptors:
 			if dobj.seg: continue
 			#	def setNorm(self, subtract, divide):
 			self.mixdesc[dobj.name] = np.zeros(self.lengthInFrames) # array of zeros
 		self.has_been_mixed = False
 		self.originalPeak = self.desc['peakTime-seg'].get(0, None) # keep original, unsubtacted peak
 	#################################
-	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, SdifInterface, v=True):
+	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
 		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
-		for d in SdifInterface.mixtureDescriptors:
+		for d in AnalInterface.mixtureDescriptors:
 			if not d.seg: # is time-varying
 				self.mixdesc[d.name][tgtsegSeek:tgtsegSeek+mix_dur] = timeVaryingDescriptorMixture(self, tgtsegSeek, cpsh, 0, d, cpsAmpScale)
 			else: # is segmented
@@ -296,20 +297,20 @@ class target: # the target
 		self.stretch = userOptsTargetObject.stretch
 		self.segmentationFilepath = userOptsTargetObject.segmentationFilepath		
 	########################################
-	def timeStretch(self, SdifInterface, ops, p):
-		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, SdifInterface.supervp_bin, p=p)
+	def timeStretch(self, AnalInterface, ops, p):
+		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, AnalInterface.supervp_bin, p=p)
 		self.startSec = 0 # this now gets reset, as starttime was considered when making the stretched file
 		self.endSec = None # this now gets reset, as endtime was considered when making the stretched file
 	########################################
-	def initAnal(self, SdifInterface, ops, p):
+	def initAnal(self, AnalInterface, ops, p):
 		# Start by loading the entire target as an 
 		# sfSegment to get the whole amplitude envelope.
-		self.filename = util.verifyPath(self.filename, SdifInterface.searchPaths)
+		self.filename = util.verifyPath(self.filename, AnalInterface.searchPaths)
 		# see if we need to time stretch the target file...
 		if self.stretch != 1:
-			self.timeStretch(SdifInterface, ops, p)
+			self.timeStretch(AnalInterface, ops, p)
 		# analise the whole target sound!
-		self.whole = SfSegment(self.filename, self.startSec, self.endSec, SdifInterface.requiredDescriptors, SdifInterface, envDb=self.envDb)
+		self.whole = SfSegment(self.filename, self.startSec, self.endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=self.envDb)
 		self.startSec = self.whole.segmentStartSec
 		self.endSec = self.whole.segmentEndSec
 		self.whole.midiPitchMethod = self.midiPitchMethod
@@ -317,10 +318,12 @@ class target: # the target
 
 		# SEGMENTATION
 		self.filename = os.path.abspath(self.filename)
-		self.segmentationMinLenFrames = SdifInterface.s2f(self.segmentationMinLenSec, self.filename, minimum=1)
-		self.segmentationMaxLenFrames = SdifInterface.s2f(self.segmentationMaxLenSec, self.filename)
+		power = AnalInterface.getDescriptorColumn(self.filename, 'power')
+		maxpower = np.max(power)
+		self.segmentationMinLenFrames = AnalInterface.s2f(self.segmentationMinLenSec, self.filename)
+		self.segmentationMaxLenFrames = AnalInterface.s2f(self.segmentationMaxLenSec, self.filename)
 		p.log("TARGET SEGMENTATION: minimum segment length %.3f sec; maximum %.3f sec"%(self.segmentationMinLenSec, self.segmentationMaxLenSec))
-		self.minPower = min(self.whole.desc['power'])
+		self.minPower = min(power)
 		if self.minPower < util.dbToAmp(self.segmentationOffsetThreshAbs): # use absolute threshold
 			self.powerOffsetValue = util.dbToAmp(self.segmentationOffsetThreshAbs)
 			p.log("TARGET SEGMENTATION: using an offset amplitude value of %s"%(self.segmentationOffsetThreshAbs))
@@ -330,37 +333,17 @@ class target: # the target
 	
 		self.segs = []
 		self.segmentationInFrames = []
+		self.segmentationInOnsetFrames = []
 		self.segmentationInSec = []
 		self.extraSegmentationData = []
-		self.seglengths = []
-
+		self.seglengths = []		
 		if self.segmentationFilepath == None:
-#			print "ALTERNATIVE SEGMENTAITON IN SfSegment.py"
-#			triggerThresh = -32
-#			riseDb = 3
-#			
-#			powers = [util.ampToDb(pw) for pw in self.whole.desc['power']]
-#			while powers[np.argmax(powers)] >= triggerThresh:
-#				peakpower = powers[np.argmax(powers)]
-#				startIdx = np.argmax(powers)
-#				endIdx = startIdx
-#				while startIdx > 0:
-#					if powers[startIdx-1] < triggerThresh or (powers[startIdx-1]-powers[startIdx] > riseDb): break
-#					startIdx -= 1
-#				while endIdx < len(powers)-1:
-#					if powers[endIdx] < triggerThresh or (powers[endIdx+1]-powers[endIdx] > riseDb): break
-#					endIdx += 1
-#				print powers[startIdx:endIdx],  'for', util.ampToDb(triggerThresh)
-#				self.extraSegmentationData.append('%.2f -> %.2f -> %.2f (%.2f %.2f)'%(powers[startIdx], peakpower, powers[endIdx], SdifInterface.f2s(startIdx), SdifInterface.f2s(endIdx)))
-#				self.segmentationInFrames.append((startIdx, endIdx))
-#				for i in range(startIdx, endIdx): powers[i] = -260
-#			print self.segmentationInFrames
-#			sys.exit()
-		
+			import descriptordata
+			odf = descriptordata.odf(power, 7)
 			f = 0
 			while True:
-				if f >= self.whole.lengthInFrames: break # we are done!
-				trigVal = self.whole.thresholdTest(f, SdifInterface.tgtOnsetDescriptors)
+				if f == len(odf): break
+				trigVal = util.ampToDb(odf[f] / maxpower)				
 				if trigVal < self.segmentationThresh:
 					f += 1
 					continue
@@ -370,51 +353,51 @@ class target: # the target
 				segLen = self.segmentationMinLenFrames
 				while True:
 					# an offset if end of file is reached
-					if f+segLen+1 >= self.whole.lengthInFrames:
-						reason = ['eof', self.whole.lengthInFrames]
-						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+					if f+segLen+1 >= len(odf):
+						reason = ['eof', len(odf)]
+						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' eof=%.2f'%SdifInterface.f2s(self.whole.lengthInFrames)
+							self.extraSegmentationData[-1] += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
 						break
 					# an offset if max seg length is reached
 					if segLen+1 >= self.segmentationMaxLenFrames:
-						reason = ['maxSegLength', self.whole.lengthInFrames]
-						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						reason = ['maxSegLength', len(odf)]
+						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
 						break			
 					# an offset if amplitude is below offset threshold
-					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
-						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+					if power[f+segLen] < self.powerOffsetValue:
+						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(self.whole.desc['power'][f+segLen])
+							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(power[f+segLen])
 						break
 					# an offset if riseratio is too large
-					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
+					riseRatio = power[f+segLen+1]/power[f+segLen]
 					if riseRatio >= self.segmentationOffsetRise:
-						endtimeSec = min(SdifInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
 							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
 						break
 					segLen += 1
-				self.segmentationInFrames.append((f, f+segLen))
+				self.segmentationInOnsetFrames.append((f, f+segLen))
 				f += segLen
-			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
+			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInOnsetFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
 		else: # load target segments from a file
 			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
 			for dataentry in util.readAudacityLabelFile(self.segmentationFilepath):
-				startf = SdifInterface.s2f(dataentry[0], self.filename)
-				endf = SdifInterface.s2f(dataentry[1], self.filename)
-				self.segmentationInFrames.append((startf, endf))
+				startf = AnalInterface.s2f(dataentry[0], self.filename)
+				endf = AnalInterface.s2f(dataentry[1], self.filename)
+				self.segmentationInOnsetFrames.append((startf, endf))
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 		###################################
 		## make segment times in seconds ##
 		###################################
-		for start, end in self.segmentationInFrames:
-			self.segmentationInSec.append((SdifInterface.f2s(start), SdifInterface.f2s(end)))
-			self.seglengths.append(SdifInterface.f2s(end-start))
+		self.segmentationInFrames = self.segmentationInOnsetFrames
+		for start, end in self.segmentationInOnsetFrames:
+			self.segmentationInSec.append((AnalInterface.f2s(start), AnalInterface.f2s(end)))
+			self.seglengths.append(AnalInterface.f2s(end-start))
 
-		
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
 				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
@@ -423,10 +406,86 @@ class target: # the target
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
-			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, SdifInterface, self.midiPitchMethod)
+			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
 			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
 			self.segs.append(segment)
 		p.percentageBarClose(txt=closebartxt)
+		
+		#sys.exit()
+			
+			
+			
+			
+#			f = 0
+#			while True:
+#				if f >= self.whole.lengthInFrames: break # we are done!
+#				trigVal = self.whole.thresholdTest(f, AnalInterface.tgtOnsetDescriptors)
+#				if trigVal < self.segmentationThresh:
+#					f += 1
+#					continue
+#				# an onset because above trigger threshold
+#				if ops.SEGMENTATION_FILE_INFO == 'logic':
+#					self.extraSegmentationData.append('trig=%.2f'%trigVal)
+#				segLen = self.segmentationMinLenFrames
+#				while True:
+#					# an offset if end of file is reached
+#					if f+segLen+1 >= self.whole.lengthInFrames:
+#						reason = ['eof', self.whole.lengthInFrames]
+#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+#						if ops.SEGMENTATION_FILE_INFO == 'logic':
+#							self.extraSegmentationData[-1] += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
+#						break
+#					# an offset if max seg length is reached
+#					if segLen+1 >= self.segmentationMaxLenFrames:
+#						reason = ['maxSegLength', self.whole.lengthInFrames]
+#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+#						if ops.SEGMENTATION_FILE_INFO == 'logic':
+#							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
+#						break			
+#					# an offset if amplitude is below offset threshold
+#					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
+#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+#						if ops.SEGMENTATION_FILE_INFO == 'logic':
+#							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(self.whole.desc['power'][f+segLen])
+#						break
+#					# an offset if riseratio is too large
+#					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
+#					if riseRatio >= self.segmentationOffsetRise:
+#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+#						if ops.SEGMENTATION_FILE_INFO == 'logic':
+#							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
+#						break
+#					segLen += 1
+#				self.segmentationInFrames.append((f, f+segLen))
+#				f += segLen
+#			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
+#		else: # load target segments from a file
+#			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
+#			for dataentry in util.readAudacityLabelFile(self.segmentationFilepath):
+#				startf = AnalInterface.s2f(dataentry[0], self.filename)
+#				endf = AnalInterface.s2f(dataentry[1], self.filename)
+#				self.segmentationInFrames.append((startf, endf))
+#			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
+#		###################################
+#		## make segment times in seconds ##
+#		###################################
+#		for start, end in self.segmentationInFrames:
+#			self.segmentationInSec.append((AnalInterface.f2s(start), AnalInterface.f2s(end)))
+#			self.seglengths.append(AnalInterface.f2s(end-start))
+
+		
+#		if ops.SEGMENTATION_FILE_INFO != 'logic':
+#			for start, end in self.segmentationInFrames:
+#				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
+#	
+#		
+#		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
+#		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
+#			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
+#			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
+#			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
+#			self.segs.append(segment)
+#		p.percentageBarClose(txt=closebartxt)
 		# done!
 	########################################
 	def writeSegmentationFile(self, filename):
@@ -435,16 +494,16 @@ class target: # the target
 			fh.write( "%f\t%f\t%s\n"%(self.segmentationInSec[sidx][0], self.segmentationInSec[sidx][1], self.extraSegmentationData[sidx]) )
 		fh.close()
 	########################################
-	def setupConcate(self, SdifInterface):
+	def setupConcate(self, AnalInterface):
 		from UserClasses import SingleDescriptor as d
 		self.powerStats = getDescriptorStatistics(self.segs, d('power'))
 		# initalise mixture and add norm coeffs to mixables...
 		for seg in self.segs:
-			seg.initMixture(SdifInterface)
-			for dobj in SdifInterface.mixtureDescriptors:
+			seg.initMixture(AnalInterface)
+			for dobj in AnalInterface.mixtureDescriptors:
 				seg.mixdesc[dobj.name].setNorm(seg.desc[dobj.name].normSubtract, seg.desc[dobj.name].normDivide)
 	########################################
-	def plotMetrics(self, outputpath, SdifInterface, p, normalise=True):
+	def plotMetrics(self, outputpath, AnalInterface, p, normalise=True):
 		import matplotlib.pyplot as plt
 		lengthTv = self.whole.lengthInFrames
 		powers = self.whole.desc['power'][:]
@@ -452,7 +511,7 @@ class target: # the target
 			powers -= np.min(powers)
 			powers /= np.max(powers)
 
-		for dobj in SdifInterface.requiredDescriptors:
+		for dobj in AnalInterface.requiredDescriptors:
 			fig = plt.figure(figsize=(lengthTv/10., 10.))
 			proot, pext = os.path.splitext(outputpath)
 			
@@ -472,7 +531,7 @@ class target: # the target
 			plt.savefig(savepath)
 			plt.close()
 	########################################
-	def NEWplotMetrics(self, outputpath, SdifInterface, p):
+	def NEWplotMetrics(self, outputpath, AnalInterface, p):
 		import matplotlib.pyplot as plt
 		import matplotlib.ticker as ticker
 
@@ -480,7 +539,7 @@ class target: # the target
 		p = {'outputdir': '/Users/ben/Desktop', 'descriptors': [('mfcc1',), ('mfcc1', 'mfcc2', 'mfcc3', 'mfcc4'), ('mfcc1', 'power')], 'diminches': (10, 4), 'ext': '.jpg', }
 		assert os.path.isdir(p['outputdir'])
 
-		timearray = [SdifInterface.f2s(i) for i in range(len(self.whole.desc[p['descriptors'][0][0]][:]))]
+		timearray = [AnalInterface.f2s(i) for i in range(len(self.whole.desc[p['descriptors'][0][0]][:]))]
 		for dlist in p['descriptors']:
 			savepath = os.path.join(p['outputdir'], '-'.join([d for d in dlist]) + p['ext'])
 			
@@ -495,7 +554,7 @@ class target: # the target
 			plt.close()
 
 	########################################
-	def plotSegmentation(self, outputpath, SdifInterface, p):
+	def plotSegmentation(self, outputpath, AnalInterface, p):
 		import matplotlib.pyplot as plt
 		powers = self.whole.desc['power'][:]
 		powers -= np.min(powers)
@@ -528,11 +587,11 @@ def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=Tru
 		allDescs = np.array([sfsObj.desc[descriptorObj.name].get(0, None) for sfsObj in listOfSegmentObjs])
 	else:
 		cnt = 0
-		for sfsObj in listOfSegmentObjs: cnt += sfsObj.desc['effDur-seg'].get(0, None)
+		for sfsObj in listOfSegmentObjs: cnt += sfsObj.desc['effDurFrames-seg'].get(0, None)
 		allDescs = np.empty((cnt))
 		cnt = 0
 		for sfsObj in listOfSegmentObjs: 
-			effDur = sfsObj.desc['effDur-seg'].get(0, None)
+			effDur = sfsObj.desc['effDurFrames-seg'].get(0, None)
 			allDescs[cnt:cnt+effDur] = sfsObj.desc[descriptorObj.name][:effDur]
 			cnt += effDur
 	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }

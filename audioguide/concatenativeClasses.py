@@ -53,10 +53,10 @@ class parseOptions:
 		tests.testOpsDict(ops)
 		for k, v in ops.items(): setattr(self, k, v)
 	#############################
-	def createSdifInterface(self, p):
-		import sdiflinkage
+	def createAnalInterface(self, p):
+		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
-		linkage = sdiflinkage.SdifInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
+		linkage = anallinkage.AnalInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=self.IRCAMDESCRIPTOR_F0_QUALITY, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
 		linkage.getDescriptorLists(self)
 		return linkage
 ##########################################################
@@ -66,11 +66,11 @@ class parseOptions:
 
 
 class cpsLimit:
-	def __init__(self, origString, cpsScope, SdifInterface):
+	def __init__(self, origString, cpsScope, AnalInterface):
 		self.origString = origString
 		limit_pieces = util.parseEquationString(origString, ['==', '!=', '<', '<=', '>', '>='])
-		assert limit_pieces[0] in [dobj.name for dobj in SdifInterface.requiredDescriptors]
-		for dobj in SdifInterface.requiredDescriptors:
+		assert limit_pieces[0] in [dobj.name for dobj in AnalInterface.requiredDescriptors]
+		for dobj in AnalInterface.requiredDescriptors:
 		#	print dobj, dobj.name, limit_pieces[0]
 			if dobj.name == limit_pieces[0]: break
 		self.d = dobj
@@ -128,7 +128,7 @@ class cpsLimit:
 
 ################################################################################
 class corpus:
-	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, restrictCorpusSelectionsByFilenameString, SdifInterface, p):
+	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, restrictCorpusSelectionsByFilenameString, AnalInterface, p):
 		self.preloadlist = []
 		self.preLimitSegmentList = []
 		self.postLimitSegmentNormList = []
@@ -152,13 +152,13 @@ class corpus:
 		self.localLimits = []
 		if corpusGlobalAttributesFromOptions.has_key('limit'):
 			for stringy in corpusGlobalAttributesFromOptions['limit']:
-				self.globalLimits.append( cpsLimit(stringy, range(len(corpusFromUserOptions)), SdifInterface) )
+				self.globalLimits.append( cpsLimit(stringy, range(len(corpusFromUserOptions)), AnalInterface) )
 
 		self.data['numberVoices'] = len(corpusFromUserOptions)
 		for cidx, cobj in enumerate(corpusFromUserOptions):
 			# add this voice
 			vcCnt = 0
-			cobj.name = util.verifyPath(cobj.name, SdifInterface.searchPaths)
+			cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
 			cobj.voiceID = cidx
 			self.simSelectRuleByCorpusId.append(cobj.superimposeRule)
 			self.data['vcToCorpusName'].append(cobj.name)
@@ -171,7 +171,7 @@ class corpus:
 			# add local limits
 			totalLimitList = []
 			for limitstr in cobj.limit:
-				limitObj = cpsLimit(limitstr, [cidx], SdifInterface)
+				limitObj = cpsLimit(limitstr, [cidx], AnalInterface)
 				self.localLimits.append(limitObj)
 				totalLimitList.append( limitObj )
 			# add global limits
@@ -232,7 +232,7 @@ class corpus:
 				#######################
 				## input a DIRECTORY ##
 				#######################
-				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, SdifInterface.validSfExtensions)
+				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, AnalInterface.validSfExtensions)
 				cobj.segmentationFile = None # don't print it
 				for file in files:
 					segFileTest = file+cobj.segmentationExtension
@@ -312,7 +312,7 @@ class corpus:
 					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
 
 				
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, SdifInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': []} )	
 			###########################
@@ -387,7 +387,7 @@ class corpus:
 		self.data['cspInfo'][cpsh.voiceID]['selectedTargetSegments'].append(tgtsegidx)
 		cpsh.selectionTimes.append(timeInSec)
 	############################################################################
-	def setupConcate(self, tgtObj, SdifInterface):
+	def setupConcate(self, tgtObj, AnalInterface):
 		'''called when concate is initialized'''
 		from UserClasses import SingleDescriptor as d
 		self.powerStats = sfSegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
@@ -398,7 +398,7 @@ class corpus:
 		self.voiceRestrictPerFrame = {}
 		for voiceId, infoDict in enumerate(self.data['cspInfo']):
 			if infoDict['restrictInTime'] > 0:
-				self.voiceRestrictPerFrame[voiceId] = SdifInterface.s2f(infoDict['restrictInTime'], tgtObj.filename)/2
+				self.voiceRestrictPerFrame[voiceId] = AnalInterface.s2f(infoDict['restrictInTime'], tgtObj.filename)/2
 	############################################################################
 	############################################################################
 	def evaluateValidSamples(self, timeInFrames, timeInSec, tgtSegIdx, rotateVoices, voicePattern, voiceToCorpusIdMapping, clusterMappingDict, tgtclusterId, superimp):

@@ -181,6 +181,7 @@ def executeCommand(args):
 
 
 def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
+	import subprocess, os
 	try:
 		p = subprocess.Popen(commandArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except OSError:
@@ -376,7 +377,7 @@ def getTransposition(tgtseg, cpsseg):
 #		scaleTgtDur = 1.3 # to provide a little overlap
 #		minTrans = 0.5
 #		maxTrans = 2.
-#		rawTrans = cpsseg.data['raw']['effDur-seg'][0]/float(thisTargetSegmentLength*1.1)
+#		rawTrans = cpsseg.data['raw']['effDurFrames-seg'][0]/float(thisTargetSegmentLength*1.1)
 #		output = np.clip(rawTrans, minTrans, maxTrans)
 #	return quantize(output, quantizef)
 

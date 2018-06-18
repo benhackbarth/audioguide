@@ -253,7 +253,7 @@ def descriptorSlope(handle, descriptName, start, NORMALIZE_FOR_DURATION=True):
 	# with Norbert Schnell
 	if start == None: effStart = 0
 	else: effStart = start
-	effDur = handle.desc['effDur-seg'].get(effStart, None)
+	effDur = handle.desc['effDurFrames-seg'].get(effStart, None)
 	descript = handle.desc[descriptName][effStart:effStart+effDur]
 	start = int((len(descript))*0.2) # only take descriptor from %20-%80 
 	end = int((len(descript))*0.8)
@@ -364,7 +364,9 @@ def DescriptorComputation(d, handle, start, end):
 		# SINGLE-NUMBER METHODS
 		if d.name == "dur-seg": # raw segment duration
 			output = handle.lengthInFrames
-		elif d.name == "effDur-seg": # perceived segment duration
+		elif d.name == "effDur-seg": # perceived segment duration in seconds
+			output = effectiveDur(handle, start) * handle.f2s
+		elif d.name == "effDurFrames-seg": # perceived segment duration in frames
 			output = effectiveDur(handle, start)
 		elif d.name == "MIDIPitch-seg":
 			output = MIDIPitchByFileName( handle.printName, handle.midiPitchMethod, handle )
