@@ -12,7 +12,8 @@ www/*
 *.log
 *.out
 *.toc
-audioguide/data_*
+audioguide/data/*
+audioguide/__pycache__/*
 release.py
 examples/*.txt
 .DS_Store*

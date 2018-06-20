@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 import struct,  sys,  math
-
+print("MIDI IS BROKEN IN PYTHON3")
 # TICKSPERBEAT is the number of "ticks" (time measurement in the MIDI file) that
 # corresponds to one beat. This number is somewhat arbitrary, but should be chosen
 # to provide adequate temporal resolution.
@@ -221,7 +221,7 @@ class MIDITrack:
     def __init__(self, removeDuplicates,  deinterleave):
         '''Initialize the MIDITrack object.
         '''
-        self.headerString = struct.pack('cccc','M','T','r','k')
+        self.headerString = struct.pack(b'cccc',b'M',b'T',b'r',b'k')
         self.dataLength = 0 # Is calculated after the data is in place
         self.MIDIdata = ""
         self.closed = False
@@ -377,7 +377,7 @@ class MIDITrack:
                 self.MIDIEventList.append(event)
 
             else:
-                print "Error in MIDITrack: Unknown event type"
+                print("Error in MIDITrack: Unknown event type")
                 sys.exit(2)
             
         # Assumptions in the code expect the list to be time-sorted.
@@ -403,7 +403,7 @@ class MIDITrack:
         for item in self.eventList:
             tempDict[item] = 1
             
-        self.eventList = tempDict.keys()
+        self.eventList = list(tempDict.keys()) # hacky 
         
         # Sort on type, them on time. Necessary because keys() has no requirement to return
         # things in any order.
@@ -632,7 +632,7 @@ class MIDIHeader:
     def __init__(self,numTracks):
         ''' Initialize the data structures
         '''
-        self.headerString = struct.pack('cccc','M','T','h','d')
+        self.headerString = struct.pack(b'cccc',b'M',b'T',b'h',b'd')
         self.headerSize = struct.pack('>L',6)
         # Format 1 = multi-track file
         self.format = struct.pack('>H',1)

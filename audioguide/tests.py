@@ -3,13 +3,14 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import util, sys
+from . import util
+import sys
 
 
 def testOpsDict(dicty):
 	for name, value in dicty.items():
 		#print name, value
-		if not UserVar_types.has_key(name):
+		if not name in UserVar_types:
 			util.error("user variable", "I don't have an option called %s\n :("%(name))
 		outcomes = []
 		for tstring in UserVar_types[name]:
@@ -27,18 +28,18 @@ def testInstance(obj1, obj2):
 
 
 def testVariable(vtype, v):
-	from UserClasses import TargetOptionsEntry as tsf
-	from UserClasses import CorpusOptionsEntry as csf
-	from UserClasses import SearchPassOptionsEntry as spass
-	from UserClasses import SuperimpositionOptionsEntry as si
+	from .UserClasses import TargetOptionsEntry as tsf
+	from .UserClasses import CorpusOptionsEntry as csf
+	from .UserClasses import SearchPassOptionsEntry as spass
+	from .UserClasses import SuperimpositionOptionsEntry as si
 	if vtype == 'True or False':
 		if v == True or v == False: return True
 	elif vtype == 'None':
 		if v == None: return True
 	elif vtype == 'a number':
-		if isinstance(v, (int, long, float)): return True
+		if isinstance(v, (int, float)): return True
 	elif vtype == 'a string':
-		if isinstance(v, basestring): return True
+		if isinstance(v, str): return True
 	elif vtype == 'a dictionary':
 		if isinstance(v, dict): return True
 	elif vtype == 'a tsf() object':
@@ -46,12 +47,12 @@ def testVariable(vtype, v):
 	elif vtype == 'a si() object':
 		if testInstance(v, si): return True
 	elif vtype in ['a number greater than zero', 'an integer greater than zero']:
-		if isinstance(v, (int, long, float)) and v > 0.: return True
+		if isinstance(v, (int, float)) and v > 0.: return True
 	elif vtype in ['a number greater than or equal to zero']:
-		if isinstance(v, (int, long, float)) and v >= 0.: return True
+		if isinstance(v, (int, float)) and v >= 0.: return True
 	# lists of things
 	elif vtype == 'a list of strings':
-		if not False in [isinstance(i, basestring) for i in v]: return True
+		if not False in [isinstance(i, str) for i in v]: return True
 	elif vtype == 'a list of ints or lists':
 		if not False in [isinstance(i, list) or isinstance(i, int) for i in v]: return True
 	elif vtype == 'a list of spass() objects':

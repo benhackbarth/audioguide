@@ -5,7 +5,7 @@
 
 import sys, operator, random
 import numpy as np
-import util
+from . import util
 
 
 
@@ -39,8 +39,8 @@ class distanceCalculations:
 		self.logTextOutput = ''
 		self.lengthAtPasses = ['%i'%len(self.corpusObjs)] # start with initial size for printing
 		for spidx, spassobj in enumerate(seach_pass_objs):
-			mind = sys.maxint
-			maxd = -1*sys.maxint
+			mind = sys.maxsize
+			maxd = -1*sys.maxsize
 			if len(self.corpusObjs) < 1: return False
 			
 			if spassobj.method == 'ratio_limit': # uses un-normalised descriptor values
@@ -63,7 +63,7 @@ class distanceCalculations:
 				########################################################
 				## search segmented and timevarying feature distances ##
 				########################################################		
-				min_accum = sys.maxint
+				min_accum = sys.maxsize
 				for c in self.corpusObjs:
 					#print c.filename, c.scaleDistance
 					c.sim_accum = 0.

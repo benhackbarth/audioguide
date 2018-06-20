@@ -6,10 +6,7 @@
 import numpy as np
 np.seterr(invalid='ignore')
 import sys, os
-import util
-#sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-#sys.path.append('/Users/ben/Documents/audioGuide/0-new/pylib2.7-darwin-64')
-
+import audioguide.util as util
 
 
 class container:
@@ -47,7 +44,7 @@ class container:
 		if isinstance(self.nameToObjMap[name], timeVaryingDescriptorData):
 			self.nameToObjMap[name].data = vals
 		elif isinstance(self.nameToObjMap[name], segmentedDescriptorData):
-			print "ERROR, cannot 'setitem' an averaged descriptor"
+			print("ERROR, cannot 'setitem' an averaged descriptor")
 			sys.exit(1)
 	##########
 	def __str__(self):
@@ -138,15 +135,15 @@ class segmentedDescriptorData:
 		self.normDivide = divide
 	##########
 	def get(self, start, end):
-		if not self.calced.has_key((start, end)):
+		if not (start, end) in self.calced:
 			self.calced[(start, end)] = DescriptorComputation(self.dobj, self.sfseghandle, start, end)
-			if self.v: print "averaged: %s from %s-%s == %.3f"%(self.dobj.name, start, end, self.calced[(start, end)])
+			if self.v: print("averaged: %s from %s-%s == %.3f"%(self.dobj.name, start, end, self.calced[(start, end)]))
 		return self.calced[(start, end)]
 	##########
 	def getnorm(self, start, end):
-		if not self.calcednorm.has_key((start, end)):
+		if not (start, end) in self.calcednorm:
 			self.calcednorm[(start, end)] = (self.get(start, end)-self.normSubtract)/self.normDivide
-			if self.v: print "averaged and normalised: %s from %s-%s == %.3f"%(self.dobj.name, start, end, self.calcednorm[(start, end)])
+			if self.v: print("averaged and normalised: %s from %s-%s == %.3f"%(self.dobj.name, start, end, self.calcednorm[(start, end)]))
 		return self.calcednorm[(start, end)]
 	##########
 	def rawvalues(self):
@@ -205,7 +202,7 @@ def peakTimeSeg(powers):
 
 def logAttackTime(powers):
 	idx = np.argmax(powers)
-	time = np.clip(ag.f2s(idx), 0.0001, sys.maxint)
+	time = np.clip(ag.f2s(idx), 0.0001, sys.maxsize)
 	return np.log(time) # the middle of the peak window, reduces error to +/-0.5
 
 
@@ -295,7 +292,7 @@ FILENAME_PITCH_DICT = {} # save string results here so it doesn't have to reevau
 def getMidiPitchFromString(string):
 	import os, re
 	global FILENAME_PITCH_DICT
-	if FILENAME_PITCH_DICT.has_key(string): return FILENAME_PITCH_DICT[string]
+	if string in FILENAME_PITCH_DICT: return FILENAME_PITCH_DICT[string]
 	pitchDict = {"c": 0,"cs": 1,"db": 1,"d": 2,"ds": 3,"eb": 3,"e": 4, 'fb': 4, "es": 5, "f": 5,"fs": 6,"gb": 6,"g": 7,"gs": 8,"ab": 8,"a": 9,"as": 10,"bb": 10, "b": 11, 'cb': 11}
 	results = []
 	results.extend(re.compile(r'[a-gA-G][sb\#][0123456789]').findall(string)) # re command for searching three element pattern
@@ -406,6 +403,6 @@ def DescriptorComputation(d, handle, start, end):
 			analSplit = d.name.split('-')
 			output = odf(handle.desc[d.parents[0]][start:end], int(analSplit[2]))
 		else:
-			print "No method for %s, Quitting..." % anal
+			print("No method for %s, Quitting..." % anal)
 			util.exit()
 	return output

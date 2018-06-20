@@ -6,8 +6,7 @@
 import sys, os, subprocess, time, json
 sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import numpy as np
-import util
-
+import audioguide.util as util
 
 
 def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.join(os.getenv("HOME"), 'Applications')]):
@@ -199,16 +198,16 @@ EnergyEnvelope  = 1
 		for dname, weight in self.tgtOnsetDescriptors.items():
 			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
 		# add limiting descriptors
-		if ops.CORPUS_GLOBAL_ATTRIBUTES.has_key('limit'):
+		if 'limit' in ops.CORPUS_GLOBAL_ATTRIBUTES:
 			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
-				print stringy.split()[0], 'GLOBAL_LIMIT'
+				print(stringy.split()[0], 'GLOBAL_LIMIT')
 				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops, addParents=True)
 		if hasattr(ops, 'CORPUS'):
 			for csfObj in ops.CORPUS:
 				for stringy in csfObj.limit:
 					self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
 		# add CLUSTER descriptors
-		if ops.CLUSTER_MAPPING.has_key('descriptors'):
+		if 'descriptors' in ops.CLUSTER_MAPPING:
 			for s in ops.CLUSTER_MAPPING['descriptors']:
 				self.addDescriptorIfNeeded(d(s+'-seg', origin='CLUSTER_MAPPING'), ops, addParents=True)
 		# add segmentation data descriptor
@@ -248,7 +247,7 @@ EnergyEnvelope  = 1
 		if type(command) in [list, tuple]:
 			encoded = unicode('')			
 			for arg in command:
-				print arg, type(arg)
+				print(arg, type(arg))
 				encoded += unicode(arg)
 			self.p.write('ANALLINKAGE: %s\n\n'%encoded)
 		else:
@@ -276,16 +275,17 @@ EnergyEnvelope  = 1
 		except OSError:
 			print('commandline', 'Command line call failed: \n\n"%s"'%' '.join(command))
 		out, err = p.communicate()
+		out = out.decode('utf-8')
 		# test for bad exit status
-		if err not in [0, '']:
-			error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(command), '\n--------\n\n', ''.join(out)))	
+		if err not in [0, b'']:
+			util.error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(command), '\n--------\n\n', out))	
 		infodict = {}
 		# fill output dict if requested
 		for o in out.split('\n'):
 			#print o
 			o = o.split()
 			if len(o) > 1:
-				for (str, loc), (key, valloc, valtype) in stdoutReturnDict.iteritems():
+				for (str, loc), (key, valloc, valtype) in stdoutReturnDict.items():
 					if o[loc] == str:
 						infodict[key] = o[valloc]
 						if valtype == int: infodict[key] = int(infodict[key])
@@ -295,7 +295,7 @@ EnergyEnvelope  = 1
 		f = open(os.path.join(STAGING_DIRECTORY, 'SpectralCentroid_ShortTermFeature_space2.info.txt'))
 		framelength = int(f.readlines()[2].split()[2])
 		f.close()
-		infodict['ircamd_framelength'] = framelength	
+		infodict['ircamd'] = {'framelength': framelength, 'columns': {'power': 0}, 'filehead': os.path.split(npypath)[1]}
 		# set up descriptor matrix
 		ircamd_array = np.empty((framelength, len(descriptToFiles)+1)) # plus one for power, added separately due to separate framerate
 		
@@ -307,7 +307,6 @@ EnergyEnvelope  = 1
 		newarray = util.interpArray(myarray, framelength)
 		newarray = np.reshape(newarray, (framelength, 1))
 		ircamd_array[:,0] = newarray[:,0] # power is first column
-		infodict['ircamd_columns'] = {'power': 0}
 		infodict['lengthsec'] = infodict['lengthsamples']/float(infodict['sr'])
 		
 		for idx, (agId, source, isAmp, isMixable, rawFilename, matrixSize, matrixLocation) in enumerate(descriptToFiles):
@@ -316,7 +315,7 @@ EnergyEnvelope  = 1
 			#print source, rawFilename, matrixSize, len(myarray), framelength, matrixSize, framelength*matrixSize
 			myarray = np.reshape(myarray, (framelength, matrixSize))
 			ircamd_array[:,idx+1] = myarray[:,matrixLocation]
-			infodict['ircamd_columns'][agId] = idx+1
+			infodict['ircamd']['columns'][agId] = idx+1
 		# write files
 		f = open(jsonpath, "w")
 		json.dump(infodict, f)
@@ -327,15 +326,15 @@ EnergyEnvelope  = 1
 	########################################################
 	def validateSdifResource(self, sffile):
 		sffile = os.path.abspath(sffile)
-		if not self.rawData.has_key(sffile):
+		if not sffile in self.rawData:
 			self.initSdifResource(sffile)
 		return self.rawData[sffile]['info']['lengthsec'], self.rawData[sffile]['info']['channels']
 	########################################################
 	########################################################
 	def getSegmentFrameLength(self, segmentDurationSec, sffile):
 		length = self.s2f(segmentDurationSec, sffile, minimum=1)
-		if length > self.rawData[sffile]['info']['ircamd_framelength']:
-			length = self.rawData[sffile]['info']['ircamd_framelength']
+		if length > self.rawData[sffile]['info']['ircamd']['framelength']:
+			length = self.rawData[sffile]['info']['ircamd']['framelength']
 		return length
 	########################################################
 	########################################################
@@ -346,7 +345,7 @@ EnergyEnvelope  = 1
 	########################################################
 	def removeSdifResource(self, sffile):
 		sffile = os.path.abspath(sffile)
-		if self.rawData.has_key(sffile):
+		if sffile in self.rawData:
 			del self.rawData[sffile]
 	########################################################
 	########################################################
@@ -359,9 +358,9 @@ EnergyEnvelope  = 1
 		sfroot, sfhead = os.path.split(sffile)
 		sfheadroot, sfheadext = os.path.splitext(sfhead)
 		self.rawData[sffile]['fileroot'] = os.path.join(self.analdir, sfheadroot)
-		self.rawData[sffile]['checksum'] = listToCheckSum([sffile, self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, 'ircamd'])
+		self.rawData[sffile]['checksum'] = util.listToCheckSum([sffile, self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, 'ircamd'])[:12]
 		filehead = '%s-%s'%(sfheadroot, self.rawData[sffile]['checksum'])
-		descriptorfile = os.path.join(self.analdir, '%s.npy'%(filehead))
+		descriptorfile = os.path.join(self.analdir, '%s-ircamd.npy'%(filehead))
 		infofile = os.path.join(self.analdir, '%s.json'%(filehead))
 
 		if not os.path.exists(descriptorfile) or not os.path.exists(infofile) or util.checkIfFileIsNewer(sffile, descriptorfile) or util.checkIfFileIsNewer(sffile, infofile) or self.forceAnal:
@@ -376,7 +375,7 @@ EnergyEnvelope  = 1
 			self.rawData[sffile]['info'], self.rawData[sffile]['ircamd'] = self.__createDescriptorsFile__(sffile, self.analdir, descriptorfile, infofile, self.ircamdescriptor_bin, self.config_loc)
 			# print ircamd_array[:,infodict['descriptor_columns']['power']]
 			if not os.path.exists(descriptorfile):
-				print util.ladytext("Oh noos! The ircamdescriptor binary has fialed to create the requested output files.  See the binary's output below for details.")
+				print(util.ladytext("Oh noos! The ircamdescriptor binary has fialed to create the requested output files.  See the binary's output below for details."))
 		else:
 			# load files
 			f = open(infofile, "r")
@@ -389,7 +388,7 @@ EnergyEnvelope  = 1
 	########################################################
 	########################################################
 	def getDescriptorColumn(self, sffile, dname):
-		return self.rawData[sffile]['ircamd'][:,self.rawData[sffile]['info']['ircamd_columns'][dname]]
+		return self.rawData[sffile]['ircamd'][:,self.rawData[sffile]['info']['ircamd']['columns'][dname]]
 	########################################################
 	########################################################
 	def getDescriptorForSfSegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
@@ -419,8 +418,7 @@ EnergyEnvelope  = 1
 			if timediff > secondLimit and totalBytes > byteLimit:
 				listToRemove.append(filehead)
 				del self.dataRegistry[filehead]
-				print "RM "+os.path.join(self.analdir, filehead+'.sdif')
-				print "RM "+os.path.join(self.analdir, filehead+'.json')
+				print("RM "+os.path.join(self.analdir, filehead+'.sdif'))
 			totalBytes += bytes
 		dataRegistryPathTmp = '/tmp/tmp.json'
 		fh = open(dataRegistryPathTmp, 'w')
@@ -434,19 +432,6 @@ EnergyEnvelope  = 1
 
 
 
-
-
-
-
-
-
-def listToCheckSum(items):
-	import hashlib
-	m = hashlib.md5()
-	for item in items:
-		m.update(str(item))
-	output = m.hexdigest()[:12] # ahh, fuck it
-	return output
 
 
 

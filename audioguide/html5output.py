@@ -3,7 +3,8 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys, util
+import sys
+from . import util
 import numpy as np
 
 

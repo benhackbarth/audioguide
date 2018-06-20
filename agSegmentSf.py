@@ -38,7 +38,7 @@ import audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, userinterface, util
+from audioguide import sfSegment, concatenativeClasses, userinterface, util, UserClasses
 # import all other modules
 import numpy as np
 try: import json as json

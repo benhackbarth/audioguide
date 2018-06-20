@@ -8,7 +8,7 @@ sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 #sys.path.append('/Users/ben/Documents/audioGuide/audioguide')
 sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib2.7-darwin-64')
 sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib')
-import util, descriptordata
+from . import util, descriptordata
 import numpy as np
 
 
@@ -268,12 +268,12 @@ def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAm
 	if v: # verbose printing
 		maxxy = min(5, len(mixture))
 		if dobj.describes_energy: # powers are summed
-			print "SUM", dobj.name, tgtseek, mix_dur
+			print("SUM", dobj.name, tgtseek, mix_dur)
 		else:
-			print "MIXTURE", dobj.name, tgtseek, mix_dur
-		print "\tpastmix:", tgt_vals[0:maxxy]
-		print "\tcorpus:", cps_vals[0:maxxy]
-		print "\tnewmix:", mixture[0:maxxy]
+			print("MIXTURE", dobj.name, tgtseek, mix_dur)
+		print("\tpastmix:", tgt_vals[0:maxxy])
+		print("\tcorpus:", cps_vals[0:maxxy])
+		print("\tnewmix:", mixture[0:maxxy])
 	return mixture
 
 
@@ -565,7 +565,7 @@ class target: # the target
 		for sidx in range(len(self.segmentationInFrames)): # plot segmentation
 			xstart = self.segmentationInFrames[sidx][0]
 			xend = self.segmentationInFrames[sidx][1]
-			#print self.segmentationInFrames[sidx], self.extraSegmentationData[sidx]
+			#print(self.segmentationInFrames[sidx], self.extraSegmentationData[sidx])
 			plt.axvspan(xstart, xend, facecolor='#FFCCCC', alpha=1, ec='r', lw=1)
 			plt.text(xstart, 0.5*plotheight, 'benny', fontsize=12, color='black')
 		leg = plt.legend(['power'],'upper right', shadow=False)

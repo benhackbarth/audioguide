@@ -3,7 +3,8 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys, re, util, os
+import sys, re, os
+from . import util
 
 class TerminalController:
     """
@@ -137,20 +138,33 @@ class TerminalController:
         # these, so strip them out.
         import curses
         cap = curses.tigetstr(cap_name) or ''
-        return re.sub(r'\$<\d+>[/*]?', '', cap)
-
+        if type(cap) == bytes:
+        		return re.sub(b'\$<\d+>[/*]?', b'', cap)
+        else:
+        		return re.sub('\$<\d+>[/*]?', '', cap)
+        
     def render(self, template):
         """
         Replace each $-substitutions in the given template string with
         the corresponding terminal control string (if it's defined) or
         '' (if it's not).
         """
-        return re.sub(r'\$\$|\${\w+}', self._render_sub, template)
+        template = template.encode("utf-8")
+        output = re.sub(b'\$\$|\${\w+}', self._render_sub, template)
+        output = output.decode("utf-8")
+        return output
+#        if type(template) == bytes:
+#      	  return re.sub(b'\$\$|\${\w+}', self._render_sub, template)
+#        else:
+#      	  return re.sub('\$\$|\${\w+}', self._render_sub, template)
 
     def _render_sub(self, match):
         s = match.group()
-        if s == '$$': return s
-        else: return getattr(self, s[2:-1])
+        if s == '$$':
+            return s
+        else:
+        	   s = s.decode("utf-8")[2:-1] # remove braces
+        	   return getattr(self, s)
 
 
 
@@ -183,7 +197,7 @@ class printer:
 		self.loghandle.close()
 	###############################################
 	def pnt(self, *args):
-		if self.v >= 2: print args
+		if self.v >= 2: print(args)
 	###############################################
 	def startPercentageBar(self, upperLabel='', total=100):
 		if self.v == 1 and upperLabel != '':
@@ -209,12 +223,12 @@ class printer:
 		if self.v < 2: return
 		self.up(txt)
 		self.progress.clear()
-		print "\n"
+		print("\n")
 	###############################################
 	def up(self, txt):
 		txt = txt+(' '*(self.updateLength-len(txt)))
 		self.progress.update(self.counter/(self.maxNumb-1), txt)
-		print "\n"
+		print("\n")
 	###############################################
 	def middleprint(self, string, force=False, colour='CYAN', borderchar='-', cr=True): # MIDDLE print call
 		if self.v == 0 and not force: return
@@ -254,31 +268,30 @@ class printer:
 
 
 class ProgressBar:
-    HEADER = '${NORMAL}${NORMAL}%s${NORMAL}\n\n'
-    BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'
-    def __init__(self, term, header, PRINT_LENGTH):
-        self.term = term
-        if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
-            raise ValueError("Terminal isn't capable enough -- you "
-                             "should use a simpler progress dispaly.")
-        self.width = PRINT_LENGTH
-        self.bar = term.render(self.BAR)
-        self.header = self.term.render(self.HEADER % header.center(self.width))
-        self.cleared = 1 #: true if we haven't drawn the bar yet.
-        self.update(0, '')
-
-    def update(self, percent, message):
-    	if percent > 1: percent = 1 # no printing overages..
-        if self.cleared:
-            sys.stdout.write(self.header)
-            self.cleared = 0
-        n = int((self.width-10)*percent)
-        sys.stdout.write(
-            self.term.BOL + self.term.UP + self.term.CLEAR_EOL +
-            (self.bar % (100*percent, '='*n, '-'*(self.width-10-n))) +
-            self.term.CLEAR_EOL + '\t' + message)
-
-    def clear(self):
-        if not self.cleared: self.cleared = 1
+	HEADER = '${NORMAL}${NORMAL}%s${NORMAL}\n\n'
+	BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'
+	def __init__(self, term, header, PRINT_LENGTH):
+		self.term = term
+		if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
+			raise ValueError("Terminal isn't capable enough -- you "
+								  "should use a simpler progress dispaly.")
+		self.width = PRINT_LENGTH
+		self.bar = term.render(self.BAR)
+		self.header = self.term.render(self.HEADER % header.center(self.width))
+		self.cleared = 1 #: true if we haven't drawn the bar yet.
+		self.update(0, '')
+	
+	def update(self, percent, message):
+		if percent > 1: percent = 1 # no printing overages..
+		if self.cleared:
+			sys.stdout.write(self.header)
+			self.cleared = 0
+		n = int((self.width-10)*percent)
+		sys.stdout.write(self.term.BOL.decode() + self.term.UP.decode() + self.term.CLEAR_EOL.decode() +
+			(self.bar % (100*percent, '='*n, '-'*(self.width-10-n))) +
+			self.term.CLEAR_EOL.decode() + '\t' + message)
+	
+	def clear(self):
+		if not self.cleared: self.cleared = 1
 
 

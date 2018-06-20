@@ -100,14 +100,6 @@ cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 
 
 
-#cps.postLimitSegmentNormList.sort()
-#for tgtseg in cps.postLimitSegmentNormList:
-#	tgtseg.desc['f0-seg'].get(0, None)
-#	print tgtseg.segmentStartSec, tgtseg.desc['f0-seg'].get(0, None)
-##	for fidx, f0 in enumerate(tgtseg.desc['f0']):
-##		print fidx, f0, tgtseg.desc['inharmonicity'][fidx]
-#sys.exit()
-
 
 ###################
 ## NORMALIZATION ##
@@ -305,7 +297,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 			
 			preSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
 			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
-			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxint) # clip it so its above zero
+			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxsize) # clip it so its above zero
 			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
 			#html.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
 			
@@ -480,7 +472,7 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 ## csound output file ##
 ########################
 if ops.CSOUND_CSD_FILEPATH != None:
-	import csoundinterface as csd
+	from audioguide import csoundinterface as csd
 	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
 	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', AnalInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
 	csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(tgt.endSec-tgt.startSec, tgt.whole.envDb, tgt.filename, tgt.startSec)

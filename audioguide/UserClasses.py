@@ -5,7 +5,9 @@
 
 import sys, os
 sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-import anallinkage, util, descriptordata, util
+import audioguide.anallinkage as anallinkage
+import audioguide.descriptordata as descriptordata
+import audioguide.util as util
 import numpy as np
 
 
@@ -73,9 +75,9 @@ class SearchPassOptionsEntry(object):
 		self.descriptor_list = args[1:]
 		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
 		for k in kwargs:
-			if not _defaults.has_key(k):
+			if not k in _defaults:
 				print('options', 'csf object does not have a keyword argument "%s"'%k)
-		for k, v in _defaults.iteritems(): setattr(self, k, kwargs.get(k, v))
+		for k, v in _defaults.items(): setattr(self, k, kwargs.get(k, v))
 		#####
 		if self.method == 'closest': self.complete_results = True
 		#self.seg = []

@@ -3,7 +3,8 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import subprocess, platform, sys, os, util
+import subprocess, platform, sys, os
+from . import util
 
 
 
@@ -352,7 +353,7 @@ e
 
 def makeFtableFromDescriptor(descriptorArray, descriptorName, f2s, csoundSr, csoundKr, tabNumb=1):
 	import numpy as np
-	lastval = sys.maxint
+	lastval = sys.maxsize
 	lasttime = -1
 	control = int(csoundSr/csoundKr)
 	outputStr = 'f%i 0  %%i  -27'%(tabNumb)
@@ -376,7 +377,7 @@ def render(file, totalEvents, printerobj=None):
 	#print('\tRENDER WITH CSOUND --> "' + ' '.join(csoundCommand)+ '"\n')
 	cs = subprocess.Popen(' '.join(csoundCommand), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
-		o = cs.stderr.readline()
+		o = cs.stderr.readline().decode("utf-8")
 		if o == '' and cs.poll() != None: break
 		o = o.split()
 		if len(o) < 3: continue
@@ -395,14 +396,14 @@ def render(file, totalEvents, printerobj=None):
 def normalize(file, db=-3):
 	cs = subprocess.Popen('scale -F 0.0 %s'%file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
-		o = cs.stderr.readline()
+		o = cs.stderr.readline().decode("utf-8")
 		if o == '' and cs.poll() != None: break
 		if o.startswith('Max scale factor'):
 			scalefactor = float(o.split()[4]) * util.dbToAmp(db)
 	# scale to temporary file
 	cs = subprocess.Popen("scale -o /tmp/%s -F %f %s"%(os.path.split(file)[1], scalefactor, file), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
-		o = cs.stderr.readline()
+		o = cs.stderr.readline().decode("utf-8")
 		if o == '' and cs.poll() != None: break
 	# replace file with new file
 	cs = subprocess.call("mv /tmp/%s %s"%(os.path.split(file)[1], file), shell=True)

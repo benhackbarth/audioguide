@@ -105,8 +105,8 @@ def nextPowerOfTwo(val):
 def getDynamicFromFilename(file, notFound=-1000):
 	TYPICAL_DYNAMICS = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
 	MAP_DYNAMICS = {'ppmfpp': 'mf', 'pfp': 'f', 'f-ff': 'f','fp': 'f', 'ppff':'ff', 'ffpp': 'ff', 'slap': 'pp', 'sfz': 'f', 'p1': 'p', 'p2': 'pp', }
-	ALL_DYN_KEYS = TYPICAL_DYNAMICS.keys()
-	ALL_DYN_KEYS.extend(MAP_DYNAMICS.keys())
+	ALL_DYN_KEYS = list(TYPICAL_DYNAMICS.keys())
+	ALL_DYN_KEYS.extend(list(MAP_DYNAMICS.keys()))
 	SPLIT_STRINGS = ['-', '_', '.', '|'] # in order of likelihood
 	NOTHING_YET = True
 	whichStr = 0
@@ -126,7 +126,7 @@ def getDynamicFromFilename(file, notFound=-1000):
 		whichStr += 1
 	if dynamic == 'fuck':
 		return notFound
-	elif MAP_DYNAMICS.has_key(dynamic):
+	elif dynamic in MAP_DYNAMICS:
 		return TYPICAL_DYNAMICS[MAP_DYNAMICS[dynamic]]
 	else:
 		return TYPICAL_DYNAMICS[dynamic]
@@ -160,13 +160,13 @@ def readAudacityLabelFile(path):
 			writeLine.extend(line[2:])
 			timeList.append( writeLine )
 	except ValueError:
-		print ValueError, "on line", idx, "in", path
+		print(ValueError, "on line", idx, "in", path)
 	return timeList
 
 
 def printDict(heading, dict, postLevel, p):
 	p.middle(heading, postLevel)
-	for key, val in dict.iteritems():
+	for key, val in dict.items():
 		p.post("%s -> ${RED}%s${NORMAL}"%(key, val), postLevel)
 	p.post("", postLevel)
 
@@ -198,7 +198,7 @@ def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
 	for o in out.split('\n'):
 		o = o.split()
 		if len(o) > 1:
-			for (str, loc), (key, valloc, valtype) in stdoutReturnDict.iteritems():
+			for (str, loc), (key, valloc, valtype) in stdoutReturnDict.items():
 				if o[loc] == str:
 					dictStore[key] = o[valloc]
 					if valtype == int: dictStore[key] = int(dictStore[key])
@@ -212,10 +212,10 @@ def histogram(l):
 	# returns sorted list histogram with highest value first.
 	d = {}
 	for i in l:
-		if d.has_key(i): d[i] += 1
+		if i in d: d[i] += 1
 		else: d[i] = 1
 	sorty = []
-	for k, v in d.iteritems():
+	for k, v in d.items():
 		sorty.append((v, k))
 	sorty.sort()
 	sorty.reverse()
@@ -323,11 +323,8 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('single-pitch'):
 		pitch = int(cpsseg.transMethod.split()[1])
 		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
-		print "single-pitch", pitch, srcPitch, pitch-srcPitch
-		print "single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch
-		print "single-pitch", pitch, srcPitch, pitch-srcPitch
-		print "single-pitch", pitch, srcPitch, pitch-srcPitch
-		print "single-pitch", pitch, srcPitch, pitch-srcPitch
+		print("single-pitch", pitch, srcPitch, pitch-srcPitch)
+		print("single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch)
 		return pitch-srcPitch
 	# FORCE A PITCH RANGE!   KINDA HACKY, GOTTA FIND A BETTER WAY TO CODE THIS UI
 	elif cpsseg.transMethod.startswith('pitch-range'):
@@ -440,7 +437,7 @@ def listToCheckSum(items):
 	import hashlib
 	m = hashlib.md5()
 	for item in items:
-		m.update(str(item))
+		m.update(str(item).encode('utf-8'))
 	output = m.hexdigest()
 	return output
 

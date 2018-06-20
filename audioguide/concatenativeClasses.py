@@ -4,7 +4,7 @@
 ############################################################################
 
 import sys, os, types
-import util, descriptordata, sfSegment, tests
+from . import util, descriptordata, sfSegment, tests
 import numpy as np
 
 
@@ -13,11 +13,11 @@ import numpy as np
 
 class parseOptions:
 	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
-		from UserClasses import TargetOptionsEntry as tsf
-		from UserClasses import CorpusOptionsEntry as csf
-		from UserClasses import SearchPassOptionsEntry as spass
-		from UserClasses import SuperimpositionOptionsEntry as si
-		from UserClasses import SingleDescriptor as d
+		from .UserClasses import TargetOptionsEntry as tsf
+		from .UserClasses import CorpusOptionsEntry as csf
+		from .UserClasses import SearchPassOptionsEntry as spass
+		from .UserClasses import SuperimpositionOptionsEntry as si
+		from .UserClasses import SingleDescriptor as d
 		usrOptions = {}
 		self.opsfileAsString = ''
 		self.opsfilehead = ''
@@ -114,10 +114,10 @@ class cpsLimit:
 		dicty = {}
 		for sf in self.cnt_reject:
 			id = os.path.split(sf.userCpsStr)[1]
-			if not dicty.has_key(sf.voiceID): dicty[sf.voiceID] = 0
+			if not sf.voiceID in dicty: dicty[sf.voiceID] = 0
 			dicty[sf.voiceID] += 1
 		p.pprint( self.origString, colour='BOLD')
-		for voiceID, numb in dicty.iteritems():
+		for voiceID, numb in dicty.items():
 			percent = numb*100. / float(cps.data['cspInfo'][voiceID]['segs'])
 			p.printreject(numb, percent, cps.data['cspInfo'][voiceID]['filehead'])
 
@@ -150,7 +150,7 @@ class corpus:
 		# find any GLOBAL limitations the user has placed on the corpus
 		self.globalLimits = []
 		self.localLimits = []
-		if corpusGlobalAttributesFromOptions.has_key('limit'):
+		if 'limit' in corpusGlobalAttributesFromOptions:
 			for stringy in corpusGlobalAttributesFromOptions['limit']:
 				self.globalLimits.append( cpsLimit(stringy, range(len(corpusFromUserOptions)), AnalInterface) )
 
@@ -164,7 +164,7 @@ class corpus:
 			self.data['vcToCorpusName'].append(cobj.name)
 	
 
-			for name, val in corpusGlobalAttributesFromOptions.iteritems():
+			for name, val in corpusGlobalAttributesFromOptions.items():
 				if name == 'limit': continue
 				setattr(cobj, name, val)
 
@@ -424,7 +424,7 @@ class corpus:
 		voicesToRemove = []
 		# voice frequency restriction per frame...
 		for vc in validVoices:
-			if self.voiceRestrictPerFrame.has_key(vc):
+			if vc in self.voiceRestrictPerFrame:
 				srt_look = max(0, timeInFrames-self.voiceRestrictPerFrame[vc])
 				end_look = min(timeInFrames+self.voiceRestrictPerFrame[vc], len(superimp.cnt['cpsvc_overlap'][vc]))
 				if np.sum(superimp.cnt['cpsvc_overlap'][vc][srt_look:end_look]) != 0: 
@@ -500,10 +500,10 @@ class corpus:
 #		printLimits = True
 #		# get number of total potential segments
 #		totalSegs = 0
-#		for name, dict in self.corpusPrintData.iteritems(): totalSegs += int(dict['segs'])
+#		for name, dict in self.corpusPrintData.items(): totalSegs += int(dict['segs'])
 #		p.middle('Corpus - '+str(totalSegs)+' Possible Segments', postLevel)
 #		
-#		for name, dict in self.corpusPrintData.iteritems():
+#		for name, dict in self.corpusPrintData.items():
 #			if dict['segFile'] != None: # make a printable list of segmentation files
 #				tmp = []
 #				for item in dict['segFile']:
@@ -511,7 +511,7 @@ class corpus:
 #				name = ','.join(tmp)
 #			
 #			end = dict['limitEnd']
-#			if end == sys.maxint: end = 'end'
+#			if end == sys.maxsize: end = 'end'
 #			printStr = "${YELLOW}"+str(dict['fileType'])+"${NORMAL} "+str(name)+" -> "
 #			if printNumbSegsOrFiles:
 #				if dict['fileType'] == 'file':
@@ -523,9 +523,9 @@ class corpus:
 #				
 #			if printLimits:
 #				if len(dict['limit']) > 0:
-#					for key, valDict in dict['limit'].iteritems():
+#					for key, valDict in dict['limit'].items():
 #						restrict = [None, None]
-#						for item, value in valDict.iteritems():
+#						for item, value in valDict.items():
 #							if item == 'scope': scoped = value
 #							if item == 'low': restrict[0] = str(value)
 #							if item == 'high': restrict[1] = str(value)
@@ -614,7 +614,7 @@ class SuperimposeTracker():
 			except IndexError: break # cps handle data not long enough
 	########################################
 	def skip(self, reason, value, timeinSec):
-		if not self.histogram['skip'].has_key(reason):
+		if not reason in self.histogram['skip']:
 			self.histogram['skip'][reason] = []
 		self.histogram['skip'][reason].append(value)
 		self.p.log( "SKIP @ %.2f -- %s (%s)"%(timeinSec, reason, value) )
