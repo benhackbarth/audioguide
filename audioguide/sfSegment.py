@@ -4,20 +4,17 @@
 ############################################################################
 
 import sys, os
-sys.path.append('/Users/ben/Documents/audioGuide/0-new')
-#sys.path.append('/Users/ben/Documents/audioGuide/audioguide')
-sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib2.7-darwin-64')
-sys.path.append('/Users/ben/Documents/audioGuide/audioguide/pylib')
-from . import util, descriptordata
+import audioguide.util as util
+import audioguide.descriptordata as descriptordata
 import numpy as np
 
 
 
-class SfSegment:
+class sfsegment:
 	def __init__(self, filename, startSec, endSec, descriptors, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
 		self.filename = util.verifyPath(filename, AnalInterface.searchPaths)
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
-		self.soundfileTotalDuration, self.soundfileChns = AnalInterface.validateSdifResource(self.filename)
+		self.soundfileTotalDuration, self.soundfileChns = AnalInterface.validateAnalResource(self.filename)
 		self.segmentStartSec = startSec
 		self.segmentEndSec = endSec
 		self.envDb = envDb
@@ -31,7 +28,8 @@ class SfSegment:
 		if self.segmentEndSec == None: self.segmentEndSec = self.soundfileTotalDuration
 		else: self.segmentEndSec = self.segmentEndSec
 		self.segmentDurationSec = self.segmentEndSec-self.segmentStartSec		
-		self.lengthInFrames = AnalInterface.getSegmentFrameLength(self.segmentDurationSec, self.filename)
+		# ensure length is at least 1 fram
+		self.lengthInFrames = max(1, AnalInterface.getSegmentFrameLength(self.segmentDurationSec, self.filename))
 		self.f2s = AnalInterface.f2s(1)
 		##############################################################
 		## check to make sure all user supplied values check out OK ##
@@ -85,7 +83,7 @@ class SfSegment:
 		AnalDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
 
 		for d in AnalDescList:
-			self.desc[d.name] = AnalInterface.getDescriptorForSfSegment(self.filename, self.segmentStartFrame, self.lengthInFrames, d, self.envelopeMask)
+			self.desc[d.name] = AnalInterface.getDescriptorForsfsegment(self.filename, self.segmentStartFrame, self.lengthInFrames, d, self.envelopeMask)
 
 		for dobj in ComputedDescList:
 			self.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, self, None, None)
@@ -119,19 +117,19 @@ class SfSegment:
 		# test self.filename
 		oneframesec = AnalInterface.f2s(1)
 		if not os.path.exists(self.filename):
-			util.error('sfSegment init', 'file does not exist: \t%s\n'%self.filename)
+			util.error('sfsegment init', 'file does not exist: \t%s\n'%self.filename)
 		if self.soundfileExtension.lower() not in AnalInterface.validSfExtensions:
-			util.error('sfSegment init', 'file is not an accepted soundfile type: \t%s\n'%self.filename)
+			util.error('sfsegment init', 'file is not an accepted soundfile type: \t%s\n'%self.filename)
 		# test that startSec is sane
 		if self.segmentStartSec < 0:
-			util.error('sfSegment init', 'startSec is less than 0!!')
+			util.error('sfsegment init', 'startSec is less than 0!!')
 		if self.segmentStartSec >= self.segmentEndSec:
-			util.error('sfSegment init', 'startSec is greater than its endSec!!')
+			util.error('sfsegment init', 'startSec is greater than its endSec!!')
 		# test if requested read too long
 		if self.segmentEndSec > self.soundfileTotalDuration+(oneframesec/2.):
 			print('\n\nWARNING endSec (%.2f) is longer than the file\'s duration(%.2f)!!  Truncating to filelength.\n\n'%(self.segmentEndSec, self.soundfileTotalDuration))
 			self.segmentEndSec = self.soundfileTotalDuration
-			#util.error('sfSegment init', 'endSec is after the the file\'s duration!!')
+			#util.error('sfsegment init', 'endSec is after the the file\'s duration!!')
 	#################################
 	#################################
 	def __str__(self, length=50):
@@ -141,19 +139,19 @@ class SfSegment:
 			if len(valueStr) > length: valueStr = valueStr[:length-3]+'...'
 			prints.append('\t%s : %s'%(k, valueStr))
 		prints.sort() # alphabetize
-		return '''<SfSegment object>\n'''+'\n'.join(prints)
+		return '''<sfsegment object>\n'''+'\n'.join(prints)
 	#################################
 
 
 
 
 
-class corpusSegment(SfSegment):
-	'''Inherits SfSegment and adds additional attributes
+class corpusSegment(sfsegment):
+	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
 	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
 		self.userCpsStr = userCpsStr
 		self.concatFileName = concatFileName
@@ -221,12 +219,12 @@ class corpusSegment(SfSegment):
 
 
 
-class targetSegment(SfSegment):
-	'''Inherits class of SfSegment and adds additional attributes
+class targetSegment(sfsegment):
+	'''Inherits class of sfsegment and adds additional attributes
 	used by target segments.'''
 	def __init__(self, filename, segmentidx, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, midiPitchMethod):
 		# initalise the sound segment object	
-		SfSegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 		self.cluster = None
@@ -304,13 +302,13 @@ class target: # the target
 	########################################
 	def initAnal(self, AnalInterface, ops, p):
 		# Start by loading the entire target as an 
-		# sfSegment to get the whole amplitude envelope.
+		# sfsegment to get the whole amplitude envelope.
 		self.filename = util.verifyPath(self.filename, AnalInterface.searchPaths)
 		# see if we need to time stretch the target file...
 		if self.stretch != 1:
 			self.timeStretch(AnalInterface, ops, p)
 		# analise the whole target sound!
-		self.whole = SfSegment(self.filename, self.startSec, self.endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=self.envDb)
+		self.whole = sfsegment(self.filename, self.startSec, self.endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=self.envDb)
 		self.startSec = self.whole.segmentStartSec
 		self.endSec = self.whole.segmentEndSec
 		self.whole.midiPitchMethod = self.midiPitchMethod
@@ -342,7 +340,7 @@ class target: # the target
 			odf = descriptordata.odf(power, 7)
 			f = 0
 			while True:
-				if f == len(odf): break
+				if f >= len(odf): break
 				trigVal = util.ampToDb(odf[f] / maxpower)				
 				if trigVal < self.segmentationThresh:
 					f += 1
@@ -389,6 +387,7 @@ class target: # the target
 				startf = AnalInterface.s2f(dataentry[0], self.filename)
 				endf = AnalInterface.s2f(dataentry[1], self.filename)
 				self.segmentationInOnsetFrames.append((startf, endf))
+				self.extraSegmentationData.append('from file')
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 		###################################
 		## make segment times in seconds ##
@@ -495,7 +494,7 @@ class target: # the target
 		fh.close()
 	########################################
 	def setupConcate(self, AnalInterface):
-		from UserClasses import SingleDescriptor as d
+		from userclasses import SingleDescriptor as d
 		self.powerStats = getDescriptorStatistics(self.segs, d('power'))
 		# initalise mixture and add norm coeffs to mixables...
 		for seg in self.segs:

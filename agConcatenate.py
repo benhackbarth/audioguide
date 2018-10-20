@@ -10,13 +10,10 @@ defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, simcalc, userinterface, util, descriptordata, anallinkage, html5output
+from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage, html5output
 # import all other modules
 import numpy as np
-try:
-	import json as json
-except ImportError:
-	import simplejson as json
+import json
 
 
 
@@ -33,7 +30,7 @@ if options.PRINT_OPTIONS:
 ###########################################
 ## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
 ###########################################
-ops = concatenativeClasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+ops = concatenativeclasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.LOG_FILEPATH)
 p.printProgramInfo(audioguide.__version__)
 AnalInterface = ops.createAnalInterface(p)
@@ -45,7 +42,7 @@ p.middleprint('SOUNDFILE CONCATENATION')
 ## TARGET ##
 ############
 html.logsection( "TARGET" )
-tgt = sfSegment.target(ops.TARGET)
+tgt = sfsegment.target(ops.TARGET)
 tgt.initAnal(AnalInterface, ops, p)
 if len(tgt.segs) == 0:
 	util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(tgt.filename))
@@ -95,7 +92,7 @@ html.jschart_timeseries(yarray=np.array([AnalInterface.f2s(i) for i in range(tgt
 ## CORPUS ##
 ############
 html.logsection( "CORPUS" )
-cps = concatenativeClasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
+cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
 
 
 
@@ -113,15 +110,15 @@ if ops.NORMALIZATION_METHOD == 'standard':
 		if dobj.norm == 1:
 			# normalize both together
 			allsegs = tgt.segs + cps.postLimitSegmentNormList
-			tgtStatistics = cpsStatistics = sfSegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfSegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
+			tgtStatistics = cpsStatistics = sfsegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfsegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
 		elif dobj.norm == 2:
 			# normalize target
-			tgtStatistics = sfSegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfSegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
+			tgtStatistics = sfsegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfsegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
 			# normalize corpus
-			cpsStatistics = sfSegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfSegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
+			cpsStatistics = sfsegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
 		html.log( "<tr><td>%s</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td></tr>"%(dobj.name, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM), p=False )
 	html.log( "</table>" , p=False)
 
@@ -135,8 +132,8 @@ elif ops.NORMALIZATION_METHOD == 'cluster':
 	for segList in clusteredSegLists:
 		if len(segList) == 0: continue
 		for dobj in AnalInterface.normalizeDescriptors:
-			stats = sfSegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfSegment.applyDescriptorNormalisation(segList, dobj, stats)
+			stats = sfsegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+			sfsegment.applyDescriptorNormalisation(segList, dobj, stats)
 
 
 
@@ -181,7 +178,7 @@ html.logsection( "CONCATENATION" )
 tgt.setupConcate(AnalInterface)
 AnalInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, p)
-superimp = concatenativeClasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
+superimp = concatenativeclasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
 cps.setupConcate(tgt, AnalInterface)
 outputEvents = []
 
@@ -321,7 +318,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		cpsEffDur = selectCpsseg.desc['effDurFrames-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
-		outputEvents.append( concatenativeClasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
+		outputEvents.append( concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
 		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
@@ -362,7 +359,7 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ###########################
 ## temporal quantization ##
 ###########################
-concatenativeClasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
+concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
 
 html.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
@@ -482,7 +479,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	if minTime < 0:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
-	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
+	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SEGMENT_MIN_DUR, ops.CSOUND_SEGMENT_MAX_DUR) for oe in outputEvents ])
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, bits=ops.CSOUND_BITS)
 	html.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:

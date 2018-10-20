@@ -3,8 +3,8 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-from . import util
 import sys
+import audioguide.util as util
 
 
 def testOpsDict(dicty):
@@ -28,10 +28,10 @@ def testInstance(obj1, obj2):
 
 
 def testVariable(vtype, v):
-	from .UserClasses import TargetOptionsEntry as tsf
-	from .UserClasses import CorpusOptionsEntry as csf
-	from .UserClasses import SearchPassOptionsEntry as spass
-	from .UserClasses import SuperimpositionOptionsEntry as si
+	from audioguide.userclasses import TargetOptionsEntry as tsf
+	from audioguide.userclasses import CorpusOptionsEntry as csf
+	from audioguide.userclasses import SearchPassOptionsEntry as spass
+	from audioguide.userclasses import SuperimpositionOptionsEntry as si
 	if vtype == 'True or False':
 		if v == True or v == False: return True
 	elif vtype == 'None':
@@ -119,6 +119,8 @@ UserVar_types = {
 'CSOUND_ALIGN_PEAKS': ['True or False'],
 'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
+'CSOUND_SEGMENT_MIN_DUR': ['None', 'a number'],
+'CSOUND_SEGMENT_MAX_DUR': ['None', 'a number'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_RENDER_DUR': ['cps', 'tgt'],
 'CSOUND_NORMALIZE': ['True or False'],

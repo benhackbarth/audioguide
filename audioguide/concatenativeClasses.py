@@ -4,8 +4,11 @@
 ############################################################################
 
 import sys, os, types
-from . import util, descriptordata, sfSegment, tests
 import numpy as np
+import audioguide.util as util
+import audioguide.descriptordata as descriptordata
+import audioguide.sfsegment as sfsegment
+import audioguide.tests as tests
 
 
 
@@ -13,11 +16,11 @@ import numpy as np
 
 class parseOptions:
 	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
-		from .UserClasses import TargetOptionsEntry as tsf
-		from .UserClasses import CorpusOptionsEntry as csf
-		from .UserClasses import SearchPassOptionsEntry as spass
-		from .UserClasses import SuperimpositionOptionsEntry as si
-		from .UserClasses import SingleDescriptor as d
+		from audioguide.userclasses import TargetOptionsEntry as tsf
+		from audioguide.userclasses import CorpusOptionsEntry as csf
+		from audioguide.userclasses import SearchPassOptionsEntry as spass
+		from audioguide.userclasses import SuperimpositionOptionsEntry as si
+		from audioguide.userclasses import SingleDescriptor as d
 		usrOptions = {}
 		self.opsfileAsString = ''
 		self.opsfilehead = ''
@@ -183,21 +186,6 @@ class corpus:
 			if os.path.isfile(cobj.name): fileType = 'file'
 			if os.path.islink(cobj.name): fileType = 'link'
 			
-			# make a log entry
-			#p.logsection('CORPUS')
-#			logStr = '* #%i - %s - %s\n'%(cidx, fileType.upper(), cobj.name)
-#			for name in dir(cobj):
-#				if name[0] == '_': continue
-#				if name in ['voiceID', 'concatFileName', 'name']: continue
-#				if cobj._defaults.has_key(name) and getattr(cobj, name) == cobj._defaults[name] : continue # skip default settings
-#				val = getattr(cobj, name)
-#				if type(val) == str:
-#					logStr += "\t%s = '%s'\n"%(name, getattr(cobj, name))
-#				else:
-#					logStr += "\t%s = %s\n"%(name, getattr(cobj, name))
-#			p.write(logStr)
-
-			
 			# use non-standard location segmentation file?
 			if cobj.segmentationFile == None: # add default name of segmentation file if nothing is specified by the user			
 				cobj.segmentationFile = cobj.name+cobj.segmentationExtension
@@ -296,7 +284,7 @@ class corpus:
 					segmentationfileData = None
 				# test if limitDur is set...
 				if cobj.limitDur != None:
-					if endSec != None and endSec-startSec > cobj.limitDur: endSec = start+cobj.limitDur
+					if endSec != None and endSec-startSec > cobj.limitDur: endSec = startSec+cobj.limitDur
 				# see which sf to map sound concatenation onto...
 				if cobj.concatFileName == None: concatFileName = timeList[idx][0]
 				else: concatFileName = cobj.concatFileName
@@ -327,7 +315,7 @@ class corpus:
 			if stop == None: stop=100
 			p.percentageBarNext(lowerLabel="%s@%.2f-%.2f"%(corpusSegParams[0], start, stop))
 			# make the obj
-			cpsSeg = sfSegment.corpusSegment(*corpusSegParams)
+			cpsSeg = sfsegment.corpusSegment(*corpusSegParams)
 			# add it to the list!
 			self.preLimitSegmentList.append(cpsSeg)
 		
@@ -389,8 +377,8 @@ class corpus:
 	############################################################################
 	def setupConcate(self, tgtObj, AnalInterface):
 		'''called when concate is initialized'''
-		from UserClasses import SingleDescriptor as d
-		self.powerStats = sfSegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
+		from userclasses import SingleDescriptor as d
+		self.powerStats = sfsegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
 		self.totalNumberOfTargetSegments = len(tgtObj.segs)
 		##########################################################
 		## set up voice restriction per second as a frame value ##
@@ -637,6 +625,7 @@ class SuperimposeTracker():
 class outputEvent:
 	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, renderDur, alignPeaksBool, minOutputMidi=21):		
 		# cps segment stuff
+		self.sfseghandle = sfseghandle
 		self.filename = sfseghandle.concatFileName
 		self.printName = sfseghandle.printName
 		self.sfSkip = sfseghandle.segmentStartSec
@@ -687,7 +676,16 @@ class outputEvent:
 
 		
 	####################################	
-	def makeCsoundOutputText(self, channelMethod, instru=1):
+	def makeCsoundOutputText(self, channelMethod, minSegmentDuration, maxSegmentDuration, instru=1):
+		if minSegmentDuration != None:
+			if self.duration < minSegmentDuration:
+				newEndSec = min(self.sfSkip+minSegmentDuration, self.sfseghandle.soundfileTotalDuration)
+				self.duration = newEndSec-self.sfSkip
+				
+			
+		if maxSegmentDuration != None and self.duration > maxSegmentDuration:
+			self.duration = maxSegmentDuration
+			
 		return "i%i  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(instru, self.timeInScore, self.duration, self.envDb, self.filename, self.sfSkip, self.transposition, self.rmsSeg, self.peaktimeSec, self.effDurSec, self.envAttackSec, self.envDecaySec, self.envSlope, self.voiceID, self.simSelects, self.tgtsegdur, self.tgtsegnumb, self.stretchcode, channelMethod)
 	####################################	
 	def makeLabelText(self):

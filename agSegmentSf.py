@@ -38,13 +38,12 @@ import audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 sys.path.append(libpath)
 # import the rest of audioguide's submodules
-from audioguide import sfSegment, concatenativeClasses, userinterface, util, UserClasses
+from audioguide import sfsegment, concatenativeclasses, userinterface, util, userclasses
 # import all other modules
 import numpy as np
-try: import json as json
-except ImportError: import simplejson as json
-from UserClasses import TargetOptionsEntry as tsf
-from UserClasses import SingleDescriptor as d
+import json
+from audioguide.userclasses import TargetOptionsEntry as tsf
+from audioguide.userclasses import SingleDescriptor as d
 
 createdSegFiles = 0
 for file in args:
@@ -82,7 +81,7 @@ for file in args:
 	'SEGMENTATION_FILE_INFO': options.SEGMENTATION_INFO
 	}
 
-	ops = concatenativeClasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+	ops = concatenativeclasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
 	p.printProgramInfo(audioguide.__version__, force=True)
 	AnalInterface = ops.createAnalInterface(p)
@@ -92,7 +91,7 @@ for file in args:
 	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	
 	
-	filetosegment = sfSegment.target(ops.TARGET)
+	filetosegment = sfsegment.target(ops.TARGET)
 	filetosegment.initAnal(AnalInterface, ops, p)
 	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
 	p.pprint("Evaluating %s from %.2f-%.2f"%(filetosegment.filename, filetosegment.whole.segmentStartSec, filetosegment.whole.segmentEndSec), colour="BOLD")

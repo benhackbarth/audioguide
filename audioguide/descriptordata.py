@@ -74,7 +74,7 @@ class container:
 class timeVaryingDescriptorData:
 	def __init__(self, dobj):
 		self.dobj = dobj
-		self.data = None # gets set in SfSegment class
+		self.data = None # gets set in sfsegment class
 		self.datanorm = None # gets created when values are requested
 		self.normSubtract = None # gets set by self.setNorm()
 		self.normDivide = None # gets set by self.setNorm()

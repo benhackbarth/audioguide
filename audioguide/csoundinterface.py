@@ -4,7 +4,7 @@
 ############################################################################
 
 import subprocess, platform, sys, os
-from . import util
+import audioguide.util as util
 
 
 

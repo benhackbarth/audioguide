@@ -4,7 +4,7 @@
 ############################################################################
 
 import sys
-from . import util
+import audioguide.util as util
 import numpy as np
 
 

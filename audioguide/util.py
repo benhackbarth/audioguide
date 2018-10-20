@@ -5,6 +5,7 @@
 
 from math import log10, log
 import sys, os, subprocess, random
+import numpy as np
 
 audioguide_lady = '''
           ,)(8)).
@@ -429,17 +430,20 @@ def getTransposition(tgtseg, cpsseg):
 
 
 
-
-
-
-
-def listToCheckSum(items):
+def listToCheckSum(items, enc="latin1"):
 	import hashlib
 	m = hashlib.md5()
 	for item in items:
-		m.update(str(item).encode('utf-8'))
+		#print(item, type(item), type(item) == bytes)
+		if type(item) in [int, float, np.float64]:
+			item = str(item).encode(enc)
+		elif type(item) in [str]:
+			item = item.encode(enc)
+		m.update(item)
 	output = m.hexdigest()
 	return output
+
+
 
 
 def getDurationFromValueOrString(input1, input2):

@@ -4,7 +4,7 @@
 ############################################################################
 
 import sys, re, os
-from . import util
+import audioguide.util as util
 
 class TerminalController:
     """
@@ -143,27 +143,23 @@ class TerminalController:
         else:
         		return re.sub('\$<\d+>[/*]?', '', cap)
         
-    def render(self, template):
+    def render(self, template, enc="latin1"):
         """
         Replace each $-substitutions in the given template string with
         the corresponding terminal control string (if it's defined) or
         '' (if it's not).
         """
-        template = template.encode("utf-8")
+        template = template.encode(enc)
         output = re.sub(b'\$\$|\${\w+}', self._render_sub, template)
-        output = output.decode("utf-8")
+        output = output.decode(enc)
         return output
-#        if type(template) == bytes:
-#      	  return re.sub(b'\$\$|\${\w+}', self._render_sub, template)
-#        else:
-#      	  return re.sub('\$\$|\${\w+}', self._render_sub, template)
 
-    def _render_sub(self, match):
+    def _render_sub(self, match, enc="latin1"):
         s = match.group()
         if s == '$$':
             return s
         else:
-        	   s = s.decode("utf-8")[2:-1] # remove braces
+        	   s = s.decode(enc)[2:-1] # remove braces
         	   return getattr(self, s)
 
 
