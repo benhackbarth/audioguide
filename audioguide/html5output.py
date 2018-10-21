@@ -121,10 +121,6 @@ class htmloutput:
 		self.htmlBody += '''\t<div style="width:100%%">
 		<canvas id="%s"></canvas>
 	</div>
-	<audio controls="controls" id="audiosource">
-		<source type="audio/aif"/>
-		<source type="audio/wav"/>
-	</audio>
 
 	x axis: <select id="%s-xaxis">		%s
 	</select>

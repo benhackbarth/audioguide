@@ -3,6 +3,7 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 CORPUS = [
 csf('lachenmann.aiff'),
 csf('heat sink.aiff'),
+csf('dream.aiff'),
 ]
 
 SEARCH = [
@@ -18,6 +19,7 @@ SUPERIMPOSE = si(maxSegment=4)
 ################################################################################
 CSOUND_SR = 48000
 CSOUND_KSMPS = 128
+CSOUND_BITS = 16 # 16, 24, or 32
 
 
 ################################################################################
@@ -28,17 +30,23 @@ CSOUND_KSMPS = 128
 ################################################################################
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # which does not perform temporal manipulation.
 #CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "pv" # phase vocoder (will not change pitch)
-#CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "transpose" # tape-head transposition (will change pitch, but not as "phasy")
+CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "transpose" # tape-head transposition (will change pitch, but not as "phasy")
 
 
 ################################################################################
-## By default Csound creates a stereo file where stereo corpus sounds are put ##
+## By default Csound creates a soundfile where the number of channels is      ##
+## equal to the maxmimum number of channels found in the corpus - corpus      ##
+## files may have different channel counts. This option is called "corpusmax" ##
+################################################################################
+CSOUND_CHANNEL_RENDER_METHOD = "corpusmax"
+################################################################################
+## You can also create a stereo file where stereo corpus sounds are put       ##
 ## into L and R and mono sounds are put into the L and R channels equally.    ##
-## This option is called "mix":                                               ##
+## This option is called "stereo":                                            ##
 ################################################################################
-CSOUND_CHANNEL_RENDER_METHOD = "mix"
+#CSOUND_CHANNEL_RENDER_METHOD = "stereo"
 ################################################################################
-## However there are two other posibilities.  "oneChannelPerVoice" creates an ##
+## There are two other posibilities.  "oneChannelPerVoice" creates an         ##
 ## output soundfile where each corpus entry is given its own channel.  Since  ##
 ## CORPUS is a list, the sound segments from the first item will be put into  ##
 ## channel 1, the second item into channel 2, etc.  The output soundfile will ##
@@ -46,7 +54,7 @@ CSOUND_CHANNEL_RENDER_METHOD = "mix"
 ################################################################################
 #CSOUND_CHANNEL_RENDER_METHOD = "oneChannelPerVoice"
 ################################################################################
-## A second option is called "oneChannelPerOverlap".  Here corpus sounds are  ##
+## A fourth option is called "oneChannelPerOverlap".  Here corpus sounds are  ##
 ## put into different channels based on how densely corpus sounds overlap.    ##
 ## If corpus sounds overlap with a maximum density of 4, there will be 4      ##
 ## output channels.                                                           ##

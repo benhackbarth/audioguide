@@ -1,5 +1,5 @@
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
-CORPUS = [csf('lachenmann.aiff'), csf('heat sink.aiff'), csf('dream.aiff')]
+CORPUS = [csf('heat sink.aiff'), csf('dream.aiff')]
 SUPERIMPOSE = si(maxSegment=1)
 
 
@@ -28,7 +28,7 @@ SUPERIMPOSE = si(maxSegment=1)
 ################################################################################
 
 SEARCH = [
-spass('closest', d('mfccs'), d('effDur-seg', norm=1))
+spass('closest', d('flatnesses'), d('effDur-seg', norm=1))
 ]
 
 # try uncommenting below...
