@@ -290,10 +290,15 @@ class target: # the target
 		self.segmentationOffsetThreshAbs = userOptsTargetObject.offsetThreshAbs
 		self.segmentationMinLenSec = userOptsTargetObject.minSegLen
 		self.segmentationMaxLenSec = userOptsTargetObject.maxSegLen
+
 		self.envDb = userOptsTargetObject.scaleDb
 		self.midiPitchMethod = userOptsTargetObject.midiPitchMethod
 		self.stretch = userOptsTargetObject.stretch
 		self.segmentationFilepath = userOptsTargetObject.segmentationFilepath		
+		# multirise corpus segmentation ?
+		self.multiriseBool = userOptsTargetObject.multiriseBool
+		self.multirisePercentDev = userOptsTargetObject.multirisePercentDev
+		self.multiriseSteps = userOptsTargetObject.multiriseSteps
 	########################################
 	def timeStretch(self, AnalInterface, ops, p):
 		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, AnalInterface.supervp_bin, p=p)
@@ -338,48 +343,59 @@ class target: # the target
 		if self.segmentationFilepath == None:
 			import descriptordata
 			odf = descriptordata.odf(power, 7)
-			f = 0
-			while True:
-				if f >= len(odf): break
-				trigVal = util.ampToDb(odf[f] / maxpower)				
-				if trigVal < self.segmentationThresh:
-					f += 1
-					continue
-				# an onset because above trigger threshold
-				if ops.SEGMENTATION_FILE_INFO == 'logic':
-					self.extraSegmentationData.append('trig=%.2f'%trigVal)
-				segLen = self.segmentationMinLenFrames
+			# start segmentation loopPrint 
+
+			# do multirise segmentation?
+			if self.multiriseBool:
+				multiriseDeviation = self.segmentationOffsetRise*(self.multirisePercentDev/100.)
+				riseRatioList = np.linspace(max(1.05, self.segmentationOffsetRise-multiriseDeviation), self.segmentationOffsetRise+multiriseDeviation, num=self.multiriseSteps)
+				riseRatioList = np.linspace(1.1, 2, num=4)
+			else:
+				# just use one rise ration
+				riseRatioList = [self.segmentationOffsetRise]
+				
+			for userRiseRatio in riseRatioList: # I could make this a list of rises if desired!
+				f = 0
 				while True:
-					# an offset if end of file is reached
-					if f+segLen+1 >= len(odf):
-						reason = ['eof', len(odf)]
-						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+					if f+self.segmentationMinLenFrames > len(odf): break
+					trigVal = util.ampToDb(odf[f] / maxpower)				
+					if trigVal < self.segmentationThresh:
+						f += 1
+						continue
+					# an onset because above trigger threshold
+					segmentationLogicString = 'trig=%.2f'%trigVal
+					segLen = self.segmentationMinLenFrames
+					while True:
+						# an offset if end of file is reached
+						if f+segLen+1 >= len(odf):
+							reason = ['eof', len(odf)]
+							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+							segmentationLogicString += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
+							break
+						# an offset if max seg length is reached
+						if segLen+1 >= self.segmentationMaxLenFrames:
+							reason = ['maxSegLength', len(odf)]
+							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+							segmentationLogicString += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
+							break			
+						# an offset if amplitude is below offset threshold
+						if power[f+segLen] < self.powerOffsetValue:
+							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+							segmentationLogicString += ' drop=%.2f'%util.ampToDb(power[f+segLen])
+							break
+						# an offset if riseratio is too large
+						riseRatio = power[f+segLen+1]/power[f+segLen]
+						if riseRatio >= userRiseRatio:
+							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
+							segmentationLogicString += ' rise=%.2f'%riseRatio
+							break
+						segLen += 1
+					if (f, f+segLen) not in self.segmentationInOnsetFrames:
+						self.segmentationInOnsetFrames.append((f, f+segLen))
 						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
-						break
-					# an offset if max seg length is reached
-					if segLen+1 >= self.segmentationMaxLenFrames:
-						reason = ['maxSegLength', len(odf)]
-						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
-						break			
-					# an offset if amplitude is below offset threshold
-					if power[f+segLen] < self.powerOffsetValue:
-						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(power[f+segLen])
-						break
-					# an offset if riseratio is too large
-					riseRatio = power[f+segLen+1]/power[f+segLen]
-					if riseRatio >= self.segmentationOffsetRise:
-						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
-						break
-					segLen += 1
-				self.segmentationInOnsetFrames.append((f, f+segLen))
-				f += segLen
+							self.extraSegmentationData.append(segmentationLogicString)
+					f += segLen
+			# end loop
 			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInOnsetFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
 		else: # load target segments from a file
 			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
@@ -389,6 +405,8 @@ class target: # the target
 				self.segmentationInOnsetFrames.append((startf, endf))
 				self.extraSegmentationData.append('from file')
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
+	########################################
+	def stageSegments(self, AnalInterface, ops, p):
 		###################################
 		## make segment times in seconds ##
 		###################################
@@ -408,84 +426,14 @@ class target: # the target
 			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
 			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
 			self.segs.append(segment)
-		p.percentageBarClose(txt=closebartxt)
-		
-		#sys.exit()
-			
-			
-			
-			
-#			f = 0
-#			while True:
-#				if f >= self.whole.lengthInFrames: break # we are done!
-#				trigVal = self.whole.thresholdTest(f, AnalInterface.tgtOnsetDescriptors)
-#				if trigVal < self.segmentationThresh:
-#					f += 1
-#					continue
-#				# an onset because above trigger threshold
-#				if ops.SEGMENTATION_FILE_INFO == 'logic':
-#					self.extraSegmentationData.append('trig=%.2f'%trigVal)
-#				segLen = self.segmentationMinLenFrames
-#				while True:
-#					# an offset if end of file is reached
-#					if f+segLen+1 >= self.whole.lengthInFrames:
-#						reason = ['eof', self.whole.lengthInFrames]
-#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-#						if ops.SEGMENTATION_FILE_INFO == 'logic':
-#							self.extraSegmentationData[-1] += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
-#						break
-#					# an offset if max seg length is reached
-#					if segLen+1 >= self.segmentationMaxLenFrames:
-#						reason = ['maxSegLength', self.whole.lengthInFrames]
-#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-#						if ops.SEGMENTATION_FILE_INFO == 'logic':
-#							self.extraSegmentationData[-1] += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
-#						break			
-#					# an offset if amplitude is below offset threshold
-#					if self.whole.desc['power'][f+segLen] < self.powerOffsetValue:
-#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-#						if ops.SEGMENTATION_FILE_INFO == 'logic':
-#							self.extraSegmentationData[-1] += ' drop=%.6f'%util.ampToDb(self.whole.desc['power'][f+segLen])
-#						break
-#					# an offset if riseratio is too large
-#					riseRatio = self.whole.desc['power'][f+segLen+1]/self.whole.desc['power'][f+segLen]
-#					if riseRatio >= self.segmentationOffsetRise:
-#						endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-#						if ops.SEGMENTATION_FILE_INFO == 'logic':
-#							self.extraSegmentationData[-1] += ' rise=%.2f'%riseRatio
-#						break
-#					segLen += 1
-#				self.segmentationInFrames.append((f, f+segLen))
-#				f += segLen
-#			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
-#		else: # load target segments from a file
-#			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))
-#			for dataentry in util.readAudacityLabelFile(self.segmentationFilepath):
-#				startf = AnalInterface.s2f(dataentry[0], self.filename)
-#				endf = AnalInterface.s2f(dataentry[1], self.filename)
-#				self.segmentationInFrames.append((startf, endf))
-#			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
-#		###################################
-#		## make segment times in seconds ##
-#		###################################
-#		for start, end in self.segmentationInFrames:
-#			self.segmentationInSec.append((AnalInterface.f2s(start), AnalInterface.f2s(end)))
-#			self.seglengths.append(AnalInterface.f2s(end-start))
 
-		
-#		if ops.SEGMENTATION_FILE_INFO != 'logic':
-#			for start, end in self.segmentationInFrames:
-#				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
-#	
-#		
-#		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
-#		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
-#			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
-#			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
-#			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
-#			self.segs.append(segment)
-#		p.percentageBarClose(txt=closebartxt)
-		# done!
+
+		if self.segmentationFilepath == None:
+			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInOnsetFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
+		else:
+			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
+
+		p.percentageBarClose(txt=closebartxt)
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')

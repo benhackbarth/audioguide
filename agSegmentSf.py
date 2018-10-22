@@ -10,6 +10,7 @@ from optparse import OptionParser
 parser = OptionParser(usage="usage: %prog [options] soundfile")
 parser.set_defaults(TRIGGER_THRESHOLD=-40)
 parser.set_defaults(RISERATIO=1.3)
+parser.set_defaults(MULTIRISE=False)
 parser.set_defaults(MINIMUM_DB_OFFSET_BOOST=+12)
 parser.set_defaults(DB_OFFSET_ABSOLUTE=-80)
 parser.set_defaults(MINIMUM_SEG=0.1)
@@ -18,6 +19,7 @@ parser.set_defaults(SEGMENTATION_INFO='logic')
 parser.set_defaults(OUTPUT_FILE='')
 parser.add_option("-t", "--triggerthreshold", action="store", dest="TRIGGER_THRESHOLD", type="float", help="set the threshold for detecting segment onsets.  a value from -100 to 0 where a lower value make onsets happen more frequently.  default=-40")
 parser.add_option("-r", "--riseratio", action="store", dest="RISERATIO", type="float", help="set the rise-ratio used in determining segment offsets.  the rise-ratio is the ratio of a frame's amplitude to the next frame's amplitude.  in an active segment, if this ratio is greater than user-supplied rise-ratio, it will cause an offset.  it must be greater than 1.  default=1.3")
+parser.add_option("-m", "--multirise", action="store_true", dest="MULTIRISE", help="If True, corpus soundfile segmentation will be done in several passes where the rise ratio will vary from -20% to +20% of the user supplied riseratio.  This results in more segments which will likely overlap each other at times.  A good optipon to use for long corpus files.")
 parser.add_option("-d", "--minoffsetdbboost", action="store", dest="MINIMUM_DB_OFFSET_BOOST", type="float", help="set the minimum-db-offset-boost.  this value in dB is added to the soundfile's minimum amplitude.  in an active segment, if a frame's amplitude is below this threshold, it causes a segment offset.  default=+12")
 parser.add_option("-a", "--offsetabsolute", action="store", dest="DB_OFFSET_ABSOLUTE", type="float", help="set the minimum-db-offset-boost.  this value in dB is added to the soundfile's minimum amplitude.  in an active segment, if a frame's amplitude is below this threshold, it causes a segment offset.  default=-80")
 parser.add_option("-s", "--minimum", action="store", dest="MINIMUM_SEG", type="float", help="set the minimum segment length in seconds.  segments will be forced to be this duration in seconds or greater.  default=0.1")
@@ -64,9 +66,9 @@ for file in args:
 		plotMe = None
 		
 	agopts = {
-	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, offsetThreshAbs=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.DB_OFFSET_ABSOLUTE, options.MINIMUM_SEG, options.MAXIMUM_SEG)),
+	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, offsetThreshAbs=%f, minSegLen=%f, maxSegLen=%f, multiriseBool=%s)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.DB_OFFSET_ABSOLUTE, options.MINIMUM_SEG, options.MAXIMUM_SEG, options.MULTIRISE)),
 	'VERBOSITY': 1,
-	'LOG_FILEPATH': None,
+	'HTML_LOG_FILEPATH': None,
 	'CSOUND_CSD_FILEPATH': None,
 	'CSOUND_RENDER_FILEPATH': None,
 	'MIDI_FILEPATH': None,
@@ -93,6 +95,8 @@ for file in args:
 	
 	filetosegment = sfsegment.target(ops.TARGET)
 	filetosegment.initAnal(AnalInterface, ops, p)
+	filetosegment.stageSegments(AnalInterface, ops, p)
+
 	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
 	p.pprint("Evaluating %s from %.2f-%.2f"%(filetosegment.filename, filetosegment.whole.segmentStartSec, filetosegment.whole.segmentEndSec), colour="BOLD")
 	p.pprint("\nAN ONSET HAPPENS when", colour="BOLD")

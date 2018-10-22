@@ -434,11 +434,10 @@ def listToCheckSum(items, enc="latin1"):
 	import hashlib
 	m = hashlib.md5()
 	for item in items:
-		#print(item, type(item), type(item) == bytes)
 		if type(item) in [int, float, np.float64]:
 			item = str(item).encode(enc)
 		elif type(item) in [str]:
-			item = item.encode(enc)
+			item = item.encode('utf-8').decode(enc).encode(enc)
 		m.update(item)
 	output = m.hexdigest()
 	return output

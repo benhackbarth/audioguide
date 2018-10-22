@@ -379,6 +379,7 @@ EnergyEnvelope  = 1
 		sfroot, sfhead = os.path.split(sffile)
 		sfheadroot, sfheadext = os.path.splitext(sfhead)
 		self.rawData[sffile]['fileroot'] = os.path.join(self.analdir, sfheadroot)
+		
 		self.rawData[sffile]['checksum'] = util.listToCheckSum([sffile, self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, 'ircamd'])[:12]
 		filehead = '%s-%s'%(sfheadroot, self.rawData[sffile]['checksum'])
 		descriptorfile = os.path.join(self.analdir, '%s-ircamd.npy'%(filehead))
@@ -420,6 +421,7 @@ EnergyEnvelope  = 1
 	def getDescriptorForsfsegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
 		global descriptIsAmp
 		endf = startf+lengthinframes
+		#print ("getDescriptorForsfsegment", startf, endf)
 		data = self.getDescriptorColumn(sffile, descriptor.name)[startf:endf]
 		# use envelope mask if requested and if this descriptor deals with power
 		if type(envelopeMask) != type(None) and descriptor.name in descriptIsAmp:

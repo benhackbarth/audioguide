@@ -13,7 +13,7 @@ import numpy as np
 
 
 class TargetOptionsEntry(object):
-	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None):
+	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None, multiriseBool=False, multirisePercentDev=20, multiriseSteps=5):
 		self.filename = filename
 		self.start = start
 		self.end = end
@@ -27,6 +27,9 @@ class TargetOptionsEntry(object):
 		self.midiPitchMethod = midiPitchMethod
 		self.stretch = stretch
 		self.segmentationFilepath = segmentationFilepath
+		self.multiriseBool = multiriseBool
+		self.multirisePercentDev = multirisePercentDev
+		self.multiriseSteps = multiriseSteps
 
 
 class CorpusOptionsEntry(object):

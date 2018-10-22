@@ -5,6 +5,8 @@
 
 import sys, re, os
 import audioguide.util as util
+import audioguide.html5output as html5output
+
 
 class TerminalController:
     """
@@ -143,7 +145,7 @@ class TerminalController:
         else:
         		return re.sub('\$<\d+>[/*]?', '', cap)
         
-    def render(self, template, enc="latin1"):
+    def render(self, template, enc="utf-8"):
         """
         Replace each $-substitutions in the given template string with
         the corresponding terminal control string (if it's defined) or
@@ -166,31 +168,31 @@ class TerminalController:
 
 
 class printer:
-	def __init__(self, verbosity, optionsPath, pathtologfile, length=74):
+	def __init__(self, verbosity, optionsPath, pathtohtmlfile, length=74):
 		self.updateLength = length
 		self.term = TerminalController()
 		if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
 			raise ValueError("Terminal isn't capable enough -- you should use a simpler progress dispaly.")
 		self.v = verbosity
-		if pathtologfile == None:
-			self.loghandle = None
-		else:
-			self.loghandle = open(pathtologfile, 'w')
 		self.term = TerminalController()
+		# make html log if asked for
+		if pathtohtmlfile == None: self.html = None
+		else: self.html = html5output.htmloutput()
 	###############################################
 	def log(self, *args):
-		if self.loghandle == None: return
-		text = ''
-		for arg in args:
-			text += str(arg)+' '
-		self.loghandle.write(text+'\n')
+		self.html.log(*args)
+	###############################################
+	def logtable(self, *args):
+		self.html.log(*args, p=False)
 	###############################################
 	def logsection(self, name):
-		buffer = '-'*(len(name)+1)
-		self.loghandle.write('%s\n%s\n%s\n'%(buffer, name, buffer))
+		self.html.logsection(name)
 	###############################################
-	def close(self):
-		self.loghandle.close()
+	def addScatter2dAxisChoice(self, *a, **k):
+		self.html.addScatter2dAxisChoice(*a, **k)
+	###############################################
+	def writehtmllog(self, filepath):
+		self.html.writefile(filepath)
 	###############################################
 	def pnt(self, *args):
 		if self.v >= 2: print(args)

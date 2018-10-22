@@ -3,7 +3,6 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 CORPUS = [
 csf('lachenmann.aiff'),
 csf('heat sink.aiff'),
-csf('dream.aiff'),
 ]
 
 SEARCH = [

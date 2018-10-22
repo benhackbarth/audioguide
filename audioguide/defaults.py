@@ -1,7 +1,6 @@
 ##############  OUTPUT FILES  #############
 CSOUND_CSD_FILEPATH = 'output/output.csd'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'
-LOG_FILEPATH = 'output/log.txt'
 HTML_LOG_FILEPATH = 'output/log.html'
 MIDI_FILEPATH = None # 'output/output.mid'
 MIDIFILE_TEMPO = 60.
@@ -39,7 +38,7 @@ RANDOM_SEED = None
 OUTPUT_GAIN_DB = 0.
 OUTPUT_TIME_STRETCH = 1.
 OUTPUT_TIME_ADD = 0.
-OUTPUT_QUANTIZE_TIME_METHOD = None # 'snapToGrid' 'medianAggregate'
+OUTPUT_QUANTIZE_TIME_METHOD = None # snapToGrid | medianAggregate
 OUTPUT_QUANTIZE_TIME_INTERVAL = 0.25
 
 ############  CSOUND RENDERING  ############
