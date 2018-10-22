@@ -154,7 +154,6 @@ For the moment AudioGuide1.29 only works on OS X.  On more current versions of O
 <ul>
 <li><b>csound6</b> - Needed only if you would like AudioGuide1.29 to automatically render concatenations (which you probably do).  Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python.  Upgrading to the latest python2.7 will automatically install numpy.  If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>.<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation.  Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
 </section>
-The sections below details two scripts included with AudioGuide1.29 that can automate this process for you, agSegmentSf.py and agGranulateSf.py.
 
 
 
@@ -185,6 +184,8 @@ There are several tools in AudioGuide1.29 to segment long soundfiles into smalle
 <li> Create segmentation files by hand.  You can do this in Audacity with its 'Labels' feature.  Create a label track and indicate the start and end times of desired sound segments.  Then "Export Labels..." and give the outputfile the same name as the soundfile + '.txt'.  So, 'examples/lachenmann.aiff' would need a label file named 'examples/lachenmann.aiff.txt'.
 <li> Create segmentation files with other software as long the textfile is written in the same format as AudioGuide1.29&rsquo;s.
 </ul>
+The sections below details two scripts included with AudioGuide1.29 that can automate this process for you, agSegmentSf.py and agGranulateSf.py.
+
 
 
 
