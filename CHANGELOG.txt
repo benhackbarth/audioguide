@@ -1,0 +1,20 @@
+##################
+## Version 1.29 ##
+##################
+• AudioGuide no longer depends on the pysdif module.
+
+• AudioGuide is now crosscompatible with Python2 and Python3.  I’ve tested the code fairly thoroughly, and everything seems to work.  Please send bugs if you find them.
+
+• The log.txt output file from the agConcatenate.py script has been replaced with log.html.  It logs similar information, but also includes interactive graphs and charts plotting corpus and target descriptor data using chartjs.  I would like to augment this in the future.
+
+• The agSegmentSf.py has a new option, -m, called multirise, which is disabled by default.  However when this flag is added to a segmentation call, the segmentation algorithm will loop over the corpus soundfile several times, varying the user supplied riseRatio (-r) +/- 20%.  This results in more segments being generated that can overlap each other; certain segments will start at the same time, but last different durations.  Try “agSegmentSf.py examples/lachenmann.aiff” with and without the -m flag and look at the difference when importing examples/lachenmann.aiff.txt in Audacity.
+
+• Csound rendering has changed slightly to be more flexible with regard to corpus soundfiles with different numbers of channels.  By default, CSOUND_CHANNEL_RENDER_METHOD is now “corpusmax” and rendering supports 4-channel corpus files.
+
+• You can now set the bit depth of concatenations rendered with Csound with CSOUND_BITS.  32 bit output files are now supported.
+
+• Rendered concatenations can now be automativally normalized with CSOUND_NORMALIZE and CSOUND_NORMALIZE_PEAK_DB.
+
+• You can now override the duration of corpus sounds in the Csound rendering process with CSOUND_SEGMENT_MIN_DUR and CSOUND_SEGMENT_MAX_DUR.
+
+• Numerous bug fixes.
