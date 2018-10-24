@@ -69,6 +69,25 @@ class container:
 				output[name] = list(obj.data)
 		return output
 		
+	
+	
+
+
+def normalize(floatOrArray, method, paramdict):
+	if method == 'stddev':
+		mean = paramdict['mean']
+		stddev = paramdict['stddev']
+		print('stddev', floatOrArray, mean, stddev, '->', (floatOrArray-mean)/stddev)
+		return (floatOrArray-mean)/stddev
+	elif method == 'minmax':
+		min = paramdict['min']
+		range = paramdict['range']
+		print('minmax', floatOrArray, min, range, '->', (floatOrArray-min)/range)
+		return (floatOrArray-min)/range
+	elif method == 'sigmoid':
+		max = paramdict['max']
+		return 1/(1+np.exp(-floatOrArray/max))
+
 		
 		
 class timeVaryingDescriptorData:
@@ -76,15 +95,15 @@ class timeVaryingDescriptorData:
 		self.dobj = dobj
 		self.data = None # gets set in sfsegment class
 		self.datanorm = None # gets created when values are requested
-		self.normSubtract = None # gets set by self.setNorm()
-		self.normDivide = None # gets set by self.setNorm()
+		#self.normSubtract = None # gets set by self.setNorm()
+		#self.normDivide = None # gets set by self.setNorm()
+		self.normdict = None # gets set by self.setNorm()
 	##########
 	def __len__(self):
 		return len(self.data)
 	##########
-	def setNorm(self, subtract, divide):
-		self.normSubtract = subtract
-		self.normDivide = divide
+	def setNorm(self, normdict):
+		self.normdict = normdict
 	##########
 	def __getitem__(self, *args):
 		if len(args) == 0: # return it all
@@ -102,7 +121,7 @@ class timeVaryingDescriptorData:
 	##########
 	def getnorm(self, *args):
 		if type(self.datanorm) == type(None): # do it!
-			self.datanorm = (self.data-self.normSubtract)/self.normDivide
+			self.datanorm = normalize(self.data, self.normdict['method'], self.normdict)
 		if len(args) == 0: # return it all
 			return self.datanorm
 		elif len(args) == 1: # return a single value
@@ -130,9 +149,8 @@ class segmentedDescriptorData:
 	def __len__(self):
 		return len(self.calced)
 	##########
-	def setNorm(self, subtract, divide):
-		self.normSubtract = subtract
-		self.normDivide = divide
+	def setNorm(self, normdict):
+		self.normdict = normdict
 	##########
 	def get(self, start, end):
 		if not (start, end) in self.calced:
@@ -142,7 +160,7 @@ class segmentedDescriptorData:
 	##########
 	def getnorm(self, start, end):
 		if not (start, end) in self.calcednorm:
-			self.calcednorm[(start, end)] = (self.get(start, end)-self.normSubtract)/self.normDivide
+			self.calcednorm[(start, end)] = normalize(self.get(start, end), self.normdict['method'], self.normdict)
 			if self.v: print("averaged and normalised: %s from %s-%s == %.3f"%(self.dobj.name, start, end, self.calcednorm[(start, end)]))
 		return self.calcednorm[(start, end)]
 	##########

@@ -462,6 +462,57 @@ CORPUS = [csf('lachenmann.aiff'), csf('piano/', wholeFile=True)]
 
 
 
+<h2 id="Normalization">Normalization</h2>
+Target segments and corpus segments in AudioGuide1.29 are normalized with d() object keywords, documented in the section below.
+
+Normalization is important when measuring the similarity between two different data sets (target sound segments and corpus sound segments) - it is essentially a way of mapping the two data sets onto each other.  It is often the case that the target soundfile is less "expressive" than the corpus - i.e. that the variation in the target sound's descriptors are less robust that the variation of the descriptors found across the corpus.  This is the case in examples/01-simplest.py: Cage's voice is fairly monolithic with regard to timbre, amplitude, pitch, etc., which the Lachenmann contains a great deal more nuance in timbre and dynamics.  Under these circumstances, what do we want AudioGuide1.29 to do?  Should Cage's relatively small variation in descriptor space be matched to a relatively small subset of the corpus?  Or should Cage's variation in descriptor space be streched to fit the total variation of the corpus?  My default answer to this question (aesthetically, compositionally, musically) is the latter.  And it is for that reason that AudioGuide1.29's default mode of operating is to normalize target and corpus descirptor spaces separately so that the variability of the target is stretched to fit the variabley of the corpus.  This is done with the norm=2 flag in the d() object; norm=1 normlaizes the target and corpus descirptor spaces together so that descriptor values are better preserved.
+
+The two charts below show target and corpus segments from examples/01-simplest.py normalized together and separately to show the difference.  Normalized descriptor values affect how similarity is measured and therefore which corpus segments will be picked to "match" target segments.
+
+
+<p align="left">
+<pre class="language-python"><code class="language-python">
+spass('closest', d('centroid-seg'), d('power-seg'))
+</code></pre>
+<img src="stddev.png"></p>
+
+
+<p align="left">
+<pre class="language-python"><code class="language-python">
+spass('closest', d('centroid-seg', norm=1), d('power-seg', norm=1))
+</code></pre>
+<img src="norm1.png"></p>
+
+
+
+In addition to specifying whether or not target and corpus values are normalized together or separately, you can change the algorithm for normalization.  By default, normmethod='stddev', but graphs below show two other possibilities.
+
+
+
+
+<p align="left">
+<pre class="language-python"><code class="language-python">
+spass('closest', d('centroid-seg', normmethod="minmax"), d('power-seg', normmethod="minmax"))
+</code></pre>
+<img src="minmax.png"></p>
+
+
+<p align="left">
+<pre class="language-python"><code class="language-python">
+spass('closest', d('centroid-seg', normmethod="sigmoid"), d('power-seg', normmethod="sigmoid"))
+</code></pre>
+<img src="sidmoid.png"></p>
+
+
+
+However, there are certainly moments when you would want to opt for norm=1.  Take the descriptor f0-seg for instance.  Given d('f0-seg', norm=1), AudioGuide1.29 will attempt to match f0s between the target and corpus as closely as possible.  Given d('f0-seg', norm=2), AudioGuide1.29 will stretch the target's f0s to match the variablelity of f0s in the corpus, effectively matching the target's contour of pitch but not its exact pitches.
+
+
+
+
+
+
+
 
 
 
@@ -494,22 +545,6 @@ Use the d() object to specify a descriptor, how it is weighted, and how it is no
 </div>
 
 
-
-<!-- 
-
-<h2 id="Normalisation">Normalisation</h2>
-Use the d() object to specify a descriptor, how it is weighted, and how it is normalized.  The d() object takes 1 argument -- the name of the desired descriptor --  and then several optional keywords arguments, detailed below.
-
-<pre class="language-python"><code class="language-python">
-d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energyWeight=False)
-
-
-
-d('f0-seg', normmethod='minmax', energyWeight=True) 
-</code></pre>
-
-
- -->
 
 
 
@@ -822,6 +857,9 @@ spass('closest', d('f0-delta-seg'), d('centroid-deltadelta')), # now find the be
 					  <li><a href="#Specifyingcsfkeywordsglobally">Specifying csf() Keywords Globally</a></li>
 			 	  </ul>
 			 </li>
+			 
+			 
+			 <li><a href="#Normalization">Normalization</a></li>
 			 <li><a href="#Descriptorsandthedobject">Descriptors and the d() object</a></li>
 			 <li><a href="#SEARCHvariable">SEARCH variable and spass() object</a></li>
 			 <li><a href="#TheSUPERIMPOSEvariabls">The SUPERIMPOSE variable and si() object</a></li>

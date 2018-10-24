@@ -182,8 +182,8 @@ class printer:
 	def log(self, *args):
 		self.html.log(*args)
 	###############################################
-	def logtable(self, *args):
-		self.html.log(*args, p=False)
+	def maketable(self, array):
+		self.html.maketable(array)
 	###############################################
 	def logsection(self, name):
 		self.html.logsection(name)

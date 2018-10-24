@@ -22,7 +22,7 @@ csf('heat sink.aiff', onsetLen='50%', offsetLen='50%'),
 ## aploitude of the target.                                                   ##
 ################################################################################
 SEARCH = [
-spass('closest_percent', d('power-seg'), percent=20),
+spass('closest_percent', d('power-seg', normmethod='minmax'), percent=20),
 spass('closest', d('mfccs-seg'))
 ]
 

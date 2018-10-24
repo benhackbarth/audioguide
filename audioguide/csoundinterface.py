@@ -18,7 +18,7 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	elif channelRenderMethod == "oneChannelPerOverlap":
 		nchnls = maxOverlaps
 	else:
-		util.error("csdrenderer", "no know channel render method %s\n"%channelRenderMethod)
+		util.error("csdrenderer", "No known channel render method '%s'\n"%channelRenderMethod)
 
 	if bits == 16: bitflag = '-s'
 	elif bits == 24: bitflag = '-3'

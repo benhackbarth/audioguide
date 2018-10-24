@@ -9,20 +9,12 @@ import sys, os, audioguide
 defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
-# import the rest of audioguide's submodules
-from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage, html5output
-# import all other modules
+# import audioguide's submodules
+from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage
+# import other modules
 import numpy as np
 import json
 
-
-
-from optparse import OptionParser
-parser = OptionParser(usage="usage: %prog [options] configfile")
-parser.set_defaults(OUTPUT_FILE='')
-parser.add_option("-o", "--printoptions", action="store_true", dest="PRINT_OPTIONS", default=False, help="print all AG options and exit")
-(options, args) = parser.parse_args()
-if options.PRINT_OPTIONS: sys.exit(0)
 
 
 
@@ -94,6 +86,12 @@ p.html.jschart_timeseries(yarray=np.array([AnalInterface.f2s(i) for i in range(t
 p.logsection( "CORPUS" )
 cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
 
+htmlCorpusTable = [['', 'minimum', 'maximum', 'average']]
+segmentLength = [c.segmentDurationSec for c in cps.postLimitSegmentNormList]
+htmlCorpusTable.append(['segment length', min(segmentLength), max(segmentLength), np.mean(segmentLength)])
+power = [c.desc['power-seg'].get(None, None) for c in cps.postLimitSegmentNormList]
+htmlCorpusTable.append(['power', min(power), max(power), np.mean(power)])
+p.maketable(htmlCorpusTable)
 
 
 
@@ -105,7 +103,7 @@ p.logsection( "NORMALIZATION" )
 
 
 if ops.NORMALIZATION_METHOD == 'standard':
-	p.logtable( "<table><tr><th>descriptor</th><th>target mean</th><th>target stddev</th><th>corpus mean</th><th>corpus stddev</th><th>freedom</th></tr>")
+	normalizationTable = [['descriptor', 'norm method', 'target mean', 'target stddev', 'corpus mean', 'corpus stddev', 'freedom']]
 	for dobj in AnalInterface.normalizeDescriptors:
 		if dobj.norm == 1:
 			# normalize both together
@@ -119,9 +117,9 @@ if ops.NORMALIZATION_METHOD == 'standard':
 			# normalize corpus
 			cpsStatistics = sfsegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
 			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-		p.logtable( "<tr><td>%s</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td></tr>"%(dobj.name, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM))
-	p.logtable( "</table>" )
-
+		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
+	p.maketable(normalizationTable)
+	
 elif ops.NORMALIZATION_METHOD == 'cluster':
 	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
 	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
@@ -138,11 +136,13 @@ elif ops.NORMALIZATION_METHOD == 'cluster':
 
 
 
+############################################################################
+## get raw and normalized segemented sdesciptors for graphing in log.html ##
+############################################################################
 scatterRaw = {'tgt': {}, 'cps': {}}
 for dname in [dobj.name for dobj in AnalInterface.requiredDescriptors if dobj.seg]:
 	scatterRaw['tgt'][dname] = []
 	scatterRaw['cps'][dname] = []
-
 
 scatterNorm = {'tgt': {}, 'cps': {}}
 for dname in [dobj.name for dobj in AnalInterface.normalizeDescriptors if dobj.seg]:
@@ -159,10 +159,10 @@ for cidx, cs in enumerate(cps.postLimitSegmentNormList):
 	for dname in scatterRaw['cps'].keys():
 		scatterRaw['cps'][dname].append(cs.desc[dname].get(0, None))
 	for dname in scatterNorm['cps'].keys():
-		scatterNorm['cps'][dname].append(cs.desc[dname].get(0, None))
+		scatterNorm['cps'][dname].append(cs.desc[dname].getnorm(0, None))
 
 
-p.addScatter2dAxisChoice(scatterRaw, name='Unnormalized Descriptor Data', axisdefaults=['f0-seg', 'power-seg'])
+#p.addScatter2dAxisChoice(scatterRaw, name='Unnormalized Descriptor Data', axisdefaults=['f0-seg', 'power-seg'])
 p.addScatter2dAxisChoice(scatterNorm, name='Normalized Descriptor Data', axisdefaults=[AnalInterface.normalizeDescriptors[0], AnalInterface.normalizeDescriptors[1]])
 	
 
@@ -196,6 +196,10 @@ else:
 ## TARGET SEGMENT LOOP ##
 #########################
 p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgt.segs)+1)
+htmlSelectionTable = [['time', 'number of selected segments', ]]
+for s in ops.SEARCH: htmlSelectionTable[0].append(s.method)
+
+
 for segidx, tgtseg in enumerate(tgt.segs):
 	segSeek = 0
 	p.percentageBarNext()
@@ -328,25 +332,11 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		printLabel += ' '*(24-len(printLabel))
 		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
+		htmlSelectionTable.append(["%.2f"%timeInSec, int(maxoverlaps)+1] + distanceCalculations.lengthAtPasses[:-1] )
 
 p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
-#if ops.PRINT_SIM_SELECTION_HISTO:
-#	p.printListLikeHistogram('Simultaneous Selection Histogram', ["%i notes"%(v) for v in superimp.cnt['segidx']])
-#if ops.PRINT_SELECTION_HISTO:
-#	p.printListLikeHistogram('Corpus Selection Histogram', superimp.cnt['cpsnames'])
-
-
-
-#p.addchart(["%i notes"%(v) for v in superimp.cnt['segidx']], type='barchart', title='Simultaneous Selection Histogram')
-
-
-#p.addchart(superimp.cnt['cpsnames'], type='barchart', title='Corpus Selection Histogram')
-
-
-#p.addchart(list(tgt.whole.desc['power']), type='line', title='Target Amplitude')
-
-
+p.maketable(htmlSelectionTable)
 
 
 

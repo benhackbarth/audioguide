@@ -605,18 +605,22 @@ class SuperimposeTracker():
 		if not reason in self.histogram['skip']:
 			self.histogram['skip'][reason] = []
 		self.histogram['skip'][reason].append(value)
-		self.p.log( "SKIP @ %.2f -- %s (%s)"%(timeinSec, reason, value) )
+		#self.p.log( "SKIP @ %.2f -- %s (%s)"%(timeinSec, reason, value) )
 		self.choiceCnt += 1
 	########################################
 	def pick(self, trig, trigVal, onsett, overt, segidxt, timeinSec):
 		if not trig and onsett == 'force':
-			self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOnset"%(timeinSec) )
+			pass
+			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOnset"%(timeinSec) )
 		elif not trig and overt == 'force':
-			self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOverlap"%(timeinSec) )
+			pass
+			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOverlap"%(timeinSec) )
 		elif not trig and segidxt == 'force':
-			self.p.log( "SELECT @ %.2f -- target too soft but forced to by minSegment"%(timeinSec) )
+			pass
+			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minSegment"%(timeinSec) )
 		else:
-			self.p.log( "SELECT @ %.2f (t=%.2f)"%(timeinSec, trigVal) )
+			pass
+			#self.p.log( "SELECT @ %.2f (t=%.2f)"%(timeinSec, trigVal) )
 
 
 

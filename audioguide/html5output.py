@@ -48,6 +48,19 @@ class htmloutput:
 		fh.close()
 
 
+	def maketable(self, array, resolution=2):
+		self.htmlBody += '<table border="1">'
+		self.htmlBody += "<tr>%s</tr>"%(''.join(["<th>%s</th>"%s for s in array[0]]))
+		for a in array[1:]:
+			self.htmlBody += '<tr>'
+			for s in a:
+				if isinstance(s, float): self.htmlBody += ("<td>%%.%if</td>"%resolution)%(s)
+				else: self.htmlBody += "<td>%s</td>"%s
+			self.htmlBody += '</tr>'
+		self.htmlBody += "</table>"
+
+	
+	
 	def jschart_timeseries(self, widthpx=1000, heightpx=300, maxlength=500, yarray=[0, 1, 2, 3, 4, 5], xarrays=[[5, 4, 3, 2, 1, 5]], ylabel='time in seconds', xlabels=['descriptorname']):
 		id = 'chart%i'%self.chartcnt
 		datasetstring = ''
@@ -174,21 +187,6 @@ class htmloutput:
 							}
 						}]
 					},
-
-
-  hover: { 
-     onHover: function(evt, item) { 
-        if (item.length) {
-        		var audio = document.getElementById("audiosource");
-        		audio.setAttribute("src", "/Users/ben/Documents/sfdb/noiseTimbres/BClBb-aeol-A#2-p.aif");
-
-				audio.play();
-        }
-     }
-  },
-
-
-
 				}
 			});
 			pullValues(window.myScatter, "%s", "%s");
@@ -202,105 +200,4 @@ class htmloutput:
 	</script>'''%(id, id, html_xaxis_options, id, html_yaxis_options, id, tgtdata, cpsdata, id, name, axisdefaults[0], axisdefaults[1], id, id, id)
 		self.chartcnt += 1
 
-
-
-#	def addchart(self, data, type='barchart', title='My Chart'):
-#
-#		self.htmlBody +=  '''<div style="width:75%%">
-#	<canvas id="chart%i"></canvas>
-#</div>\n'''%(self.chartcnt)
-#
-#
-#		if type == 'barchart':
-#			datas = util.histogram(data)
-#			chartlabels = str([d[1] for d in datas])
-#			chartdata = str([d[0] for d in datas])
-#			self.scriptvars +=  '''
-#  var barChartData%i = {
-#		labels: %s,
-#		datasets: [{
-#			 backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-#			 borderColor: window.chartColors.red,
-#			 borderWidth: 1,
-#			 data: %s,
-#		}]
-#  };'''%(self.chartcnt, chartlabels, chartdata)
-#
-#
-#			self.onload += '''	var Cfx%i = document.getElementById("chart%i").getContext("2d");
-#	window.myBar = new Chart(Cfx%i, {type: 'bar', data: barChartData%i, options: {responsive: true, title: {display: true, text: '%s'}}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
-#
-#
-#
-#
-#		elif type == 'normscatter':
-#			tgtData = [{'x': arr[0], 'y': arr[1]} for arr in data['tgt']]
-#			cpsData = [{'x': arr[0], 'y': arr[1]} for arr in data['cps']]
-#
-#			self.scriptvars +=  '''
-#        var scatterChartData%i = {
-#            datasets: [{
-#                label: "Target Segments",
-#                borderColor: window.chartColors.red,
-#                backgroundColor: color(window.chartColors.red).alpha(0.2).rgbString(),
-#                data: %s
-#            }, {
-#                label: "Corpus Segments",
-#                borderColor: window.chartColors.blue,
-#                backgroundColor: color(window.chartColors.blue).alpha(0.2).rgbString(),
-#                data: %s
-#            }]
-#        };'''%(self.chartcnt, str(tgtData), str(cpsData))
-#
-#
-#			self.onload += '''
-#	var ctx%i = document.getElementById("chart%i").getContext("2d");
-#   window.myScatter = Chart.Scatter(ctx%i, {data: scatterChartData%i, options: {title: {display: true, text: '%s'},}});\n\n'''%(self.chartcnt, self.chartcnt, self.chartcnt, self.chartcnt, title)
-#
-#
-#
-#	
-#		elif type == 'line':
-#			data = [1, 2, 3, 4, 3, 2, 1]
-#			self.scriptvars +=  '''
-#		var lineconfig%i = {
-#			type: 'bar',
-#			data: {
-#				labels: labels,
-#				datasets: [{
-#					label: "%s",
-#					data: %s,
-#					type: 'line',
-#					pointRadius: 0,
-#					fill: false,
-#					lineTension: 0,
-#					borderWidth: 2
-#				}]
-#			},
-#			options: {
-#				scales: {
-#					xAxes: [{
-#						type: 'time',
-#						distribution: 'series',
-#						ticks: {
-#							source: 'labels'
-#						}
-#					}],
-#					yAxes: [{
-#						scaleLabel: {
-#							display: true,
-#							labelString: 'Amplitude'
-#						}
-#					}]
-#				}
-#			}
-#		};\n'''%(self.chartcnt, title, str(data))
-#		
-#	
-#			#self.onload += '''window.myBar = new Chart(document.getElementById("chart%i").getContext("2d"), lineconfig%i);\n\n'''%(self.chartcnt, self.chartcnt)
-#	
-#	
-#	
-#
-#		self.chartcnt += 1
 

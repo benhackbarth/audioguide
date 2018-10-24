@@ -322,7 +322,6 @@ class target: # the target
 		# SEGMENTATION
 		self.filename = os.path.abspath(self.filename)
 		power = AnalInterface.getDescriptorColumn(self.filename, 'power')
-		maxpower = np.max(power)
 		self.segmentationMinLenFrames = AnalInterface.s2f(self.segmentationMinLenSec, self.filename)
 		self.segmentationMaxLenFrames = AnalInterface.s2f(self.segmentationMaxLenSec, self.filename)
 		p.log("TARGET SEGMENTATION: minimum segment length %.3f sec; maximum %.3f sec"%(self.segmentationMinLenSec, self.segmentationMaxLenSec))
@@ -354,47 +353,14 @@ class target: # the target
 				# just use one rise ration
 				riseRatioList = [self.segmentationOffsetRise]
 				
-			for userRiseRatio in riseRatioList: # I could make this a list of rises if desired!
-				f = 0
-				while True:
-					if f+self.segmentationMinLenFrames > len(odf): break
-					trigVal = util.ampToDb(odf[f] / maxpower)				
-					if trigVal < self.segmentationThresh:
-						f += 1
-						continue
-					# an onset because above trigger threshold
-					segmentationLogicString = 'trig=%.2f'%trigVal
-					segLen = self.segmentationMinLenFrames
-					while True:
-						# an offset if end of file is reached
-						if f+segLen+1 >= len(odf):
-							reason = ['eof', len(odf)]
-							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-							segmentationLogicString += ' eof=%.2f'%AnalInterface.f2s(self.whole.lengthInFrames)
-							break
-						# an offset if max seg length is reached
-						if segLen+1 >= self.segmentationMaxLenFrames:
-							reason = ['maxSegLength', len(odf)]
-							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-							segmentationLogicString += ' maxSegLength=%.2f'%self.segmentationMaxLenSec
-							break			
-						# an offset if amplitude is below offset threshold
-						if power[f+segLen] < self.powerOffsetValue:
-							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-							segmentationLogicString += ' drop=%.2f'%util.ampToDb(power[f+segLen])
-							break
-						# an offset if riseratio is too large
-						riseRatio = power[f+segLen+1]/power[f+segLen]
-						if riseRatio >= userRiseRatio:
-							endtimeSec = min(AnalInterface.f2s(f+segLen), self.whole.soundfileTotalDuration)
-							segmentationLogicString += ' rise=%.2f'%riseRatio
-							break
-						segLen += 1
-					if (f, f+segLen) not in self.segmentationInOnsetFrames:
-						self.segmentationInOnsetFrames.append((f, f+segLen))
-						if ops.SEGMENTATION_FILE_INFO == 'logic':
-							self.extraSegmentationData.append(segmentationLogicString)
-					f += segLen
+			for userRiseRatio in riseRatioList: # this a list of rises if desired!
+				segments, logic = segmentationAlgoV2(self.segmentationThresh, self.powerOffsetValue, self.segmentationOffsetRise, power, odf, self.segmentationMinLenFrames, self.segmentationMaxLenFrames, AnalInterface)
+				# ensure that each segment isn't in the list already
+				for idx in range(len(segments)):
+					if segments[idx] in self.segmentationInOnsetFrames: continue
+					self.segmentationInOnsetFrames.append(segments[idx])
+					if ops.SEGMENTATION_FILE_INFO == 'logic':
+						self.extraSegmentationData.append(logic[idx])
 			# end loop
 			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInOnsetFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
 		else: # load target segments from a file
@@ -448,7 +414,8 @@ class target: # the target
 		for seg in self.segs:
 			seg.initMixture(AnalInterface)
 			for dobj in AnalInterface.mixtureDescriptors:
-				seg.mixdesc[dobj.name].setNorm(seg.desc[dobj.name].normSubtract, seg.desc[dobj.name].normDivide)
+				# copy the normalization paramaters from the target segments onto the mix descriptors
+				seg.mixdesc[dobj.name].setNorm(seg.desc[dobj.name].normdict)
 	########################################
 	def plotMetrics(self, outputpath, AnalInterface, p, normalise=True):
 		import matplotlib.pyplot as plt
@@ -527,6 +494,45 @@ class target: # the target
 
 
 	
+def segmentationAlgoV2(threshold_onset, threshold_offset, riseratio, powers, odf, minlen, maxlen, AnalInterface):
+	f = 0
+	maxpower = np.max(powers)
+	segments = []
+	logic = []
+	while True:
+		if f+minlen > len(odf): break
+		trigVal = util.ampToDb(odf[f] / maxpower)				
+		if trigVal < threshold_onset:
+			f += 1
+			continue
+		# an onset because above trigger threshold
+		segmentationLogicString = 'trig=%.2f'%trigVal
+		s = minlen
+		while True:
+			# an offset if end of file is reached
+			if f+s+1 >= len(odf):
+				segmentationLogicString += ' eof=%.1f'%AnalInterface.f2s(len(powers))
+				break
+			# an offset if max seg length is reached
+			if s+1 >= maxlen:
+				segmentationLogicString += ' maxseglen=%.1f'%AnalInterface.f2s(maxlen)
+				break			
+			# an offset if amplitude is below offset threshold
+			if powers[f+s] < threshold_offset:
+				segmentationLogicString += ' drop=%.0f'%util.ampToDb(powers[f+s])
+				break
+			# an offset if riseratio is too large
+			riseRatioTmp = powers[f+s+1]/powers[f+s]
+			if riseRatioTmp >= riseratio:
+				segmentationLogicString += ' rise=%.3f'%riseRatioTmp
+				break
+			s += 1
+
+		segments.append((f, f+s))
+		logic.append(segmentationLogicString)
+		f += s
+	return segments, logic
+
 
 
 def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True, stdDeltaDegreesOfFreedom=0):
@@ -544,15 +550,14 @@ def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=Tru
 	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }
 
 
+
+
 def applyDescriptorNormalisation(listOfSegmentObjs, dobj, descStatistics):
-	if dobj.normmethod == 'minmax':
-		valToSubtract = descStatistics['min']
-		valToDivide =   descStatistics['max']-descStatistics['min']
-	elif dobj.normmethod == 'stddev':
-		valToSubtract = descStatistics['mean']
-		valToDivide =   descStatistics['stddev']
-	else:
-		assert False
+	# this function must be unique for the corpus and target as they will have different normalization coefs
+	normdatadict = {'method': dobj.normmethod}
+	normdatadict.update(descStatistics)
+	normdatadict['range'] = normdatadict['max']-normdatadict['min']
+
 	for sfseg in listOfSegmentObjs:
-		sfseg.desc[dobj.name].setNorm(valToSubtract, valToDivide)
+		sfseg.desc[dobj.name].setNorm(normdatadict)
 

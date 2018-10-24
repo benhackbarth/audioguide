@@ -116,7 +116,7 @@ UserVar_types = {
 'CSOUND_KSMPS': ['an integer greater than zero'],
 'CSOUND_BITS': ['an integer greater than zero'],
 'CSOUND_ALIGN_PEAKS': ['True or False'],
-'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap'], 
+'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix'], # mix is deprecated 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_SEGMENT_MIN_DUR': ['None', 'a number'],
 'CSOUND_SEGMENT_MAX_DUR': ['None', 'a number'],
@@ -142,8 +142,6 @@ UserVar_types = {
 ################  USER INTERACTION / PRINTING  ##############
 'SEARCH_PATHS': ['a list of strings'],
 'VERBOSITY': ['a number greater than or equal to zero'],
-'PRINT_SELECTION_HISTO': ['True or False'],
-'PRINT_SIM_SELECTION_HISTO': ['True or False'],
 }
 
 

@@ -111,7 +111,7 @@ class distanceCalculations:
 				### if this is the last pass
 				if lastPass and len(newList) > 1: # make a random choice
 					newList = [random.choice(newList)]
-				self.logTextOutput += "\tdistance calc pass #%i - %s - %i -> %i ( %2.2f <-> %2.2f )\n"%(spidx+1, spassobj.method, len(self.corpusObjs), len(newList), mind, maxd)
+				#self.logTextOutput += "\tdistance calc pass #%i - %s - %i -> %i ( %2.2f <-> %2.2f )\n"%(spidx+1, spassobj.method, len(self.corpusObjs), len(newList), mind, maxd)
 				self.corpusObjs = newList
 				
 			
