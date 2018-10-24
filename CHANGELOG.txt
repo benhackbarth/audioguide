@@ -12,6 +12,8 @@
 
 • A new segmentation script called agGranulateSf.py has been added.  It is useful for creating corpi with fixed-duration overlapping grains suitable for granular synthesis.  See the documentation in examples/06-granular.py for details.
 
+• A section about normalization has been added to the documentation.  http://www.benhackbarth.com/audioGuide/docs_v1.29.html#Normalization
+
 • Csound rendering has changed slightly to be more flexible with regard to corpus soundfiles with different numbers of channels.  By default, CSOUND_CHANNEL_RENDER_METHOD is now “corpusmax” and rendering supports 4-channel corpus files.
 
 • You can now set the bit depth of concatenations rendered with Csound with CSOUND_BITS.  32 bit output files are now supported.

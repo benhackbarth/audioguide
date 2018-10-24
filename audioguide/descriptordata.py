@@ -77,12 +77,12 @@ def normalize(floatOrArray, method, paramdict):
 	if method == 'stddev':
 		mean = paramdict['mean']
 		stddev = paramdict['stddev']
-		print('stddev', floatOrArray, mean, stddev, '->', (floatOrArray-mean)/stddev)
+		#print('stddev', floatOrArray, mean, stddev, '->', (floatOrArray-mean)/stddev)
 		return (floatOrArray-mean)/stddev
 	elif method == 'minmax':
 		min = paramdict['min']
 		range = paramdict['range']
-		print('minmax', floatOrArray, min, range, '->', (floatOrArray-min)/range)
+		#print('minmax', floatOrArray, min, range, '->', (floatOrArray-min)/range)
 		return (floatOrArray-min)/range
 	elif method == 'sigmoid':
 		max = paramdict['max']

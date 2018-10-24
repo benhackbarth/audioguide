@@ -8,6 +8,11 @@ import audioguide.util as util
 import audioguide.html5output as html5output
 
 
+if sys.version_info < (3, 0):
+	reload(sys)   # for python2 string decode handling... what a PITA
+	sys.setdefaultencoding('utf8')
+
+
 class TerminalController:
     """
     A class that can be used to portably generate formatted output to
