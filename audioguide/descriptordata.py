@@ -95,8 +95,6 @@ class timeVaryingDescriptorData:
 		self.dobj = dobj
 		self.data = None # gets set in sfsegment class
 		self.datanorm = None # gets created when values are requested
-		#self.normSubtract = None # gets set by self.setNorm()
-		#self.normDivide = None # gets set by self.setNorm()
 		self.normdict = None # gets set by self.setNorm()
 	##########
 	def __len__(self):
@@ -137,9 +135,8 @@ class segmentedDescriptorData:
 	def __init__(self, dobj, sfseghandle):
 		self.dobj = dobj
 		self.sfseghandle = sfseghandle
-		self.normSubtract = None
-		self.normDivide = None
 		self.clear()
+		self.normdict = None # gets set by self.setNorm()
 		self.v = False
 	##########
 	def clear(self):

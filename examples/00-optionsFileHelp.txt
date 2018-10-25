@@ -1,0 +1,29 @@
+Options files are a simple series of variables which are defined and written in python's syntax.
+VARIABLE1 = 'This is a string'
+VARIABLE2 = "This is also a string"
+# this is a comment
+VARLIST=['this', 'is', 'a', 'valid', 'list']
+VARLIST2=[
+'this', 
+'is', 
+'also', 
+'a', 
+'valid', 
+'list'
+]
+
+DICT = {1: 2, 4: 2}
+
+
+
+Each variable that you write is only definable once; python will always ignore earlier definitions are keep the last one.
+VAR1=100
+VAR2=30
+VAR1=20 # VAR1 will be 20, since the definitin of 100 was overwritten
+
+
+Several of the variables that you work with in AudioGuide are actually objects with variables and keyword variables.  Keyword variables have default values that are listed in the documentation.
+
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
+
+

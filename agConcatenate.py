@@ -476,7 +476,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 	
-	if True:#ops.CSOUND_NORMALIZE:
+	if ops.CSOUND_NORMALIZE:
 		csd.normalize(ops.CSOUND_RENDER_FILEPATH, db=ops.CSOUND_NORMALIZE_PEAK_DB)
 
 

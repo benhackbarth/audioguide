@@ -4,11 +4,11 @@
 
 • AudioGuide no longer depends on the pysdif module.
 
-• AudioGuide is now cross-compatible with Python2 and Python3.  I’ve tested the code fairly thoroughly, and everything seems to work.  Please send bugs if you find them.
+• AudioGuide is now cross-compatible with Python2 and Python3.  I’ve tested the code fairly thoroughly, and everything seems to work (midi file output is currently broken in Pyhon3).  Please send bugs if you find them.
 
 • The log.txt output file from the agConcatenate.py script has been replaced with log.html.  It logs similar information, but also includes interactive graphs and charts plotting corpus and target descriptor data using chartjs.  I would like to augment this in the future.
 
-• The agSegmentSf.py has a new option, -m, called multirise, which is disabled by default.  However when this flag is added to a segmentation call, the segmentation algorithm will loop over the corpus soundfile several times, varying the user supplied riseRatio (-r) +/- 20%.  This results in more segments being generated that can overlap with each other; certain segments will start at the same time, but last different durations.  Try “agSegmentSf.py examples/lachenmann.aiff” with and without the -m flag and look at the difference when importing examples/lachenmann.aiff.txt in Audacity.
+• The agSegmentSf.py has a new option, -m, called multirise, which is disabled by default.  However when this flag is added to a corpus file segmentation call, the segmentation algorithm will loop over the corpus soundfile several times, varying the user supplied riseRatio (-r) +/- 20%.  This results in more segments being generated that can overlap with each other; certain segments will start at the same time, but last different durations.  See the documentation at file:///Users/ben/Documents/audioguide/docs_v1.291.html#FinessingCorpusSegmentation
 
 • A new segmentation script called agGranulateSf.py has been added.  It is useful for creating corpi with fixed-duration overlapping grains suitable for granular synthesis.  See the documentation in examples/06-granular.py for details.
 

@@ -35,6 +35,17 @@ pre[class*="language-"] {
 }
 
 
+figure {
+  width: 60%;
+  text-align: center;
+  font-size: smaller;
+  text-indent: 0;
+  border: thin silver solid;
+  margin: 0.5em;
+  padding: 0.5em;
+}
+
+
 .group {
 }
 .group .subgroup {
@@ -143,16 +154,16 @@ $('body').scrollspy({
 	<div class="row">
 <!--Main Content -->
 <div class="col-xs-9 bs-docs-mainbar">
-<p align="center"><h1>AudioGuide1.291 Manual</h1>
+<p align="center"><h1>AudioGuide1.292 Manual</h1>
 By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno.<br>
 Copyright Ben Hackbarth, 2011-2018.</p><br>
 
 
 
 <section id="Installation" class="group"><h2>Installation</h2>
-For the moment AudioGuide1.291 only works on OS X.  On more current versions of OS X it should run out of the box with python2 or python3.  Here is a complete list of the resources that AudioGuide1.291 requires on your computer:
+For the moment AudioGuide1.292 only works on OS X.  On more current versions of OS X it should run out of the box with python2 or python3.  Here is a complete list of the resources that AudioGuide1.292 requires on your computer:
 <ul>
-<li><b>csound6</b> - Needed only if you would like AudioGuide1.291 to automatically render concatenations (which you probably do).  Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python.  Upgrading to the latest python2.7 will automatically install numpy.  If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>.<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation.  Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
+<li><b>csound6</b> - Needed only if you would like AudioGuide to automatically render concatenations (which you probably do).  Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python.  Upgrading to the latest python2.7 will automatically install numpy.  If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>.<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation.  Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
 </section>
 
 
@@ -178,13 +189,13 @@ The reason that segmentation and concatenation are separated into discrete steps
 
 
 <section id="CorpusSegmentation" class="group"><h2>Corpus Segmentation</h2>
-There are several tools in AudioGuide1.291 to segment long soundfiles into smaller chucks for use in concatenation.  Keep in mind that you do not <i>need</i> to use AudioGuide1.291 scripts if you do not want to -- alternatively you could:
+There are several tools in AudioGuide1.292 to segment long soundfiles into smaller chucks for use in concatenation.  Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you could:
 <ul>
-<li> Use whole soundfiles as corpus segments.  If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip this section and proceed to the <a href="#Concatenating">concatenation</a> section (However make sure tell AudioGuide1.291 not to search for segmentation textfiles by setting the corpus attribute wholeFile=True.  See <a href="#ManipulatingHowDirectoriesAreRead">Manipulating How Directories Are Read</a> for more info.).
+<li> Use whole soundfiles as corpus segments.  If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip this section and proceed to the <a href="#Concatenating">concatenation</a> section (However make sure tell AudioGuide not to search for segmentation textfiles by setting the corpus attribute wholeFile=True.  See <a href="#ManipulatingHowDirectoriesAreRead">Manipulating How Directories Are Read</a> for more info.).
 <li> Create segmentation files by hand.  You can do this in Audacity with its 'Labels' feature.  Create a label track and indicate the start and end times of desired sound segments.  Then "Export Labels..." and give the outputfile the same name as the soundfile + '.txt'.  So, 'examples/lachenmann.aiff' would need a label file named 'examples/lachenmann.aiff.txt'.
-<li> Create segmentation files with other software as long the textfile is written in the same format as AudioGuide1.291&rsquo;s.
+<li> Create segmentation files with other software as long the textfile is written in the same format as AudioGuide&rsquo;s.
 </ul>
-The sections below details two scripts included with AudioGuide1.291 that can automate this process for you, agSegmentSf.py and agGranulateSf.py.
+The sections below details two scripts included with AudioGuide1.292 that can automate this process for you, agSegmentSf.py and agGranulateSf.py.
 
 
 
@@ -193,13 +204,13 @@ The sections below details two scripts included with AudioGuide1.291 that can au
 The script you use to segment your corpus files according to it's acoustic features is called &lsquo;agSegmentSf.py&rsquo;.  AgSegmentSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.291 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.292 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agSegmentSf.py examples/lachenmann.aiff
 </code></pre>
 
 
-AudioGuide1.291 will think for a second, and then output the following data detailing the segmentation of this audiofile:
+AudioGuide will think for a second, and then output the following data detailing the segmentation of this audiofile:
 
 <pre class="language-none"><code class="language-none">---------------------- AUDIOGUIDE SEGMENT SOUNDFILE ----------------------
 
@@ -219,7 +230,7 @@ Found 144 segments
 Wrote file /Users/ben/Documents/audioguide1.1/examples/lachenmann.aiff.txt
 </code></pre>
 
-As a result of running this python script, AudioGuide1.291 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.292 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 
 
@@ -242,7 +253,17 @@ Note that to segment a whole directory of soundfiles, you may use wildcard chara
 
 
 The textfiles created by agSegmentSf.py use a segmentation labeling format identical to that of the soundfile editor Audacity.  So, to examine your segments, open lachenmann.aiff in Audacity, then import labels and select &lsquo;examples/lachenmann.aiff.txt&rsquo;.
-<p align="left"><img src="image1.png" width=500 height=195></p>
+
+
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationSf.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">Segmenation produced by running the command 'python agSegmentSf.py examples/lachenmann.aiff'</figcaption>
+</figure>
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationSfMinusM.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">Segmenation produced by running the command 'python agSegmentSf.py -m examples/lachenmann.aiff'</figcaption>
+</figure>
+
 </div>
 </section>
 
@@ -254,7 +275,7 @@ The textfiles created by agSegmentSf.py use a segmentation labeling format ident
 A script you can use to segment your corpus files for use with granular synthesis is called &lsquo;agGranulateSf.py&rsquo;.  Like agSegmentSf.py, agGranulateSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.  Unlike agSegmentSf.py, this script chops up a soundfile into evenly size grains and provides a mechanism for adjusting grain overlap.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.291 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.292 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agGranuateSf.py examples/lachenmann.aiff
 </code></pre>
@@ -262,8 +283,12 @@ To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.291 folder and r
 There are similar flags to the agSegment script, as we only want to use grains where there is audio present.  Thus the -t, -a, and -d remain.  Grain length in second is specified with the -g flag and grain overlap is specified with -o.
 <ul> <li id="flag--g"><b>-g &#60;value&#62;</b> (<span style="color:green">greater than zero</span>; the default is <span style="color:green">0.1</span>) - This flag sets the length of generated grains in seconds.  All segments generated with agGranulate will be this length.</li><li id="flag--o"><b>-o &#60;value&#62;</b> (<span style="color:green">greater than zero, less than -g</span>; the default is <span style="color:green">0.05</span>) - This flag sets the distance between sucessive grain overlaps in seconds.  If this value is 0.05 a new grain will begin every 0.05 seconds.  If -g is 0.3, the overlap of grains will be 6.</li><li id="flag--t"><b>-t &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-40</span>) - This flag gives the onset trigger threshold value in dB.  When the soundfile's amplitude rises above the threshold, grains start being generated.  Higher values closer to 0 will lead to fewer grains.</li><li id="flag--d"><b>-d &#60;value&#62;</b> (<span style="color:green">between 0 and 100</span>; the default is <span style="color:green">+12</span>) - This flag sets the relative offset trigger threshold.  This value is added to the soundfile’s minimum amplitude.  During segmentation, if a frame’s amplitude is below this threshold, it causes grains to stop being generated. For instance, if the lowest amplitude in the soundfile is -82 and -d is set to +12, a dB value of -70 dB will cause grains to cease.  Also see -a.</li><li id="flag--a"><b>-a &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-80</span>) - This flag changes the segmentation offset absolute threshold. When segmenting the target, if a frame's amplitude is below this value it will cause grains to stop being generated. This variable is an absolute value whereas -d specifies a value relative to the soundfile’s minimum amplitude. Effectively, whichever of these two variables is higher will be the offset threshold.  Also see -d.</li></ul>
 
-As a result of running this python script, AudioGuide1.291 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.292 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationGranulate.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">Segmenation produced by running the command 'python agGranulateSf.py -g 0.3 -o 0.15 examples/lachenmann.aiff'</figcaption>
+</figure>
 It is important to note that, if you wish to window each grain with a fade in and fade out when concatenating, you will need to use the csf() onsetLen and offsetLen keyword arguments.
 <pre class="language-none"><code class="language-none">csf('lachenmann.aiff', onsetLen='50%', offsetLen='50%')
 </code></pre>
@@ -278,15 +303,15 @@ See examples/06-granular.py for usage and details.
 
 
 <section id="ConcatenatingwithagConcatenatepy" class="group"><h2>Concatenating with agConcatenate.py</h2>
-Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.291 options file as the first (and only) argument.  
+Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.292 options file as the first (and only) argument.  
 <br><br>
-To run one of the examples in the examples directory, run the following command inside the AudioGuide1.291 directory:
+To run one of the examples in the examples directory, run the following command inside the AudioGuide1.292 directory:
 <pre><code>python agConcatenate.py examples/01-simplest.py
 </code></pre>
 
 ...which will use the options contained in &lsquo;examples/01-simplest.py&rsquo; to parameterize the concatenative algorithm.  In this options file you specify a target sound, the corpus sounds, and (if you like) lots of other options that parameterize the concatenative process.  When run, the &lsquo;agConcatenate.py&rsquo; script will perform the following operations:
 <ul>
-<li>  Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk.  Analysis files are stored in a directory called &lsquo;audioguide/data/&rsquo; in the AudioGuide1.291 folder.  This directory can become quite large since these files are quite substantial in size.  Removing this folder will cause all analysis files to be recomputed).  
+<li>  Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk.  Analysis files are stored in a directory called &lsquo;audioguide/data/&rsquo; in the AudioGuide1.292 folder.  This directory can become quite large since these files are quite substantial in size.  Removing this folder will cause all analysis files to be recomputed).  
 <li>  Segment the target sound according to your options file.  An Audacity-style label file is created in a file called &lsquo;output/tgtlabels.txt&rsquo; in the output directory.
 <li>  Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
 <li> (If you&rsquo;ve specified them) Remove corpus segments according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
@@ -386,7 +411,7 @@ csf('lachenmann.aiff', limit=['centroid-seg < 50%']) # only use 50% of segments 
 csf('lachenmann.aiff', limit=['power-seg < 50%', 'power-seg > 10%']) # only use segments whose power-seg falls between 10%-50% of the total range of power-seg's in this file/directory.
 </code></pre>
 
-<li><b>segmentationFile</b> - Manually specify the segmentation text file. By default, AudioGuide1.291 automatically looks for a file with the same name as the soundfile plus the extension &lsquo;.txt&rsquo;. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.<li><b>segmentationExtension</b> - Manually specify the segmentation text file extension.  See above.</ul>
+<li><b>segmentationFile</b> - Manually specify the segmentation text file. By default, AudioGuide automatically looks for a file with the same name as the soundfile plus the extension &lsquo;.txt&rsquo;. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.<li><b>segmentationExtension</b> - Manually specify the segmentation text file extension.  See above.</ul>
 
 <pre class="language-python"><code class="language-python">csf('lachenmann.aiff', segmentationFile='marmotTent.txt') # will use a segmentation file called marmotTent.txt, not the default lachenmann.aiff.txt.
 
@@ -405,9 +430,9 @@ csf('lachenmann.aiff', segmentationExtension='-gran.txt') # will use a segmentat
 <div id="HowDirectoriesAreRead" class="subsubgroup"><h4>How Directories Are Read</h4>
 The following csf() keyword arguments are useful when dealing with directories of files.
 <ul>
-<li><b>wholeFile</b> - if True AudioGuide1.291 will use this soundfile as one single segment.  If False, AudioGuide1.291 will search for a segmnetation file made with agSegmentSf.py.<pre class="language-python"><code class="language-python">csf('sliced/my-directory', wholeFile=True) # will not search for a segmentation txt file, but use whole soundfiles as single segments.
+<li><b>wholeFile</b> - if True AudioGuide will use this soundfile as one single segment.  If False, AudioGuide will search for a segmnetation file made with agSegmentSf.py.<pre class="language-python"><code class="language-python">csf('sliced/my-directory', wholeFile=True) # will not search for a segmentation txt file, but use whole soundfiles as single segments.
 </code></pre>
-<li><b>recursive</b> - if True AudioGuide1.291 will include sounds in all subfolders of a given directory.<pre class="language-python"><code class="language-python">csf('/Users/ben/gravillons', wholeFile=True, recursive=False) # will only use soundfiles in the named folder, ignoring its subdirectories.
+<li><b>recursive</b> - if True AudioGuide will include sounds in all subfolders of a given directory.<pre class="language-python"><code class="language-python">csf('/Users/ben/gravillons', wholeFile=True, recursive=False) # will only use soundfiles in the named folder, ignoring its subdirectories.
 </code></pre>
 <li><b>includeStr</b> - A string which is matched against the filename (not full path) of each soundfile in a given directory.  If part of the soundfile name matches this string, it is included.  If not it is excluded.  This is case sensitive.  See example below.<li><b>excludeStr</b> - Opposite of includeStr.<pre class="language-python"><code class="language-python"># includeStr/excludeStr have lots of uses.  One to highlight here: working with sample databases which are normalized.  Rather than having each corpus segment be at 0dbs, we apply a scaleDb value based on the presence of a &lsquo;dynamic' written into the filename.
 csf('Vienna-harpNotes/', includeStr=['_f_', '_ff_'], scaleDb=-6),
@@ -429,7 +454,7 @@ Below are csf() keywords which influence how sound segments are treated during c
 <ul>
 <li><b>scaleDb</b> - applies an amplitude change to each segment of this collection. by default, it is 0, yielding no change. -6 = twice as soft.  Note that amplitude scaling affects both the concatenative algorithm and the csound rendering.<li><b>limitDur</b> - limits the duration of each segment from this csf() entry.  The duration of all segments over this value (in seconds) will be truncated.  <li><b>onsetLen</b> - if onsetLen is a float or integer, it is the fade-in time in seconds.  If it is a string formed as &rsquo;10%&rsquo;, it is interpreted as a percent of each segment&rsquo;s duration.  So, onsetLen=0.1 yields a 100 ms. attack envelope while onsetLen=&rsquo;50%&rsquo; yields a fade in over 50% of the segment&rsquo;s duration.<li><b>offsetLen</b> - Same as onsetLen, but for the envelope fade out.<pre class="language-python"><code class="language-python">csf('lachenmann.aiff', onsetLen=0.1, offsetLen='50%') # will apply a 100ms fade in time and a fade out time lasting 50% of each segments' duration.
 </code></pre>
-<li><b>postSelectAmpBool</b> - If True, AudioGuide1.291 will attempt to change the amplitude of selected segments to match the amplitude of the target.  The default, False, makes no adjustment.<li><b>postSelectAmpMethod</b> - Tells AudioGuide1.291 how to attempt to match corpus and target amplitudes.  It is only meaningful if postSelectAmpMethod is True:<ul><li><b>&lsquo;power-mean-seg&rsquo;</b> - will use the mean of segment powers&rsquo; to change adjust selected segments amplitudes. <li><b>&lsquo;power-seg&rsquo;</b> - will adjust amplitudes according to peak amplitudes.  </ul><li><b>postSelectAmpMin</b> - If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.<li><b>postSelectAmpMax</b> - If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.<li><b><a id="midiPitchMethod"></a>midiPitchMethod</b> - this tells AudioGuide1.291 how got calculate a midipitch for each segment.  There are several possibilities, detailed below.  Note that if any of these methods do not find a result, -1 is returned.  This attribute is used when writing midi output files.  This data is also accessible as the descriptor d('MIDIPitch-seg').<ul><li><b>&lsquo;f0-seg&rsquo;</b> - returns the averaged f0 array as the midipitch.  Note that it is not power weighted - it is actually the median of f0.<li><b>&lsquo;centroid-seg&rsquo;</b> - returns the power averaged centroid converted into a midipitch.<li><b>&lsquo;filename&rsquo;</b> - looks at the filename of the corpus segment to see if there is a midipitch indicated.  Names like A1ShortSeq.wav, Fs1ShortSeq.wav and BP-flatter-f-A\#3.wav work.<li><b>&lsquo;composite&rsquo;</b> - first tries to look for a midipitch in the filename.  If not found, then tries &lsquo;f0-seg&rsquo;.</ul><li><b>transMethod</b> - A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:<ul><li><b>None</b> - yields no transposition.<li><b>&lsquo;single-pitch n&rsquo;</b> - transposes all selected segments from this csf() to midipitch n.<li><b>&lsquo;random n m&rsquo;</b> - transposes this segment randomally between midipitch n and m.<li><b>&lsquo;f0&rsquo;</b> - transposes a selected corpus segment to match the f0-seg of the corresponding target segment.<li><b>&lsquo;f0-chroma&rsquo;</b> - transposes a selected corpus segment to match the f0-seg of the corresponding target segment modulo 12 (i.e., matching its chroma).</ul><li><b>transQuantize</b> - Quantization interval for transposition of corpus sounds.  1 will quantize to semitones, 0.5 to quarter tones, 2 to whole tones, etc.<pre class="language-python"><code class="language-python">csf('piano/', transMethod='f0') # transpose corpus segments to match the target's f0.
+<li><b>postSelectAmpBool</b> - If True, AudioGuide will attempt to change the amplitude of selected segments to match the amplitude of the target.  The default, False, makes no adjustment.<li><b>postSelectAmpMethod</b> - Tells AudioGuide how to attempt to match corpus and target amplitudes.  It is only meaningful if postSelectAmpMethod is True:<ul><li><b>&lsquo;power-mean-seg&rsquo;</b> - will use the mean of segment powers&rsquo; to change adjust selected segments amplitudes. <li><b>&lsquo;power-seg&rsquo;</b> - will adjust amplitudes according to peak amplitudes.  </ul><li><b>postSelectAmpMin</b> - If postSelectAmpBool is True, this value in dB limits the lower threshold of the amplitude change.  0=no change, -6=half volume, etc.<li><b>postSelectAmpMax</b> - If postSelectAmpBool is True, this value in dB limits the upper threshold of the amplitude change.  0=no change, +6=double volume, etc.<li><b><a id="midiPitchMethod"></a>midiPitchMethod</b> - this tells AudioGuide how got calculate a midipitch for each segment.  There are several possibilities, detailed below.  Note that if any of these methods do not find a result, -1 is returned.  This attribute is used when writing midi output files.  This data is also accessible as the descriptor d('MIDIPitch-seg').<ul><li><b>&lsquo;f0-seg&rsquo;</b> - returns the averaged f0 array as the midipitch.  Note that it is not power weighted - it is actually the median of f0.<li><b>&lsquo;centroid-seg&rsquo;</b> - returns the power averaged centroid converted into a midipitch.<li><b>&lsquo;filename&rsquo;</b> - looks at the filename of the corpus segment to see if there is a midipitch indicated.  Names like A1ShortSeq.wav, Fs1ShortSeq.wav and BP-flatter-f-A\#3.wav work.<li><b>&lsquo;composite&rsquo;</b> - first tries to look for a midipitch in the filename.  If not found, then tries &lsquo;f0-seg&rsquo;.</ul><li><b>transMethod</b> - A string indicating how to transpose segments chosen from this corpus entry.  You may chose from:<ul><li><b>None</b> - yields no transposition.<li><b>&lsquo;single-pitch n&rsquo;</b> - transposes all selected segments from this csf() to midipitch n.<li><b>&lsquo;random n m&rsquo;</b> - transposes this segment randomally between midipitch n and m.<li><b>&lsquo;f0&rsquo;</b> - transposes a selected corpus segment to match the f0-seg of the corresponding target segment.<li><b>&lsquo;f0-chroma&rsquo;</b> - transposes a selected corpus segment to match the f0-seg of the corresponding target segment modulo 12 (i.e., matching its chroma).</ul><li><b>transQuantize</b> - Quantization interval for transposition of corpus sounds.  1 will quantize to semitones, 0.5 to quarter tones, 2 to whole tones, etc.<pre class="language-python"><code class="language-python">csf('piano/', transMethod='f0') # transpose corpus segments to match the target's f0.
 csf('piano/', transMethod='f0-chroma', transQuantize=0.5) # transpose corpus segments to match the target's f0 mod 12.  Then quantize each resulting pitch to the newest quarter of tone.
 </code></pre>
 
@@ -463,41 +488,38 @@ CORPUS = [csf('lachenmann.aiff'), csf('piano/', wholeFile=True)]
 
 
 <h2 id="Normalization">Normalization</h2>
-Target segments and corpus segments in AudioGuide1.291 are normalized with d() object keywords, documented in the section below.
+<p>Target segments and corpus segments in AudioGuide are normalized with d() object keywords, documented in the section below.</p>
 
-Normalization is important when measuring the similarity between two different data sets (target sound segments and corpus sound segments) - it is essentially a way of mapping the two data sets onto each other.  It is often the case that the target soundfile is less "expressive" than the corpus - i.e. that the variation in the target sound's descriptors are less robust that the variation of the descriptors found across the corpus.  This is the case in examples/01-simplest.py: Cage's voice is fairly monolithic with regard to timbre, amplitude, pitch, etc., which the Lachenmann contains a great deal more nuance in timbre and dynamics.  Under these circumstances, what do we want AudioGuide1.291 to do?  Should Cage's relatively small variation in descriptor space be matched to a relatively small subset of the corpus?  Or should Cage's variation in descriptor space be streched to fit the total variation of the corpus?  My default answer to this question (aesthetically, compositionally, musically) is the latter.  And it is for that reason that AudioGuide1.291's default mode of operating is to normalize target and corpus descirptor spaces separately so that the variability of the target is stretched to fit the variabley of the corpus.  This is done with the norm=2 flag in the d() object; norm=1 normlaizes the target and corpus descirptor spaces together so that descriptor values are better preserved.
+Normalization is important when measuring the similarity between two different data sets (target sound segments and corpus sound segments) - it is essentially a way of mapping the two data sets onto each other.  It is often the case that the target soundfile is less "expressive" than the corpus - i.e. that the variation in the target sound's descriptors are less robust that the variation of the descriptors found across the corpus.  </p>
 
-The two charts below show target and corpus segments from examples/01-simplest.py normalized together and separately to show the difference.  Normalized descriptor values affect how similarity is measured and therefore which corpus segments will be picked to "match" target segments.
+<p>This is the case in examples/01-simplest.py: Cage's voice is fairly monolithic with regard to timbre, amplitude, pitch, etc., which the Lachenmann contains a great deal more nuance in timbre and dynamics.  Under these circumstances, what do we want AudioGuide to do?  Should Cage's relatively small variation in descriptor space be matched to a relatively small subset of the corpus?  Or should Cage's variation in descriptor space be streched to fit the total variation of the corpus?  My default answer to this question (aesthetically, compositionally, musically) is the latter.  And it is for that reason that AudioGuide's default mode of operating is to normalize target and corpus descirptor spaces separately so that the variability of the target is stretched to fit the variabley of the corpus.  </p>
 
+<p>This is done with the norm=2 flag in the d() object; norm=1 normlaizes the target and corpus descirptor spaces together so that descriptor values are better preserved.  The two charts below show target and corpus segments from examples/01-simplest.py normalized together and separately to show the difference.  Normalized descriptor values affect how similarity is measured and therefore which corpus segments will be picked to "match" target segments.</p>
 
-<p align="left">
-<pre class="language-python"><code class="language-python">spass('closest', d('centroid-seg'), d('power-seg'))</code></pre>
-<img src="stddev.png" width=100%></p>
-
-
-<p align="left">
-<pre class="language-python"><code class="language-python">spass('closest', d('centroid-seg', norm=1), d('power-seg', norm=1))</code></pre>
-<img src="norm1.png" width=100%></p>
-
-
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/stddev.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">spass('closest', d('centroid-seg'), d('power-seg'))</figcaption>
+</figure><figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/norm1.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">spass('closest', d('centroid-seg', norm=1), d('power-seg', norm=1))</figcaption>
+</figure>
 
 In addition to specifying whether or not target and corpus values are normalized together or separately, you can change the algorithm for normalization.  By default, normmethod='stddev', but graphs below show two other possibilities.
 
 
 
-
-<p align="left">
-<pre class="language-python"><code class="language-python">spass('closest', d('centroid-seg', normmethod="minmax"), d('power-seg', normmethod="minmax"))</code></pre>
-<img src="minmax.png" width=100%></p>
-
-
-<p align="left">
-<pre class="language-python"><code class="language-python">spass('closest', d('centroid-seg', normmethod="sigmoid"), d('power-seg', normmethod="sigmoid"))</code></pre>
-<img src="sigmoid.png" width=100%></p>
-
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/minmax.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">spass('closest', d('centroid-seg', normmethod='minmax'), d('power-seg', normmethod='minmax'))</figcaption>
+</figure>
+<figure class="figure">
+  <img src="http://www.benhackbarth.com/audioGuide/docimg/sigmoid.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+  <figcaption class="figure-caption">spass('closest', d('centroid-seg', normmethod='sigmoid'), d('power-seg', normmethod='sigmoid'))</figcaption>
+</figure>
 
 
-However, there are certainly moments when you would want to opt for norm=1.  Take the descriptor f0-seg for instance.  Given d('f0-seg', norm=1), AudioGuide1.291 will attempt to match f0s between the target and corpus as closely as possible.  Given d('f0-seg', norm=2), AudioGuide1.291 will stretch the target's f0s to match the variablelity of f0s in the corpus, effectively matching the target's contour of pitch but not its exact pitches.
+
+However, there are certainly moments when you would want to opt for norm=1.  Take the descriptor f0-seg for instance.  Given d('f0-seg', norm=1), AudioGuide will attempt to match f0s between the target and corpus as closely as possible.  Given d('f0-seg', norm=2), AudioGuide will stretch the target's f0s to match the variablelity of f0s in the corpus, effectively matching the target's contour of pitch but not its exact pitches.
 
 
 
@@ -543,7 +565,7 @@ Use the d() object to specify a descriptor, how it is weighted, and how it is no
 
 
 <div id="SEARCHvariable" class="subgroup"><h3>SEARCH variable and spass() object</h3>
-The SEARCH variable tells AudioGuide1.291 how to pick corpus segments to match target segments.  The idea here is make a <i>very</i> flexible searching structure where the user can create multiple search passes based on different descriptor criteria.
+The SEARCH variable tells AudioGuide how to pick corpus segments to match target segments.  The idea here is make a <i>very</i> flexible searching structure where the user can create multiple search passes based on different descriptor criteria.
 
 The SEARCH variable is a list of spass() objects.  Each spass() has the following parameters: 
 <pre class="language-python"><code class="language-python">spass(search_type, descriptor1...descriptorN, percent=None, minratio=None, maxratio=None)
@@ -564,7 +586,7 @@ Note that the first argument is the type of search performed -- in this case, se
 </code></pre>
 
 
-Ok, great.  As you can probably imagine, the first argument, &lsquo;closest&rsquo;, tells AudioGuide1.291 to pick the closest sound.  But, there are also other possibilities:
+Ok, great.  As you can probably imagine, the first argument, &lsquo;closest&rsquo;, tells AudioGuide to pick the closest sound.  But, there are also other possibilities:
 
 <pre class="language-python"><code class="language-python">SEARCH = [spass('farthest', d('centroid'))] # return the worst matching segment.
 
@@ -576,7 +598,7 @@ SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.5)] # return segmen
 </code></pre>
 
 
-If you use &lsquo;closest_percent&rsquo; or &lsquo;farthest_percent&rsquo; as the one and only spass object in the SEARCH variable, AudioGuide1.291 will select a corpus segment randomly among the final candidates.  However, you can also chain spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:
+If you use &lsquo;closest_percent&rsquo; or &lsquo;farthest_percent&rsquo; as the one and only spass object in the SEARCH variable, AudioGuide will select a corpus segment randomly among the final candidates.  However, you can also chain spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:
 
 <pre class="language-python"><code class="language-python">SEARCH = [
 spass('closest_percent', d('effDur-seg'), percent=20), # take the best 20% of matches from the corpus
@@ -585,7 +607,7 @@ spass('closest', d('mfccs')), # now find the best matching segment from the 20 p
 </code></pre>
 
 
-I use the above example a lot when using AudioGuide1.291.  It first matches effDur-seg, the effective duration of the target measured agains&rsquo;t the effective duration of each corpus segment.  It retains the 20% closest matches, and throws away the worst 80%.  Then, with the remaining 20%, the timbre of the sounds are matched according to mfccs.
+I use the above example a lot when using AudioGuide.  It first matches effDur-seg, the effective duration of the target measured agains&rsquo;t the effective duration of each corpus segment.  It retains the 20% closest matches, and throws away the worst 80%.  Then, with the remaining 20%, the timbre of the sounds are matched according to mfccs.
 
 <pre class="language-python"><code class="language-python">SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.9, maxratio=1.1)] # reduce the number of samples in the corpus such 
 </code></pre>
@@ -622,7 +644,7 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 <div id="DescriptorComputationParameters" class="subsubgroup"><h4>Descriptor Computation Parameters</h4>
-<p><b>DESCRIPTOR_FORCE_ANALYSIS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True, AudioGuide1.291 is forced to remake all analysis file, even if previously made.</p><p><b>DESCRIPTOR_WIN_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.04096</span>) the FFT window size of descriptor analysis in seconds.  0.04096 seconds = 512 @ 12.5kHz (the default resample rate).</p><p><b>DESCRIPTOR_HOP_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.01024</span>) the FFT window overlaps of descriptor analysis in seconds.  Important, as it effectively sets of temporal resolution of AudioGuide1.291.</p><p><b>IRCAMDESCRIPTOR_RESAMPLE_RATE</b> (type=<span style="color:red">int</span>, default=<span style="color:green">25000</span>) The internal resample rate of the IRCAM analysis binary.  Important, as it sets the frequency resolution of spectral sound descriptors.</p><p><b>IRCAMDESCRIPTOR_WINDOW_TYPE</b> (type=<span style="color:red">string</span>, default=<span style="color:green">&lsquo;blackman&rsquo;</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_NUMB_MFCCS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">13</span>) sets the number of MFCCs to make.  <i>Doesn&rsquo;t seem to work</i> in this release, as 13 is all I can ever seem to get out of the library.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_F0_MIN_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">20</span>) minimum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) maximum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_QUALITY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.1</span>) see ircamdescriptor documentation for details.</p><p><b>SUPERVP_BIN</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Optionally specify a path to the supervp analysis binary.  Used for target pre-concatenation time stretching.</p>
+<p><b>DESCRIPTOR_FORCE_ANALYSIS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True, AudioGuide is forced to remake all analysis file, even if previously made.</p><p><b>DESCRIPTOR_WIN_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.04096</span>) the FFT window size of descriptor analysis in seconds.  0.04096 seconds = 512 @ 12.5kHz (the default resample rate).</p><p><b>DESCRIPTOR_HOP_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.01024</span>) the FFT window overlaps of descriptor analysis in seconds.  Important, as it effectively sets of temporal resolution of AudioGuide.</p><p><b>IRCAMDESCRIPTOR_RESAMPLE_RATE</b> (type=<span style="color:red">int</span>, default=<span style="color:green">25000</span>) The internal resample rate of the IRCAM analysis binary.  Important, as it sets the frequency resolution of spectral sound descriptors.</p><p><b>IRCAMDESCRIPTOR_WINDOW_TYPE</b> (type=<span style="color:red">string</span>, default=<span style="color:green">&lsquo;blackman&rsquo;</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_NUMB_MFCCS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">13</span>) sets the number of MFCCs to make.  <i>Doesn&rsquo;t seem to work</i> in this release, as 13 is all I can ever seem to get out of the library.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_F0_MIN_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">20</span>) minimum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) maximum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_QUALITY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.1</span>) see ircamdescriptor documentation for details.</p><p><b>SUPERVP_BIN</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Optionally specify a path to the supervp analysis binary.  Used for target pre-concatenation time stretching.</p>
 
 </div>
 
@@ -635,7 +657,7 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 <div id="Concatenation" class="subsubgroup"><h4>Concatenation</h4>
-<p><b>ROTATE_VOICES</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False]</span>) if True, AudioGuide1.291 will rotate through the list of corpus entries during concatenation.  This means that, when selecting corpus segment one, AudioGuide1.291 will only search sound segments from the first item of the CORPUS variable.  Selection 2 will only search the second, and so on.  Corpus rotation is modular around the length of the CORPUS variable.  If the corpus only has one item, True will have no effect.</p><p><b>VOICE_PATTERN</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) if an empty list, this does nothing.  However, if the user gives a list of strings, AudioGuide1.291 will rotate through this list of each concatenative selection and only use corpus segments who&rsquo;s filepath match this string.  Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.</p><p><b>OUTPUT_QUANTIZE_TIME_METHOD</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) controls the quantisation of the start times of events selected during concatenation.  Note that any quantisation takes place after the application of OUTPUT_TIME_STRETCH and OUTPUT_TIME_ADD, as detailed below.  This variable has the following possible settings:</p><ul><li><b>None</b> - no quantisation takes place (the default).<li><b>&lsquo;snapToGrid&rsquo;</b> - conform the start times of events to a grid spaced in OUTPUT_QUANTIZE_TIME_INTERVAL second slices.<li><b>&lsquo;medianAggregate&rsquo;</b> - change each event&rsquo;s start time to the median start time of events in slices of OUTPUT_QUANTIZE_TIME_INTERVAL seconds.</ul><p><b>OUTPUT_QUANTIZE_TIME_INTERVAL</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.25</span>) defines the temporal interval in seconds for quantisation.  If OUTPUT_QUANTIZE_TIME_METHOD = None, this doesn&rsquo;t do anything.</p><p><b>OUTPUT_GAIN_DB</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) adds a uniform gain in dB to all selected corpus units.  Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.</p><p><b>OUTPUT_TIME_STRETCH</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1.</span>) stretch the temporality of selected units.  A value of 2 will stretch all events offsets by a factor of 2.</p><p><b>OUTPUT_TIME_ADD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.</span>) offset the start time of selected events by a value in seconds.</p><p><b>RANDOM_SEED</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) sets the pseudo-random seed for random unit selection.  By default a value of None will use the system&rsquo;s timestamp.  Setting an integer will create repeatable random results.</p>
+<p><b>ROTATE_VOICES</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False]</span>) if True, AudioGuide will rotate through the list of corpus entries during concatenation.  This means that, when selecting corpus segment one, AudioGuide will only search sound segments from the first item of the CORPUS variable.  Selection 2 will only search the second, and so on.  Corpus rotation is modular around the length of the CORPUS variable.  If the corpus only has one item, True will have no effect.</p><p><b>VOICE_PATTERN</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) if an empty list, this does nothing.  However, if the user gives a list of strings, AudioGuide will rotate through this list of each concatenative selection and only use corpus segments who&rsquo;s filepath match this string.  Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.</p><p><b>OUTPUT_QUANTIZE_TIME_METHOD</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) controls the quantisation of the start times of events selected during concatenation.  Note that any quantisation takes place after the application of OUTPUT_TIME_STRETCH and OUTPUT_TIME_ADD, as detailed below.  This variable has the following possible settings:</p><ul><li><b>None</b> - no quantisation takes place (the default).<li><b>&lsquo;snapToGrid&rsquo;</b> - conform the start times of events to a grid spaced in OUTPUT_QUANTIZE_TIME_INTERVAL second slices.<li><b>&lsquo;medianAggregate&rsquo;</b> - change each event&rsquo;s start time to the median start time of events in slices of OUTPUT_QUANTIZE_TIME_INTERVAL seconds.</ul><p><b>OUTPUT_QUANTIZE_TIME_INTERVAL</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.25</span>) defines the temporal interval in seconds for quantisation.  If OUTPUT_QUANTIZE_TIME_METHOD = None, this doesn&rsquo;t do anything.</p><p><b>OUTPUT_GAIN_DB</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) adds a uniform gain in dB to all selected corpus units.  Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.</p><p><b>OUTPUT_TIME_STRETCH</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1.</span>) stretch the temporality of selected units.  A value of 2 will stretch all events offsets by a factor of 2.</p><p><b>OUTPUT_TIME_ADD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.</span>) offset the start time of selected events by a value in seconds.</p><p><b>RANDOM_SEED</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) sets the pseudo-random seed for random unit selection.  By default a value of None will use the system&rsquo;s timestamp.  Setting an integer will create repeatable random results.</p>
 
 </div>
 
@@ -646,7 +668,7 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 <div id="ConcatenationOutputFiles" class="subsubgroup"><h4>Concatenation Output Files</h4>
-For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, AudioGuide1.291 will create the file relative to the location o the agConcatenate.py script.
+For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.
 
 <p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file.  This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation.</p><p><b>MIDI_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.mid&rsquo;</span>) a midi file of the concatenation with pitches chosen according to midiPitchMethod from each corpus entry.</p><p><b>OUTPUT_LABEL_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/outputlabels.txt&rsquo;</span>) Audacity-style labels showing the selected corpus sounds and how they overlap.</p><p><b>LISP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.lisp.txt&rsquo;</span>) a textfile containing selected corpus events as a lisp-style list.</p><p><b>DATA_FROM_SEGMENTATION_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) This file lists all of the extra data of selected events during concatenation.  This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment.  This is useful if you want to tag each corpus segment with text based information for use later.</p><p><b>DICT_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.json&rsquo;</span>) a textfile containing selected corpus events in json format.</p><p><b>MAXMSP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.maxmsp.json&rsquo;</span>) a textfile containing a list of selected corpus events.  Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.</p>
 
@@ -660,7 +682,7 @@ For each of the following _FILEPATH variables, a value of None tells the agConca
 
 
 <div id="OtherOutputFiles" class="subsubgroup"><h4>Other Output Files</h4>
-For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, AudioGuide1.291 will create the file relative to the location o the agConcatenate.py script.
+For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file.  Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create.  Strings may be absolute paths.  If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.
 
 <p><b>LOG_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/log.txt&rsquo;</span>) a log file with lots of information from the concatenation algorithm.</p><p><b>TARGET_SEGMENT_LABELS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/targetlabels.txt&rsquo;</span>) Audacity-style labels showing how the target sound was segmented.</p><p><b>TARGET_SEGMENTATION_GRAPH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) like TARGET_SEGMENT_LABELS_FILEPATH, this variable creates a file to show information about target segmentation.  Here however, the output is a jpg graph of the onset and offset times and the target&rsquo;s power.  This output requires you to install python&rsquo;s module matplotlib.</p><p><b>TARGET_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) saves the loaded target descriptors to a json dictionary.</p><p><b>TARGET_PLOT_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) creates a plot of each target descriptor used in concatenation.  Doesn&rsquo;t create plots for averaged descriptors (&ldquo;-seg&rdquo;), only time varying descriptors.</p>
 
@@ -675,7 +697,7 @@ For each of the following _FILEPATH variables, a value of None tells the agConca
 
 
 <div id="PrintingInteraction" class="subsubgroup"><h4>Printing/Interaction</h4>
-<p><b>SEARCH_PATHS</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that AudioGuide1.291 examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn&rsquo;t do anything.</p><p><b>VERBOSITY</b> (type=<span style="color:red">int</span>, default=<span style="color:green">2</span>) affects the amount of information AudioGuide1.291 prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.</p><p><b>PRINT_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.</p><p><b>PRINT_SIM_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus overlapping selection after concatenation.  If false (the default) will add this information to the log file, if used.</p>
+<p><b>SEARCH_PATHS</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) a list of strings, each of which is a path to a directory where soundfile are located.  These paths extend the list of search paths that AudioGuide examines when searching for target and corpus soundfiles.  The default is an empty list, which doesn&rsquo;t do anything.</p><p><b>VERBOSITY</b> (type=<span style="color:red">int</span>, default=<span style="color:green">2</span>) affects the amount of information AudioGuide prints to the terminal.  A value of 0 yields nothing.  A value of 1 prints a minimal amount of information.  A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.</p><p><b>PRINT_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus selection after concatenation.  If false (the default) will add this information to the log file, if used.</p><p><b>PRINT_SIM_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus overlapping selection after concatenation.  If false (the default) will add this information to the log file, if used.</p>
 
 </div>
 
@@ -691,7 +713,7 @@ For each of the following _FILEPATH variables, a value of None tells the agConca
 
 
 <div id="CsoundRendering" class="subsubgroup"><h4>Csound Rendering</h4>
-<p><b>CSOUND_SR</b> (type=<span style="color:red">int</span>, default=<span style="color:green">48000</span>) The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound&rsquo;s output soundfile.</p><p><b>CSOUND_BITS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">16</span>) The bitrate of the csound output soundfile.  Valid values are 16, 24, and 32.</p><p><b>CSOUND_KSMPS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">128</span>) The ksmps value used for csound rendering.  See csound&rsquo;s documentation for more information.</p><p><b>CSOUND_NORMALIZE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True normalize csound's output soundfile after rendering.</p><p><b>CSOUND_NORMALIZE_PEAK_DB</b> (type=<span style="color:red">float</span>, default=<span style="color:green">-3</span>) If CSOUND_NORMALIZE is True, normalization of this peak dB will take place.</p><p><b>CSOUND_PLAY_RENDERED_FILE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, AudioGuide1.291 will play the rendered csound file at the command line at the end of the concatenative algorithm.</p><p><b>CSOUND_ALIGN_PEAKS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True aligns the peak times of corpus segments to match those of the target segment.  Thus, every corpus segment selected to represent a target segment will be moved in time such that corpus segment peaks align in time with the target segment's peak.</p><p><b>CSOUND_SEGMENT_MIN_DUR</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a minimum playback duration for all selected corpus segments.  When this variable is a float, the length of each segment's playback will be at least CSOUND_SEGMENT_MIN_DUR seconds (unless the soundfile is too short, in which case the duration will be the soundfile's duration).  If None is given (the default), no minimum duration is enforced.</p><p><b>CSOUND_SEGMENT_MAX_DUR</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a maximum playback duration for all selected corpus segments.  When this variable is a float, the length of each segment's playback cannot be more than CSOUND_SEGMENT_MAX_DUR seconds.  If None is given (the default), no maximum duration is enforced.</p><p><b>CSOUND_STRETCH_CORPUS_TO_TARGET_DUR</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Affects the durations of concatenated sound events rendered by csound.  By default None doesn&rsquo;t do anything -- csound plays back each corpus sound according to its duration.  &ldquo;pv&rdquo; uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  &ldquo;transpose&rdquo; does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.</p><p><b>CSOUND_CHANNEL_RENDER_METHOD</b> (type=<span style="color:red">string</span>, default=<span style="color:green">corpusmax</span>) Tells AudioGuide1.291 how deal with corpus segments distribution in the output soundfile.  By default&lsquo;&rsquo;corpusmax&rdquo; creates an output soundfile with the same number of channels as the maxmimum of all corpus files (corpus files nmay have different channel counts).  The string &ldquo;stereo&rdquo; mixes all corpus sounds into a 2-channel soudnfile.  The string &ldquo;oneChannelPerVoice&rdquo; tells audioguide to put selected sounds from each item of the CORPUS list into a separate channel.  The number of output channels will therefore equal the length of the CORPUS list variable.</p><p><b>MIDIFILE_TEMPO</b> (type=<span style="color:red">int/float</span>, default=<span style="color:green">60</span>) sets the tempo of the midi file output.</p></div>
+<p><b>CSOUND_SR</b> (type=<span style="color:red">int</span>, default=<span style="color:green">48000</span>) The sample rate used for csound rendering.  Csound will interpolate the sample rates of all corpus files to this rate.  It will be the sr of csound&rsquo;s output soundfile.</p><p><b>CSOUND_BITS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">16</span>) The bitrate of the csound output soundfile.  Valid values are 16, 24, and 32.</p><p><b>CSOUND_KSMPS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">128</span>) The ksmps value used for csound rendering.  See csound&rsquo;s documentation for more information.</p><p><b>CSOUND_NORMALIZE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True normalize csound's output soundfile after rendering.</p><p><b>CSOUND_NORMALIZE_PEAK_DB</b> (type=<span style="color:red">float</span>, default=<span style="color:green">-3</span>) If CSOUND_NORMALIZE is True, normalization of this peak dB will take place.</p><p><b>CSOUND_PLAY_RENDERED_FILE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, AudioGuide will play the rendered csound file at the command line at the end of the concatenative algorithm.</p><p><b>CSOUND_ALIGN_PEAKS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True aligns the peak times of corpus segments to match those of the target segment.  Thus, every corpus segment selected to represent a target segment will be moved in time such that corpus segment peaks align in time with the target segment's peak.</p><p><b>CSOUND_SEGMENT_MIN_DUR</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a minimum playback duration for all selected corpus segments.  When this variable is a float, the length of each segment's playback will be at least CSOUND_SEGMENT_MIN_DUR seconds (unless the soundfile is too short, in which case the duration will be the soundfile's duration).  If None is given (the default), no minimum duration is enforced.</p><p><b>CSOUND_SEGMENT_MAX_DUR</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a maximum playback duration for all selected corpus segments.  When this variable is a float, the length of each segment's playback cannot be more than CSOUND_SEGMENT_MAX_DUR seconds.  If None is given (the default), no maximum duration is enforced.</p><p><b>CSOUND_STRETCH_CORPUS_TO_TARGET_DUR</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Affects the durations of concatenated sound events rendered by csound.  By default None doesn&rsquo;t do anything -- csound plays back each corpus sound according to its duration.  &ldquo;pv&rdquo; uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segment.  &ldquo;transpose&rdquo; does the same, but using the speed of playback to change duration rather than a phase vocoder.  Note that, in this case, any other transposition information generated by the selection algorithm is overwritten.</p><p><b>CSOUND_CHANNEL_RENDER_METHOD</b> (type=<span style="color:red">string</span>, default=<span style="color:green">corpusmax</span>) Tells AudioGuide how deal with corpus segments distribution in the output soundfile.  By default&lsquo;&rsquo;corpusmax&rdquo; creates an output soundfile with the same number of channels as the maxmimum of all corpus files (corpus files nmay have different channel counts).  The string &ldquo;stereo&rdquo; mixes all corpus sounds into a 2-channel soudnfile.  The string &ldquo;oneChannelPerVoice&rdquo; tells audioguide to put selected sounds from each item of the CORPUS list into a separate channel.  The number of output channels will therefore equal the length of the CORPUS list variable.</p><p><b>MIDIFILE_TEMPO</b> (type=<span style="color:red">int/float</span>, default=<span style="color:green">60</span>) sets the tempo of the midi file output.</p></div>
 
 </div><!--end other options-->
 </section> <!--end conctaet script-->
@@ -725,7 +747,7 @@ agGetSfDescriptors.py is a simple script that exports continuous descriptor valu
 
 
 <section id="Appendix1Descriptors" class="group"><h2>Appendix 1 - Descriptors</h2>
-The tables below lists all descriptors available in AudioGuide1.291.
+The tables below lists all descriptors available in AudioGuide.
 
 <table class="table-striped table-condensed">
 <tr><th>Descriptor Description</th><th>AudioGuide Averaged Descriptor</th><th>AudioGuide Time Varying Descriptor</th></tr>

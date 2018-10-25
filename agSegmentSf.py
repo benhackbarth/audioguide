@@ -82,7 +82,7 @@ for file in args:
 	'TARGET_SEGMENTATION_GRAPH_FILEPATH': plotMe,
 	'SEGMENTATION_FILE_INFO': options.SEGMENTATION_INFO
 	}
-
+	
 	ops = concatenativeclasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
 	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
 	p.printProgramInfo(audioguide.__version__, force=True)

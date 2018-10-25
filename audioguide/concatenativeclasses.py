@@ -681,6 +681,7 @@ class outputEvent:
 		
 	####################################	
 	def makeCsoundOutputText(self, channelMethod, minSegmentDuration, maxSegmentDuration, instru=1):
+		if channelMethod == 'mix': channelMethod = 'stereo' # to support deprecated mix option
 		if minSegmentDuration != None:
 			if self.duration < minSegmentDuration:
 				newEndSec = min(self.sfSkip+minSegmentDuration, self.sfseghandle.soundfileTotalDuration)

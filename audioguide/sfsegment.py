@@ -77,7 +77,7 @@ class sfsegment:
 		###############################
 		self.desc = descriptordata.container(descriptors, self) # for storing descriptor values from disk
 		# tells us which descriptors are:
-		#	SdifDescList - loaded from SDIF analyses
+		#	SdifDescList - loaded from NYC analyses
 		#	ComputedDescList - transformed from loaded descriptor data - delta, deltadelta, odf, etc.
 		#	AveragedDescList - averaged descriptors from loaded descriptor data
 		AnalDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
@@ -199,13 +199,11 @@ class corpusSegment(sfsegment):
 				else:
 					try: averagedVal = np.average(mixedvals, weights=mixedpowers)
 					except ZeroDivisionError: averagedVal = 0
-				#normedVal = (averagedVal-self.desc[dobj.name].normSubtract)/self.desc[dobj.name].normDivide
 				normedVal = descriptordata.normalize(averagedVal, self.desc[dobj.name].normdict['method'], self.desc[dobj.name].normdict)
 				#print "mixed segmented UNNORMED", averagedVal, "NORMED", normedVal
 				return tgtvals, normedVal
 			else: # time-varying
 				#print "mixed time-varying UNNORMED", mixedvals, "NROMED", normedvals
-				#normedvals = (mixedvals-self.desc[dobj.name].normSubtract)/self.desc[dobj.name].normDivide
 				normedvals = descriptordata.normalize(mixedvals, self.desc[dobj.name].normdict['method'], self.desc[dobj.name].normdict)
 				return tgtvals, normedvals
 		else: # not mixed
@@ -311,6 +309,7 @@ class target: # the target
 		# Start by loading the entire target as an 
 		# sfsegment to get the whole amplitude envelope.
 		self.filename = util.verifyPath(self.filename, AnalInterface.searchPaths)
+		self.filename = os.path.abspath(self.filename)
 		# see if we need to time stretch the target file...
 		if self.stretch != 1:
 			self.timeStretch(AnalInterface, ops, p)
@@ -321,8 +320,16 @@ class target: # the target
 		self.whole.midiPitchMethod = self.midiPitchMethod
 		self.lengthInFrames = self.whole.lengthInFrames
 
+		# SEGMENTATION DATA CONTAINERS
+		self.segs = []
+		self.segmentationInFrames = []
+		self.segmentationInOnsetFrames = []
+		self.segmentationInSec = []
+		self.extraSegmentationData = []
+		self.seglengths = []		
+
+
 		# SEGMENTATION
-		self.filename = os.path.abspath(self.filename)
 		power = AnalInterface.getDescriptorColumn(self.filename, 'power')
 		self.segmentationMinLenFrames = AnalInterface.s2f(self.segmentationMinLenSec, self.filename)
 		self.segmentationMaxLenFrames = AnalInterface.s2f(self.segmentationMaxLenSec, self.filename)
@@ -335,28 +342,19 @@ class target: # the target
 			self.powerOffsetValue = self.minPower*util.dbToAmp(self.segmentationOffsetThreshAdd)
 			p.log("TARGET SEGMENTATION: the amplitude of %s never got below the offset threshold of %sdB specified in offsetThreshAbs.  So, I'm using offsetThreshAdd dB (%.2f) above the minimum found power -- a value of %.2f dB."%(self.filename, self.segmentationOffsetThreshAdd, self.segmentationOffsetThreshAdd, util.ampToDb(self.powerOffsetValue)))
 	
-		self.segs = []
-		self.segmentationInFrames = []
-		self.segmentationInOnsetFrames = []
-		self.segmentationInSec = []
-		self.extraSegmentationData = []
-		self.seglengths = []		
 		if self.segmentationFilepath == None:
 			import descriptordata
 			odf = descriptordata.odf(power, 7)
-			# start segmentation loopPrint 
-
 			# do multirise segmentation?
 			if self.multiriseBool:
 				multiriseDeviation = self.segmentationOffsetRise*(self.multirisePercentDev/100.)
 				riseRatioList = np.linspace(max(1.05, self.segmentationOffsetRise-multiriseDeviation), self.segmentationOffsetRise+multiriseDeviation, num=self.multiriseSteps)
-				riseRatioList = np.linspace(1.1, 2, num=4)
 			else:
 				# just use one rise ration
 				riseRatioList = [self.segmentationOffsetRise]
 				
 			for userRiseRatio in riseRatioList: # this a list of rises if desired!
-				segments, logic = segmentationAlgoV2(self.segmentationThresh, self.powerOffsetValue, self.segmentationOffsetRise, power, odf, self.segmentationMinLenFrames, self.segmentationMaxLenFrames, AnalInterface)
+				segments, logic = segmentationAlgoV2(self.segmentationThresh, self.powerOffsetValue, userRiseRatio, power, odf, self.segmentationMinLenFrames, self.segmentationMaxLenFrames, AnalInterface)
 				# ensure that each segment isn't in the list already
 				for idx in range(len(segments)):
 					if segments[idx] in self.segmentationInOnsetFrames: continue
@@ -364,6 +362,9 @@ class target: # the target
 					if ops.SEGMENTATION_FILE_INFO == 'logic':
 						self.extraSegmentationData.append(logic[idx])
 			# end loop
+
+
+
 			closebartxt = "Found %i segments (threshold=%.1f offsetrise=%.2f offsetthreshadd=%.2f)."%(len(self.segmentationInOnsetFrames), self.segmentationThresh, self.segmentationOffsetRise, self.segmentationOffsetThreshAdd)
 		else: # load target segments from a file
 			p.log("TARGET SEGMENTATION: reading segments from file %s"%(self.segmentationFilepath))

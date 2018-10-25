@@ -395,11 +395,15 @@ def render(file, totalEvents, printerobj=None):
 
 def normalize(file, db=-3):
 	cs = subprocess.Popen('scale -F 0.0 %s'%file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	scalefactor = 'notfound'
 	while True:
 		o = cs.stderr.readline().decode("utf-8")
 		if o == '' and cs.poll() != None: break
 		if o.startswith('Max scale factor'):
 			scalefactor = float(o.split()[4]) * util.dbToAmp(db)
+	if scalefactor == 'notfound':
+		print ("ERROR in csound normalization algorithm")
+		return
 	# scale to temporary file
 	cs = subprocess.Popen("scale -o /tmp/%s -F %f %s"%(os.path.split(file)[1], scalefactor, file), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
