@@ -1,4 +1,12 @@
 ##################
+## Version 1.3b ##
+##################
+
+• Experimental script agConcatenateFrames.py was added, to support frame-by-frame concatenation (as opposed to segment-based concatenation).  Try agConcatenateFrames.py examples/07-concatenateframes.py
+
+
+
+##################
 ## Version 1.29 ##
 ##################
 
