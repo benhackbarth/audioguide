@@ -46,6 +46,8 @@ def testVariable(vtype, v):
 		if testInstance(v, tsf): return True
 	elif vtype == 'a si() object':
 		if testInstance(v, si): return True
+	elif vtype == 'an spass() object':
+		return testInstance(v, spass)
 	elif vtype in ['a number greater than zero', 'an integer greater than zero']:
 		if isinstance(v, (int, float)) and v > 0.: return True
 	elif vtype in ['a number greater than or equal to zero']:
@@ -142,6 +144,7 @@ UserVar_types = {
 ################  USER INTERACTION / PRINTING  ##############
 'SEARCH_PATHS': ['a list of strings'],
 'VERBOSITY': ['a number greater than or equal to zero'],
+'EXPERIMENTAL': ['a dictionary'],
 }
 
 

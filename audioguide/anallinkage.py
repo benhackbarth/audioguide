@@ -195,11 +195,18 @@ EnergyEnvelope  = 1
 	def expandDescriptorPackages(self, ops):
 		for spass in ops.SEARCH:
 			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list)
+
+		# add EXPERIMENTAL spass entries 
+		from userclasses import SearchPassOptionsEntry as spassObj
+		for k, v in ops.EXPERIMENTAL.items():
+			if isinstance(v, spassObj):
+				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list)
+
 	#############################
 	def getDescriptorLists(self, ops):
 		self.expandDescriptorPackages(ops)
-		
 		from userclasses import SingleDescriptor as d
+		from userclasses import SearchPassOptionsEntry as spassObj
 		self.requiredDescriptors = []
 		# add SEARCH descriptors
 		for spass in ops.SEARCH:
@@ -218,6 +225,14 @@ EnergyEnvelope  = 1
 			for csfObj in ops.CORPUS:
 				for stringy in csfObj.limit:
 					self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
+
+		# add EXPERIMENTAL spass entries 
+		for k, v in ops.EXPERIMENTAL.items():
+			if isinstance(v, spassObj):
+				for dobj in v.descriptor_list:
+					dobj.origin = 'EXPERIMENTAL'
+					self.addDescriptorIfNeeded(dobj, ops, addParents=True)
+
 		# add CLUSTER descriptors
 		if 'descriptors' in ops.CLUSTER_MAPPING:
 			for s in ops.CLUSTER_MAPPING['descriptors']:
@@ -236,7 +251,7 @@ EnergyEnvelope  = 1
 		# make normalisation list!
 		self.normalizeDescriptors = []
 		for dobj in self.requiredDescriptors:
-			if dobj.origin == 'SEARCH': self.normalizeDescriptors.append(dobj)
+			if dobj.origin in ['SEARCH', 'EXPERIMENTAL']: self.normalizeDescriptors.append(dobj)
 		# make mixture list!
 		self.mixtureDescriptors = []
 		tmpmix = ['power']

@@ -22,6 +22,10 @@ import json
 ## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
 ###########################################
 ops = concatenativeclasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+if 'concateMethod' in ops.EXPERIMENTAL and ops.EXPERIMENTAL['concateMethod'] == 'framebyframe':
+	util.error("CONFIG", "Frame by frame concatenation is only possible with the agConcatenateFrames.py script.")
+
+
 p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.HTML_LOG_FILEPATH)
 p.printProgramInfo(audioguide.__version__)
 AnalInterface = ops.createAnalInterface(p)

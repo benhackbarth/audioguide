@@ -219,7 +219,7 @@ class printer:
 			writetext = lowerLabel[maxlen*-1:]+(' '*(self.updateLength-len(lowerLabel[maxlen*-1:])))
 		else:
 			writetext = lowerLabel+(' '*(self.updateLength-len(lowerLabel)))
-		self.progress.update(self.counter/(self.maxNumb-1), writetext)
+		self.progress.update(self.counter/max(1, (self.maxNumb-1)), writetext)
 		self.counter += incr
 	###############################################
 	def percentageBarClose(self, txt="Done."):
@@ -230,7 +230,7 @@ class printer:
 	###############################################
 	def up(self, txt):
 		txt = txt+(' '*(self.updateLength-len(txt)))
-		self.progress.update(self.counter/(self.maxNumb-1), txt)
+		self.progress.update(self.counter/max(1, (self.maxNumb-1)), txt)
 		print("\n")
 	###############################################
 	def middleprint(self, string, force=False, colour='CYAN', borderchar='-', cr=True): # MIDDLE print call

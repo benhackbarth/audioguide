@@ -8,7 +8,7 @@ import audioguide.util as util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, bits=32):	
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, bits=32, useTargetAmplitude=0):	
 	if channelRenderMethod == "corpusmax":
 		nchnls = max(listOfSfchannelsInScore) # use maximum number of channels for a corpus item
 	elif channelRenderMethod in ["mix", "stereo"]:
@@ -28,7 +28,7 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
--o %s --format=%s %s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=0 
+-o %s --format=%s %s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=%i 
 </CsOptions>
 <CsInstruments>
 sr = %i
@@ -160,6 +160,7 @@ instr 1
 	if ($useTargetAmplitude == 1) then
 		krmscorpus   rms  (asnd1)
 		kampscalar   = gkTargetRms/krmscorpus
+		kampscalar   limit  kampscalar, 0, 1 ; dont boost over 1.0
 		printks "tgt = %%.5f cps = %%.5f scalar = %%.5f\\n", 0.1, gkTargetRms, krmscorpus, kampscalar
 		if (iFileChannels == 1) then
 			asnd1 = asnd1 * kampscalar
@@ -300,7 +301,7 @@ endin
 %s
 e
 </CsScore>
-</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, sr, kr, nchnls, scoreText) )
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, useTargetAmplitude, sr, kr, nchnls, scoreText) )
 
 
 
