@@ -28,7 +28,7 @@ SUPERIMPOSE = si(maxSegment=1)
 ################################################################################
 
 SEARCH = [
-spass('closest', d('flatnesses'), d('effDur-seg', norm=1))
+spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 ]
 
 # try uncommenting below...

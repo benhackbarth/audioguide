@@ -193,8 +193,41 @@ class printer:
 	def logsection(self, name):
 		self.html.logsection(name)
 	###############################################
-	def addScatter2dAxisChoice(self, *a, **k):
-		self.html.addScatter2dAxisChoice(*a, **k)
+	def makeHtmlChartDescriptorNorm(self, AnalInterface, tgtsegs, cpssegs):
+		dontGraphThese = ['peakTime-seg', 'power-mean-seg', 'effDurFrames-seg']
+		segmentedDescriptorsToGraph = [dobj for dobj in AnalInterface.requiredDescriptors if dobj.seg and dobj.name not in dontGraphThese]
+		if len(segmentedDescriptorsToGraph) < 2: return # not enough to graph xy
+		
+		scatter = {'tgt': {}, 'cps': {}}
+		nonnormalized = []
+		for dobj in segmentedDescriptorsToGraph:
+			key = dobj.name.replace('-seg', '')
+			# add raw descriptor values
+			if key not in scatter['tgt']: scatter['tgt'][key] = []
+			for tidx, ts in enumerate(tgtsegs):
+				scatter['tgt'][key].append(ts.desc[dobj.name].get(0, None))
+			if key not in scatter['cps']: scatter['cps'][key] = []
+			for cidx, cs in enumerate(cpssegs):
+				scatter['cps'][key].append(cs.desc[dobj.name].get(0, None))
+			nonnormalized.append(key)
+			
+			# see if we have normalized values to add too
+			if dobj in AnalInterface.normalizeDescriptors:
+				key = dobj.name.replace('-seg', ' normalized')
+				# add normalized descriptor values
+				if key not in scatter['tgt']: scatter['tgt'][key] = []
+				for tidx, ts in enumerate(tgtsegs):
+					scatter['tgt'][key].append(ts.desc[dobj.name].getnorm(0, None))
+				if key not in scatter['cps']: scatter['cps'][key] = []
+				for cidx, cs in enumerate(cpssegs):
+					scatter['cps'][key].append(cs.desc[dobj.name].getnorm(0, None))
+		self.html.addScatter2dAxisChoice(scatter, name='Descriptor Data', axisdefaults=nonnormalized[0:2])
+		
+	
+
+
+
+
 	###############################################
 	def writehtmllog(self, filepath):
 		self.html.writefile(filepath)
@@ -296,5 +329,8 @@ class ProgressBar:
 	
 	def clear(self):
 		if not self.cleared: self.cleared = 1
+
+
+
 
 

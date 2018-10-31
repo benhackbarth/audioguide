@@ -143,56 +143,8 @@ elif ops.NORMALIZATION_METHOD == 'cluster':
 ############################################################################
 ## get raw and normalized segemented sdesciptors for graphing in log.html ##
 ############################################################################
-scatterRaw = {'tgt': {}, 'cps': {}}
-for dname in [dobj.name for dobj in AnalInterface.requiredDescriptors if dobj.seg]:
-	scatterRaw['tgt'][dname] = []
-	scatterRaw['cps'][dname] = []
+p.makeHtmlChartDescriptorNorm(AnalInterface, tgt.segs, cps.postLimitSegmentNormList)	
 
-scatterNorm = {'tgt': {}, 'cps': {}}
-for dname in [dobj.name for dobj in AnalInterface.normalizeDescriptors if dobj.seg]:
-	scatterNorm['tgt'][dname] = []
-	scatterNorm['cps'][dname] = []
-
-for tidx, ts in enumerate(tgt.segs):
-	for dname in scatterRaw['tgt'].keys():
-		scatterRaw['tgt'][dname].append(ts.desc[dname].get(0, None))
-	for dname in scatterNorm['tgt'].keys():
-		scatterNorm['tgt'][dname].append(ts.desc[dname].getnorm(0, None))
-
-for cidx, cs in enumerate(cps.postLimitSegmentNormList):
-	for dname in scatterRaw['cps'].keys():
-		scatterRaw['cps'][dname].append(cs.desc[dname].get(0, None))
-	for dname in scatterNorm['cps'].keys():
-		scatterNorm['cps'][dname].append(cs.desc[dname].getnorm(0, None))
-
-
-#p.addScatter2dAxisChoice(scatterRaw, name='Unnormalized Descriptor Data', axisdefaults=['f0-seg', 'power-seg'])
-p.addScatter2dAxisChoice(scatterNorm, name='Normalized Descriptor Data', axisdefaults=[AnalInterface.requiredDescriptors[0], AnalInterface.requiredDescriptors[1]])
-	
-#def makeHtmlChartDescriptorNorm(descriptorlist):
-#	scatterdata = {'tgtnorm': {}, 'cpsnorm': {}, 'tgtraw': {}, 'cpsraw': {}}
-#	for dname in descriptorlist:
-#		scatterdata['tgtraw'][dname] = []
-#		scatterdata['tgtnorm'][dname] = []
-#		for tidx, ts in enumerate(tgt.segs):
-#			scatterdata['tgtraw'][dname].append(ts.desc[dname].get(0, None))
-#			scatterdata['tgtnorm'][dname].append(ts.desc[dname].getnorm(0, None))
-#		scatterdata['cpsraw'][dname] = []
-#		scatterdata['cpsnorm'][dname] = []
-#		for cidx, cs in enumerate(cps.postLimitSegmentNormList):
-#			scatterdata['cpsraw'][dname].append(cs.desc[dname].get(0, None))
-#			scatterdata['cpsnorm'][dname].append(cs.desc[dname].getnorm(0, None))
-#	
-#	print (scatterdata)
-#	sys.exit()
-#	
-#	#p.addScatter2dAxisChoice(scatterRaw, name='Unnormalized Descriptor Data', axisdefaults=['f0-seg', 'power-seg'])
-#	p.addScatter2dAxisChoice(scatterNorm, name='Normalized Descriptor Data', axisdefaults=[AnalInterface.normalizeDescriptors[0], AnalInterface.normalizeDescriptors[1]])
-#		
-#
-##makeHtmlChartDescriptorNorm([dobj.name for dobj in AnalInterface.normalizeDescriptors if dobj.seg])
-
-	
 	
 		
 	
