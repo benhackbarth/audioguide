@@ -51,7 +51,9 @@ class distanceCalculations:
 				ratioDobj = spassobj.descriptor_list[0]
 				newList = []
 				for c in self.corpusObjs:
-					ratio = c.desc[ratioDobj.name].get(0, None)/float(tgtseg.desc[ratioDobj.name].get(0, None))
+					denominator = float(tgtseg.desc[ratioDobj.name].get(0, None))
+					if denominator == 0: denominator = 0.0001 # avoid divide by zero
+					ratio = c.desc[ratioDobj.name].get(0, None)/denominator
 					# so ratio=1.1 of corpus is 110% of target
 					if ratio > maxd: maxd = ratio
 					if ratio < mind: mind = ratio

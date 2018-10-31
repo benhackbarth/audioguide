@@ -43,7 +43,7 @@ spass('closest', d('flatnesses'), d('effDur-seg', norm=1))
 ## Additional examples below examine different strategies for arranging       ##
 ## spass() objects within the SEARCH variable.  Remember that an spass object ##
 ## may take any number of descriptors and that keyword arguments, including   ##
-## descriptor weighting, are documented in the read me.pdf.                   ##
+## descriptor weighting, are documented in the documentation.                 ##
 ################################################################################
 #SEARCH = [
 #spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=25), # only the 25% best matching segments make it through to the next spass()
@@ -82,3 +82,4 @@ spass('closest', d('flatnesses'), d('effDur-seg', norm=1))
 #SEARCH = [
 #spass('farthest', d('centroid-seg')) # picks the segment with the most distance centroid when compared to target segments.
 #]
+
