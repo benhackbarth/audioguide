@@ -405,7 +405,7 @@ class corpus:
 			else:
 				validVoices = [ voiceToCorpusIdMapping[realidx] ]
 		else:
-			validVoices = range(self.data['numberVoices'])
+			validVoices = list(range(self.data['numberVoices']))
 		########################################################
 		## remove any voices that are outside temporal limits ##
 		########################################################
@@ -413,8 +413,8 @@ class corpus:
 		# voice frequency restriction per frame...
 		for vc in validVoices:
 			if vc in self.voiceRestrictPerFrame:
-				srt_look = max(0, timeInFrames-self.voiceRestrictPerFrame[vc])
-				end_look = min(timeInFrames+self.voiceRestrictPerFrame[vc], len(superimp.cnt['cpsvc_overlap'][vc]))
+				srt_look = int(max(0, timeInFrames-self.voiceRestrictPerFrame[vc]))
+				end_look = int(min(timeInFrames+self.voiceRestrictPerFrame[vc], len(superimp.cnt['cpsvc_overlap'][vc])))
 				if np.sum(superimp.cnt['cpsvc_overlap'][vc][srt_look:end_look]) != 0: 
 					if vc not in voicesToRemove: voicesToRemove.append(vc)
 		# restrict corpus ID by number of selected overlapping samples

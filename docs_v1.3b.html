@@ -462,7 +462,7 @@ csf('piano/', transMethod='f0-chroma', transQuantize=0.5) # transpose corpus seg
 </code></pre>
 
 
-<li><b>allowRepetition</b> - If False, any of the segments from this corpus entry may only be picked one time.  If True there is no restriction.<li><b>restrictRepetition</b> - A delay time in seconds where, once chosen, a segment from this corpus entry is invalid to be picked again.  The default is 0.1, which the same corpus segment from being selected in quick succession.<pre class="language-python"><code class="language-python">csf('piano/', allowRepetition=False) # each individual segment found in this directory of files may only be deleted one time during concatenation.
+<li><b>allowRepetition</b> - If False, any of the segments from this corpus entry may only be picked one time.  If True there is no restriction.<li><b>restrictRepetition</b> - A delay time in seconds where, once chosen, a segment from this corpus entry is invalid to be picked again.  The default is 0.5, which the same corpus segment from being selected in quick succession.<pre class="language-python"><code class="language-python">csf('piano/', allowRepetition=False) # each individual segment found in this directory of files may only be deleted one time during concatenation.
 csf('piano/', restrictRepetition=2.5) # Each segment is invalid to be picked if it has already been selected in the last 2.5 seconds.
 </code></pre>
 
