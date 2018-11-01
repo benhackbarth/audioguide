@@ -30,6 +30,8 @@ AnalInterface = ops.createAnalInterface(p)
 p.middleprint('EXPERIMENTAL FRAME-BASED CONCATENATION')
 
 
+
+
 ############
 ## TARGET ##
 ############
@@ -110,7 +112,7 @@ elif ops.NORMALIZATION_METHOD == 'cluster':
 
 
 
-	
+
 ##############################
 ## initialise concatenation ##
 ##############################
@@ -126,7 +128,6 @@ defaults = {'envAttackFrames': 1, 'envDecayFrames': 1, 'percentMatchDeviationFor
 for k, v in defaults.items():
 	if k not in ops.EXPERIMENTAL: ops.EXPERIMENTAL[k] = v
 
-
 # check to make sure user arguments are correct
 from audioguide import tests
 assert ops.EXPERIMENTAL['concateMethod'] == 'framebyframe'
@@ -141,7 +142,7 @@ if ops.EXPERIMENTAL['maximumLengthInFrames'] == None: ops.EXPERIMENTAL['maximumL
 ##################################
 tgtorderedframes = [(pwr, tidx) for (tidx, pwr) in enumerate(tgt.whole.desc['power'])]
 tgtorderedframes.sort(reverse=True)
-tgtorderedframes = [tidx for (pwr, tidx) in tgtorderedframes]
+tgtorderedframes = [tidx for (pwr, tidx) in tgtorderedframes] # tidx's ordered from loudest to softest
 tgtoverlaps = np.zeros(tgt.whole.lengthInFrames)
 
 ###################################
@@ -150,7 +151,6 @@ tgtoverlaps = np.zeros(tgt.whole.lengthInFrames)
 tgtmatrix = np.empty((len(ops.EXPERIMENTAL['matrix'].descriptor_list), tgt.whole.lengthInFrames))
 for didx, dobj in enumerate(ops.EXPERIMENTAL['matrix'].descriptor_list):
 	tgtmatrix[didx] = tgt.whole.desc[dobj.name].getnorm()
-	#print "target", dobj.name, tgtmatrix[didx][0:5]
 ###################################
 ## make corpus descriptor matrix ##
 ###################################

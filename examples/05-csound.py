@@ -29,7 +29,7 @@ CSOUND_BITS = 16 # 16, 24, or 32
 ################################################################################
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # which does not perform temporal manipulation.
 #CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "pv" # phase vocoder (will not change pitch)
-CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "transpose" # tape-head transposition (will change pitch, but not as "phasy")
+#CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "transpose" # tape-head transposition (will change pitch, but not as "phasy")
 
 
 ################################################################################

@@ -167,10 +167,6 @@ EnergyEnvelope  = 1
 		# make a list of all possible descriptor objects
 		self.allDescriptors = []
 		from userclasses import SingleDescriptor as d
-
-
-
-
 		for desc in descriptToFiles:
 			dobj = d(desc[0])
 			self.allDescriptors.append( dobj )
@@ -197,7 +193,7 @@ EnergyEnvelope  = 1
 			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list)
 
 		# add EXPERIMENTAL spass entries 
-		from userclasses import SearchPassOptionsEntry as spassObj
+		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
 		for k, v in ops.EXPERIMENTAL.items():
 			if isinstance(v, spassObj):
 				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list)
@@ -206,7 +202,7 @@ EnergyEnvelope  = 1
 	def getDescriptorLists(self, ops):
 		self.expandDescriptorPackages(ops)
 		from userclasses import SingleDescriptor as d
-		from userclasses import SearchPassOptionsEntry as spassObj
+		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
 		self.requiredDescriptors = []
 		# add SEARCH descriptors
 		for spass in ops.SEARCH:
