@@ -27,7 +27,9 @@ class AnalInterface:
 	tgtOnsetDescriptors = {'power-odf-7': 1}
 	global descriptToFiles
 
-	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, F0Quality=0.2, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
+	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
+		global descriptToFiles
+
 		# establish data directory
 		if dataDirectoryLocation == None:
 			self.dataDirectory = os.path.dirname(__file__)
@@ -50,18 +52,23 @@ class AnalInterface:
 		powersOfTwo = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288])
 		closestWinSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(userWinLengthSec*float(self.resampleRate))))]
 		closestHopSize = powersOfTwo[np.argmin(np.abs(powersOfTwo-(userHopLengthSec*float(self.resampleRate))))]
-		self.winLengthSec = closestWinSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
-		self.hopLengthSec = closestHopSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		#self.winLengthSec = closestWinSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		#self.hopLengthSec = closestHopSize/float(self.resampleRate) # adjusted value to esure its a power of two in the resample rate!
+		self.winLengthSec = userWinLengthSec
+		self.hopLengthSec = userHopLengthSec
+
 		self.userEnergyWinLengthSec = userEnergyHopLengthSec*2
 		self.userEnergyHopLengthSec = userEnergyHopLengthSec
-		self.hopSamples = closestHopSize
 		self.IOBufferSize = min(4096, closestWinSize*4, self.userEnergyWinLengthSec*float(self.resampleRate)*4)
 		self.windowType = windowType
 		self.F0MaxAnalysisFreq = F0MaxAnalysisFreq
 		self.F0MinFrequency = F0MinFrequency
 		self.F0MaxFrequency = F0MaxFrequency
 		self.F0AmpThreshold = F0AmpThreshold
-		self.F0Quality = F0Quality
+		# set up mfccs
+		self.numbMfccs = numbMfccs
+		for i in range(self.numbMfccs):
+			descriptToFiles.append(("mfcc%i"%i,                  'ircamd', False, True,  'MFCC', self.numbMfccs, i))
 		# other stuff
 		self.forceAnal = forceAnal
 		self.searchPaths = searchPaths
@@ -97,7 +104,8 @@ F0MaxAnalysisFreq = %i
 F0MinFrequency = %i
 F0MaxFrequency = %i
 F0AmpThreshold = %i
-F0Quality = %f
+
+MFCCs = %i
 
 [StandardDescriptors]
 WindowSize = %f
@@ -165,7 +173,7 @@ TextureWindowsFrames = -1
 TextureWindowsHopFrames = -1
 ;~~~~~~~~~~~~~~~~energy descriptors~~~~~~~~~~~~~~~~
 EnergyEnvelope  = 1
-'''%(self.resampleRate, self.IOBufferSize, self.windowType, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, self.winLengthSec, self.hopLengthSec, self.userEnergyWinLengthSec, self.userEnergyHopLengthSec)
+'''%(self.resampleRate, self.IOBufferSize, self.windowType, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.numbMfccs, self.winLengthSec, self.hopLengthSec, self.userEnergyWinLengthSec, self.userEnergyHopLengthSec)
 		# make a list of all possible descriptor objects
 		self.allDescriptors = []
 		from userclasses import SingleDescriptor as d
@@ -193,13 +201,13 @@ EnergyEnvelope  = 1
 	#############################
 	def expandDescriptorPackages(self, ops):
 		for spass in ops.SEARCH:
-			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list)
+			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, self.numbMfccs)
 
 		# add EXPERIMENTAL spass entries 
 		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
 		for k, v in ops.EXPERIMENTAL.items():
 			if isinstance(v, spassObj):
-				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list)
+				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list, self.numbMfccs)
 
 	#############################
 	def getDescriptorLists(self, ops):
@@ -296,7 +304,7 @@ EnergyEnvelope  = 1
 		STAGING_DIRECTORY = os.path.join(analdir, 'tmp')
 		if not os.path.exists(STAGING_DIRECTORY): os.makedirs(STAGING_DIRECTORY)
 		command = [ircam_bin, sffile, ircamd_configfile]
-		if self.p != None: self.p.log("RUNNING COMMAND"+' '.join(command))
+		if self.p != None: self.p.log("\tRUNNING COMMAND: '"+' '.join(command)+"'")
 		stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)}
 		try:
 			p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=STAGING_DIRECTORY)
@@ -307,8 +315,7 @@ EnergyEnvelope  = 1
 		# test for bad exit status
 		if err not in [0, b'']:
 			util.error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(command), '\n--------\n\n', out))	
-		infodict = {}
-		ircamd_infodict = {'columns': {'power': 0}}
+		infodict = {'ircamd_columns': {'power': 0}}
 		# fill output dict if requested
 		for o in out.split('\n'):
 			#print o
@@ -333,7 +340,6 @@ EnergyEnvelope  = 1
 
 		# set up descriptor matrix
 		ircamd_array = np.empty((framelength, len(descriptToFiles)+1)) # plus one for power, added separately due to separate framerate
-		
 		# get number of frames of shorttime energy envelope
 		f = open(os.path.join(STAGING_DIRECTORY, 'EnergyEnvelope_ShortTermFeature_space1.info.txt'))
 		energyframelength = int(f.readlines()[2].split()[2])
@@ -350,16 +356,12 @@ EnergyEnvelope  = 1
 			#print source, rawFilename, matrixSize, len(myarray), framelength, matrixSize, framelength*matrixSize
 			myarray = np.reshape(myarray, (framelength, matrixSize))
 			ircamd_array[:,idx+1] = myarray[:,matrixLocation]
-			ircamd_infodict['columns'][agId] = idx+1
+			infodict['ircamd_columns'][agId] = idx+1
 		# write files
 		f = open(jsonpath, "w")
 		json.dump(infodict, f)
 		f.close()
 		np.save(npypath, ircamd_array)
-		# write ircamd info file
-		f = open(self.ircamd_infofile, "w")
-		json.dump(ircamd_infodict, f)
-		f.close()
 		return infodict, ircamd_array
 	########################################################
 	########################################################
@@ -397,7 +399,7 @@ EnergyEnvelope  = 1
 		sfheadroot, sfheadext = os.path.splitext(sfhead)
 		self.rawData[sffile]['fileroot'] = os.path.join(self.analdir, sfheadroot)
 		
-		self.rawData[sffile]['checksum'] = util.listToCheckSum([sffile, self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, 'ircamd'])[:12]
+		self.rawData[sffile]['checksum'] = util.listToCheckSum([sffile, self.resampleRate, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.numbMfccs, 'ircamd'])[:12]
 		filehead = '%s-%s'%(sfheadroot, self.rawData[sffile]['checksum'])
 		descriptorfile = os.path.join(self.analdir, '%s-ircamd.npy'%(filehead))
 		infofile = os.path.join(self.analdir, '%s.json'%(filehead))
@@ -413,7 +415,6 @@ EnergyEnvelope  = 1
 			fh.close()
 			# create files
 			self.rawData[sffile]['info'], self.rawData[sffile]['ircamd'] = self.__createDescriptorsFile__(sffile, self.analdir, descriptorfile, infofile, self.ircamdescriptor_bin, self.config_loc)
-			# print ircamd_array[:,infodict['descriptor_columns']['power']]
 			if not os.path.exists(descriptorfile):
 				print(util.ladytext("Oh noos! The ircamdescriptor binary has fialed to create the requested output files.  See the binary's output below for details."))
 		else:
@@ -428,11 +429,7 @@ EnergyEnvelope  = 1
 	########################################################
 	########################################################
 	def getDescriptorColumn(self, sffile, dname):
-		if self.ircamd_info == {}:
-			f = open(self.ircamd_infofile)
-			self.ircamd_info = json.load(f)
-			f.close()
-		return self.rawData[sffile]['ircamd'][:,self.ircamd_info['columns'][dname]]
+		return self.rawData[sffile]['ircamd'][:,self.rawData[sffile]['info']['ircamd_columns'][dname]]
 	########################################################
 	########################################################
 	def getDescriptorForsfsegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
@@ -484,10 +481,9 @@ EnergyEnvelope  = 1
 #############################
 ## PACKAGES OF DESCRIPTORS ##
 #############################
-def descriptListPackageExpansion(initialListOfDescriptorObjs):
+def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 	from userclasses import SingleDescriptor as d
 	newListOfDescriptorObjs = []
-	numbMfccs = 13
 	
 	for dobj in initialListOfDescriptorObjs:
 		metricsToWrite = []
@@ -568,19 +564,19 @@ descriptToFiles = [
 #("harmonictristimulus2",   'ircamd', False, True,  'HarmonicTristimulus', 3, 2),
 ("inharmonicity",          'ircamd', False, True,  'Inharmonicity', 1, 0),
 ("loudness",               'ircamd', False, True,  'Loudness', 1, 0),
-("mfcc0",                  'ircamd', False, True,  'MFCC', 13, 0),
-("mfcc1",                  'ircamd', False, True,  'MFCC', 13, 1),
-("mfcc2",                  'ircamd', False, True,  'MFCC', 13, 2),
-("mfcc3",                  'ircamd', False, True,  'MFCC', 13, 3),
-("mfcc4",                  'ircamd', False, True,  'MFCC', 13, 4),
-("mfcc5",                  'ircamd', False, True,  'MFCC', 13, 5),
-("mfcc6",                  'ircamd', False, True,  'MFCC', 13, 6),
-("mfcc7",                  'ircamd', False, True,  'MFCC', 13, 7),
-("mfcc8",                  'ircamd', False, True,  'MFCC', 13, 8),
-("mfcc9",                  'ircamd', False, True,  'MFCC', 13, 9),
-("mfcc10",                 'ircamd', False, True,  'MFCC', 13, 10),
-("mfcc11",                 'ircamd', False, True,  'MFCC', 13, 11),
-("mfcc12",                 'ircamd', False, True,  'MFCC', 13, 12),
+#("mfcc0",                  'ircamd', False, True,  'MFCC', 13, 0), # MFCCS GET ADDED IN BY ANALLINKAGE INIT
+#("mfcc1",                  'ircamd', False, True,  'MFCC', 13, 1), # MFCCS GET ADDED IN BY ANALLINKAGE INIT
+#("mfcc2",                  'ircamd', False, True,  'MFCC', 13, 2), # MFCCS GET ADDED IN BY ANALLINKAGE INIT
+#("mfcc3",                  'ircamd', False, True,  'MFCC', 13, 3), # MFCCS GET ADDED IN BY ANALLINKAGE INIT
+#("mfcc4",                  'ircamd', False, True,  'MFCC', 13, 4), # MFCCS GET ADDED IN BY ANALLINKAGE INIT
+#("mfcc5",                  'ircamd', False, True,  'MFCC', 13, 5),
+#("mfcc6",                  'ircamd', False, True,  'MFCC', 13, 6),
+#("mfcc7",                  'ircamd', False, True,  'MFCC', 13, 7),
+#("mfcc8",                  'ircamd', False, True,  'MFCC', 13, 8),
+#("mfcc9",                  'ircamd', False, True,  'MFCC', 13, 9),
+#("mfcc10",                 'ircamd', False, True,  'MFCC', 13, 10),
+#("mfcc11",                 'ircamd', False, True,  'MFCC', 13, 11),
+#("mfcc12",                 'ircamd', False, True,  'MFCC', 13, 12),
 ("noiseenergy",            'ircamd', False, True,  'NoiseEnergy', 1, 0),
 ("noisiness",              'ircamd', False, True,  'Noisiness', 1, 0),
 ("perceptualoddtoevenratio",'ircamd',False, True,  'PerceptualOddToEvenRatio', 3, 0),

@@ -28,7 +28,7 @@ if not os.path.exists(file):
 
 # setup analysis parameters
 ops = concatenativeclasses.parseOptions(defaults=defaultpath, scriptpath=os.path.dirname(__file__))
-AnalInterface = anallinkage.AnalInterface(pm2_bin=ops.PM2_BIN, supervp_bin=ops.SUPERVP_BIN, userWinLengthSec=ops.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=ops.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=ops.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=ops.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=ops.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=ops.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=ops.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=ops.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, F0Quality=ops.IRCAMDESCRIPTOR_F0_QUALITY, forceAnal=ops.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=ops.SEARCH_PATHS)
+AnalInterface = anallinkage.AnalInterface(pm2_bin=ops.PM2_BIN, supervp_bin=ops.SUPERVP_BIN, userWinLengthSec=ops.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=ops.DESCRIPTOR_HOP_SIZE_SEC, resampleRate=ops.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=ops.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=ops.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=ops.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=ops.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=ops.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, forceAnal=ops.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=ops.SEARCH_PATHS)
 
 # load soundfile
 handle = sfsegment.sfsegment(file, None, None, AnalInterface.allDescriptors, AnalInterface)

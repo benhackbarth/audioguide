@@ -138,7 +138,8 @@ UserVar_types = {
 'IRCAMDESCRIPTOR_F0_MIN_FREQUENCY': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_MAX_FREQUENCY': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_AMP_THRESHOLD': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_F0_QUALITY': ['an integer greater than zero'],
+'IRCAMDESCRIPTOR_F0_QUALITY': ['an integer greater than zero'], # DEPRECATED
+'IRCAMDESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
 'SUPERVP_BIN': ['None', 'a string'],
 'PM2_BIN': ['None', 'a string'],
 ################  USER INTERACTION / PRINTING  ##############
