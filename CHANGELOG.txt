@@ -1,7 +1,8 @@
 #################
 ## Version 1.3 ##
 #################
-• A nasty bug with descriptor analysis was retrieving mostly incorrect f0 values.  This is now fixed (Thanks to PA)
+
+• A longstanding bug was generating mostly incorrect f0 values.  This is now fixed (Thanks to PA) and f0 should work much better.
 
 
 
