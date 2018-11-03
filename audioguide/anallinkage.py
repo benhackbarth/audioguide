@@ -93,6 +93,12 @@ SaveShortTermTMFeatures = 1
 WindowType = %s
 OutputFormat = raw
 
+F0MaxAnalysisFreq = %i
+F0MinFrequency = %i
+F0MaxFrequency = %i
+F0AmpThreshold = %i
+F0Quality = %f
+
 [StandardDescriptors]
 WindowSize = %f
 HopSize = %f
@@ -103,11 +109,7 @@ DeviationStopBand = 10
 RolloffThreshold = 0.95
 DecreaseThreshold = 0.4
 NoiseThreshold = 0.15
-F0MaxAnalysisFreq = %i
-F0MinFrequency = %i
-F0MaxFrequency = %i
-F0AmpThreshold = %i
-F0Quality = %f
+
 ;~~~~~~~~~~~~~~~~~~~descriptors~~~~~~~~~~~~~~~~~~~~~
 SignalZeroCrossingRate  = ShortTime
 ;AutoCorrelation  = ShortTime
@@ -163,7 +165,7 @@ TextureWindowsFrames = -1
 TextureWindowsHopFrames = -1
 ;~~~~~~~~~~~~~~~~energy descriptors~~~~~~~~~~~~~~~~
 EnergyEnvelope  = 1
-'''%(self.resampleRate, self.IOBufferSize, self.windowType, self.winLengthSec, self.hopLengthSec, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, self.userEnergyWinLengthSec, self.userEnergyHopLengthSec)
+'''%(self.resampleRate, self.IOBufferSize, self.windowType, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.F0Quality, self.winLengthSec, self.hopLengthSec, self.userEnergyWinLengthSec, self.userEnergyHopLengthSec)
 		# make a list of all possible descriptor objects
 		self.allDescriptors = []
 		from userclasses import SingleDescriptor as d
@@ -174,7 +176,8 @@ EnergyEnvelope  = 1
 		
 		for desc in self.internalDescriptorNames:
 			self.allDescriptors.append( d(desc) )
-		
+		# print all descriptors
+		#print (', '.join(["d('%s')"%d.name for d in self.allDescriptors if d.seg]))
 		# write log
 		if self.p != None: 
 			self.p.log("ANALYSIS CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
@@ -244,6 +247,8 @@ EnergyEnvelope  = 1
 		# add internal mectrics if not already used
 		for dname in self.internalDescriptorNames:
 			self.addDescriptorIfNeeded(d(dname, origin='INTERNAL'), ops, addParents=True)
+		#
+		#
 		# make normalisation list!
 		self.normalizeDescriptors = []
 		for dobj in self.requiredDescriptors:
@@ -291,6 +296,7 @@ EnergyEnvelope  = 1
 		STAGING_DIRECTORY = os.path.join(analdir, 'tmp')
 		if not os.path.exists(STAGING_DIRECTORY): os.makedirs(STAGING_DIRECTORY)
 		command = [ircam_bin, sffile, ircamd_configfile]
+		if self.p != None: self.p.log("RUNNING COMMAND"+' '.join(command))
 		stdoutReturnDict={('sr', 0): ('sr', 2, int), ('samples', 0): ('lengthsamples', 2, int), ('channel(s):', 0): ('channels', 1, int)}
 		try:
 			p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=STAGING_DIRECTORY)

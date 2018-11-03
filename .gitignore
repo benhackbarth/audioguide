@@ -5,17 +5,19 @@ corpi/*
 targets/*
 www/*
 *.bbprojectd
-*.rtf
 *.pyc
-# latex stuff
-*.aux
-*.log
-*.out
-*.toc
 audioguide/data/*
 audioguide/__pycache__/*
 release.py
 examples/*.txt
 .DS_Store*
-
+audioguide/ircamdescriptor-2.8.6/Ircamdescriptor - wiki-rd.html
+audioguide/ircamdescriptor-2.8.6/configuration.htm.pdf
+audioguide/ircamdescriptor-2.8.6/energyNS.pdf
+audioguide/ircamdescriptor-2.8.6/standardNS.pdf
+audioguide_gui/
+examples/10-tester.py
+examples/11-testframes.py
+gilbertSpecial.py
+to_do.txt
 

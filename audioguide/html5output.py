@@ -61,12 +61,14 @@ class htmloutput:
 
 	
 	
-	def jschart_timeseries(self, widthpx=1000, heightpx=300, maxlength=500, yarray=[0, 1, 2, 3, 4, 5], xarrays=[[5, 4, 3, 2, 1, 5]], ylabel='time in seconds', xlabels=['descriptorname']):
+	def jschart_timeseries(self, widthpx=900, heightpx=300, maxlength=500, yarray=[0, 1, 2, 3, 4, 5], xarrays=[[5, 4, 3, 2, 1, 5]], ylabel='time in seconds', xlabels=['descriptorname']):
 		id = 'chart%i'%self.chartcnt
 		datasetstring = ''
 		for idx, xar in enumerate(xarrays):
-			datasetstring += '''\t\t{label: '%s', data: %s, type: 'line', pointRadius: 0, fill: false, lineTension: 0, borderWidth: 2},
-	'''%(xlabels[idx], np.array2string(util.interpArray(xar, maxlength), precision=2, separator=',').replace('\n', ''))
+			if idx == 0: hidden = 'false'
+			else: hidden = 'true'
+			datasetstring += '''\t\t{label: '%s', data: %s, type: 'line', pointRadius: 0, fill: false, lineTension: 0, borderWidth: 2, hidden: %s},
+	'''%(xlabels[idx], np.array2string(util.interpArray(xar, maxlength), precision=2, separator=',').replace('\n', ''), hidden)
 	
 		self.htmlBody += '''<div style="width:%ipx">
 		<canvas id="%s"></canvas>

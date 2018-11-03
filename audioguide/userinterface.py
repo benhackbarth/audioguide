@@ -222,12 +222,6 @@ class printer:
 				for cidx, cs in enumerate(cpssegs):
 					scatter['cps'][key].append(cs.desc[dobj.name].getnorm(0, None))
 		self.html.addScatter2dAxisChoice(scatter, name='Descriptor Data', axisdefaults=nonnormalized[0:2])
-		
-	
-
-
-
-
 	###############################################
 	def writehtmllog(self, filepath):
 		self.html.writefile(filepath)
