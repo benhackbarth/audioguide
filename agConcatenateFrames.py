@@ -172,8 +172,7 @@ cpsSelectedFrameDict = {}
 ## loop through target frames ##
 ################################
 p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgtorderedframes)+1)
-matchedFrameDurations = []
-channels = []
+outputEvents = []
 csSco = ''
 for tidx in tgtorderedframes:
 	p.percentageBarNext()
@@ -263,14 +262,38 @@ for tidx in tgtorderedframes:
 		else:
 			break
 	notedurationframes = inc[1]-inc[0]
+
 	if notedurationframes < ops.EXPERIMENTAL['minimumLengthInFrames']: continue
 	
-	matchedFrameDurations.append(notedurationframes)
-	notetime = AnalInterface.f2s(tidx+inc[0]-ops.EXPERIMENTAL['envAttackFrames'])
-	noteduration = AnalInterface.f2s(1 + notedurationframes + ops.EXPERIMENTAL['envAttackFrames'] + ops.EXPERIMENTAL['envDecayFrames'])
-	skiptime = selectCpsseg.segmentStartSec + AnalInterface.f2s(frameskip+inc[0]-ops.EXPERIMENTAL['envAttackFrames'])
-	channels.append(selectCpsseg.soundfileChns)
-	csSco += "i1  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(notetime, noteduration, 0, selectCpsseg.filename, skiptime, 1, -10, 0, 1, AnalInterface.f2s(ops.EXPERIMENTAL['envAttackFrames']), AnalInterface.f2s(ops.EXPERIMENTAL['envDecayFrames']), 1, 1, 1, 0, tidx, "None", "stereo")
+	noteinfo = {}
+	noteinfo['filename'] = selectCpsseg.filename
+	noteinfo['timeInScore'] = AnalInterface.f2s(tidx+inc[0]-ops.EXPERIMENTAL['envAttackFrames'])
+	noteinfo['duration'] = AnalInterface.f2s(1 + notedurationframes + ops.EXPERIMENTAL['envAttackFrames'] + ops.EXPERIMENTAL['envDecayFrames'])
+	noteinfo['sfSkip'] = selectCpsseg.segmentStartSec + AnalInterface.f2s(frameskip+inc[0]-ops.EXPERIMENTAL['envAttackFrames'])
+	noteinfo['corpusId'] = selectCpsseg.voiceID
+	noteinfo['sfchnls'] = selectCpsseg.soundfileChns
+	noteinfo['transposition'] = 0 # not supported yet
+	noteinfo['envDb'] = 0. # not supported yet
+	noteinfo['envScaleDb'] = 0. # not supported yet
+	noteinfo['envAttackSec'] = AnalInterface.f2s(ops.EXPERIMENTAL['envAttackFrames'])
+	noteinfo['envDecaySec'] = AnalInterface.f2s(ops.EXPERIMENTAL['envDecayFrames'])
+	noteinfo['envSlope'] = 1. # not supported yet
+	cpsstartf = frameskip+inc[0]-ops.EXPERIMENTAL['envAttackFrames']
+	if cpsstartf < 0: cpsstartf = 0
+	cpsendf = frameskip+inc[1]+ops.EXPERIMENTAL['envDecayFrames']
+	#print("\n\n", "CPS", cpsstartf, cpsendf, selectCpsseg.lengthInFrames)
+	cpsframepowers = selectCpsseg.desc['power'][cpsstartf:cpsendf]
+	cpspeakframe = np.argmax(cpsframepowers)
+	noteinfo['peaktimeSec'] = AnalInterface.f2s(cpspeakframe)
+	noteinfo['peakRms'] = cpsframepowers[cpspeakframe]
+	noteinfo['peakRmsDb'] = util.ampToDb(noteinfo['peakRms'])
+	noteinfo['midiPitch'] = selectCpsseg.desc['MIDIPitch-seg'].get(cpsstartf, cpsendf)
+	tgtstartf = tidx+inc[0]-ops.EXPERIMENTAL['envAttackFrames']
+	tgtendf = tidx+inc[1]+ops.EXPERIMENTAL['envDecayFrames']
+	#print("TGT", tgtstartf, tgtendf)
+	noteinfo['simSelects'] = max(tgtoverlaps[tgtstartf:tgtendf])
+	
+	outputEvents.append(noteinfo)
 
 	for df in range(inc[0], inc[1]):
 		tgtoverlaps[tidx+df] += 1
@@ -278,16 +301,33 @@ for tidx in tgtorderedframes:
 		if cspf not in cpsSelectedFrameDict: cpsSelectedFrameDict[cspf] = 0
 		cpsSelectedFrameDict[cspf] += 1
 
-
 	printLabel = "searching @ frame %i x %i: "%(tidx, tgtoverlaps[tidx]+1)
 	printLabel += ' '*(24-len(printLabel))
 	printLabel += "found %i frames"%(notedurationframes)
 	p.percentageBarNext(lowerLabel=printLabel, incr=0)
 
 
-p.percentageBarClose(txt='Selected %i events'%len(matchedFrameDurations))
+p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
 
+
+
+
+######################
+## dict output file ##
+######################
+if ops.DICT_OUTPUT_FILEPATH != None:
+	import operator
+	output = {}
+	output['opsfilename'] = ops.opsfilehead
+	output['opsfiledata'] = ops.opsfileAsString
+	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec, 'fileduation': AnalInterface.rawData[tgt.filename]['info']['lengthsec'], 'chn': AnalInterface.rawData[tgt.filename]['info']['channels']} 
+	output['corpus_file_list'] = list(set([oe['filename'] for oe in outputEvents]))	
+	output['selectedEvents'] = [oe for oe in outputEvents]
+	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
+	json.dump(output, fh)
+	fh.close()
+	p.log( "Wrote JSON dict file %s\n"%ops.DICT_OUTPUT_FILEPATH )
 
 
 
@@ -297,11 +337,13 @@ p.percentageBarClose(txt='Selected %i events'%len(matchedFrameDurations))
 ########################
 if ops.CSOUND_CSD_FILEPATH != None:
 	from audioguide import csoundinterface as csd
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set(channels), 2, bits=ops.CSOUND_BITS)
+	for noteinfo in outputEvents:
+		csSco += "i1  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(noteinfo['timeInScore'], noteinfo['duration'], 0, noteinfo['filename'], noteinfo['sfSkip'], 1, -10, 0, 1, AnalInterface.f2s(ops.EXPERIMENTAL['envAttackFrames']), AnalInterface.f2s(ops.EXPERIMENTAL['envDecayFrames']), 1, 1, 1, 0, tidx, "None", "stereo")
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe['sfchnls'] for oe in outputEvents]), 2, bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 
 	if ops.CSOUND_RENDER_FILEPATH != None:
-		csd.render(ops.CSOUND_CSD_FILEPATH, len(matchedFrameDurations), printerobj=p)
+		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
 		p.log( "Rendered csound soundfile output %s\n"%ops.CSOUND_RENDER_FILEPATH )
 	
 	if ops.CSOUND_NORMALIZE:
@@ -313,7 +355,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 ####################
 if ops.HTML_LOG_FILEPATH != None: p.writehtmllog(ops.HTML_LOG_FILEPATH)
 	
-if ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
+if ops.CSOUND_CSD_FILEPATH != None and ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
 	csd.playFile( ops.CSOUND_RENDER_FILEPATH )
 		
 	

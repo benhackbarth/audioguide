@@ -73,9 +73,18 @@ class CorpusOptionsEntry(object):
 
 class SearchPassOptionsEntry(object):
 	def __init__(self, *args, **kwargs):	
-		self._all_args = args
 		self.method = args[0]
-		self.descriptor_list = args[1:]
+		if self.method.find('_parse') != -1:
+			self.parse = True
+			self.method = self.method.replace('_parse','')
+			self.parsedescriptor, self.parseSymbol, self.parsevalue = util.parseEquationString(args[1], ['==', '!=', '<', '<=', '>', '>='])
+			self.parsedescriptor = SingleDescriptor(self.parsedescriptor)
+			self.parsetest = args[1]
+			self.parselists = [args[2], args[3]]
+			self.descriptor_list = [self.parsedescriptor] + args[2] + args[3]
+		else:
+			self.parse = False
+			self.descriptor_list = args[1:]
 		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
 		for k in kwargs:
 			if not k in _defaults:
@@ -83,8 +92,6 @@ class SearchPassOptionsEntry(object):
 		for k, v in _defaults.items(): setattr(self, k, kwargs.get(k, v))
 		#####
 		if self.method == 'closest': self.complete_results = True
-		#self.seg = []
-		#self.timevary = []
 	########################################
 
 

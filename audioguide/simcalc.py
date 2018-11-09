@@ -42,7 +42,41 @@ class distanceCalculations:
 			mind = sys.maxsize
 			maxd = -1*sys.maxsize
 			if len(self.corpusObjs) < 1: return False
-			
+
+
+			if spassobj.parse:
+				test = eval("%f %s %f"%(tgtseg.desc[spassobj.parsedescriptor.name].get(0, None), spassobj.parseSymbol, float(spassobj.parsevalue)))
+				if test: spassobj.descriptor_list = spassobj.parselists[0] # use first list
+				else: spassobj.descriptor_list = spassobj.parselists[1]    # use second list
+#			
+#			if spassobj.method == 'closest_parse':
+#				######################
+#				## descriptor parse ##
+#				######################
+#				# spass('closest_parse', parsestring, dobjList1, dobjList2)
+#				limit_pieces = util.parseEquationString(spassobj.parsestring, ['==', '!=', '<', '<=', '>', '>='])
+#				print(limit_pieces)
+#				print(dir(spass))
+#
+#		
+#				assert limit_pieces[0] in [dobj.name for dobj in AnalInterface.requiredDescriptors]
+#				for dobj in AnalInterface.requiredDescriptors:
+#				#	print dobj, dobj.name, limit_pieces[0]
+#					if dobj.name == limit_pieces[0]: break
+#				self.d = dobj
+#				self.symb = limit_pieces[1]
+#				# test to see if it is a percentage
+#				if limit_pieces[2].find('%') == -1:
+#					self.needMinMax = True
+#					self.value = float(limit_pieces[2])
+#				else: # its a percentage
+#					self.needMinMax = False
+#					self.percent = float(limit_pieces[2].replace('%', ''))
+#				self.cpsScope = cpsScope # scope is a list of applicable voiceIDs
+#				self.cnt_reject = []
+#
+#				sys.exit()
+		
 			if spassobj.method == 'ratio_limit': # uses un-normalised descriptor values
 				###############################
 				## limit descriptor by ratio ##

@@ -202,25 +202,14 @@ class printer:
 		nonnormalized = []
 		for dobj in segmentedDescriptorsToGraph:
 			key = dobj.name.replace('-seg', '')
-			# add raw descriptor values
-			if key not in scatter['tgt']: scatter['tgt'][key] = []
-			for tidx, ts in enumerate(tgtsegs):
-				scatter['tgt'][key].append(ts.desc[dobj.name].get(0, None))
-			if key not in scatter['cps']: scatter['cps'][key] = []
-			for cidx, cs in enumerate(cpssegs):
-				scatter['cps'][key].append(cs.desc[dobj.name].get(0, None))
+			scatter['tgt'][key] = [ts.desc[dobj.name].get(0, None) for ts in tgtsegs]
+			scatter['cps'][key] = [cs.desc[dobj.name].get(0, None) for cs in cpssegs]
 			nonnormalized.append(key)
-			
 			# see if we have normalized values to add too
 			if dobj in AnalInterface.normalizeDescriptors:
 				key = dobj.name.replace('-seg', ' normalized')
-				# add normalized descriptor values
-				if key not in scatter['tgt']: scatter['tgt'][key] = []
-				for tidx, ts in enumerate(tgtsegs):
-					scatter['tgt'][key].append(ts.desc[dobj.name].getnorm(0, None))
-				if key not in scatter['cps']: scatter['cps'][key] = []
-				for cidx, cs in enumerate(cpssegs):
-					scatter['cps'][key].append(cs.desc[dobj.name].getnorm(0, None))
+				scatter['tgt'][key] = [ts.desc[dobj.name].getnorm(0, None) for ts in tgtsegs]
+				scatter['cps'][key] = [cs.desc[dobj.name].getnorm(0, None) for cs in cpssegs]
 		self.html.addScatter2dAxisChoice(scatter, name='Descriptor Data', axisdefaults=nonnormalized[0:2])
 	###############################################
 	def writehtmllog(self, filepath):

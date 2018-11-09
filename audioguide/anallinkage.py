@@ -202,7 +202,9 @@ EnergyEnvelope  = 1
 	def expandDescriptorPackages(self, ops):
 		for spass in ops.SEARCH:
 			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, self.numbMfccs)
-
+			if spass.parse:
+				spass.parselists[0] = descriptListPackageExpansion(spass.parselists[0], self.numbMfccs)
+				spass.parselists[1] = descriptListPackageExpansion(spass.parselists[1], self.numbMfccs)
 		# add EXPERIMENTAL spass entries 
 		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
 		for k, v in ops.EXPERIMENTAL.items():

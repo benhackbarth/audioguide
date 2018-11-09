@@ -463,7 +463,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 ####################
 if ops.HTML_LOG_FILEPATH != None: p.writehtmllog(ops.HTML_LOG_FILEPATH)
 	
-if ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
+if ops.CSOUND_CSD_FILEPATH != None and ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
 	csd.playFile( ops.CSOUND_RENDER_FILEPATH )
 		
 	

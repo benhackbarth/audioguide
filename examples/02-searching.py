@@ -83,3 +83,9 @@ spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 #spass('farthest', d('centroid-seg')) # picks the segment with the most distance centroid when compared to target segments.
 #]
 
+
+
+
+
+# not yet documented....
+# spass('closest_parse', 'noisiness-seg < 0.6', [d('mfccs-seg')], [d('f0')])
