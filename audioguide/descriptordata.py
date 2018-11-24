@@ -279,7 +279,7 @@ def descriptorSlope(handle, descriptName, start, NORMALIZE_FOR_DURATION=True):
 
 
 def MIDIPitchByFileName(name, midiPitchMethod, handle, notfound=-1):
-	# midiPitchMethod == 'filename' || int/float || yin-seg || centroid-seg
+	# midiPitchMethod == 'filename' || int/float || f0-seg || centroid-seg
 	if midiPitchMethod == 'filename':
 		fileHead = os.path.splitext(os.path.split(name)[1])[0]
 		test = getMidiPitchFromString(fileHead)
@@ -287,10 +287,8 @@ def MIDIPitchByFileName(name, midiPitchMethod, handle, notfound=-1):
 		else: return notfound
 	elif midiPitchMethod == 'composite':
 		test = getMidiPitchFromString( os.path.splitext(os.path.split(name)[1])[0] )
-		if test != False:
-			return test
-		else:
-			return MIDIPitchByFileName(name, 'f0-seg', handle)
+		if test != False: return test
+		else: return MIDIPitchByFileName(name, 'f0-seg', handle)
 	elif type(midiPitchMethod) in [float, int]:
 		return midiPitchMethod
 	elif midiPitchMethod == 'centroid-seg':

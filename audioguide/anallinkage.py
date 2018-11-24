@@ -618,4 +618,4 @@ descriptToFiles = [
 
 descriptIsAmp = ["power", "spectralpower", "noiseenergy", "loudness", "harmonicenergy", "energyenvelope"]
 
-descriptNotMixable = ["f0", "zeroCross"]
+descriptNotMixable = ["f0", "zeroCross", "effDur-seg"]
