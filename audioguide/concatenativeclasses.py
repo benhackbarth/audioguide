@@ -670,13 +670,13 @@ class outputEvent:
 		elif renderDur == 'tgt':
 			self.duration = self.tgtsegdur
 		
-		# align peak?
+		self.timeInScore = timeInScore
+		# align peak of tgt and cps segments?
 		if alignPeaksBool:
 			eventPeak = timeInScore+(self.peaktimeSec*(1./self.transratio))
 			tgtPeak = self.tgtsegstart+self.tgtsegpeak
-			self.timeInScore = timeInScore + tgtPeak-eventPeak
-		else:
-			self.timeInScore = timeInScore
+			print("\n\n", timeInScore, self.peaktimeSec, self.tgtsegstart, self.tgtsegpeak, tgtPeak-eventPeak, "\n\n", )
+			self.timeInScore += tgtPeak-eventPeak
 
 		
 	####################################	

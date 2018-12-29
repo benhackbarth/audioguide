@@ -462,7 +462,7 @@ EnergyEnvelope  = 1
 			if timediff > secondLimit and totalBytes > byteLimit:
 				listToRemove.append(filehead)
 				del self.dataRegistry[filehead]
-				print("RM "+os.path.join(self.analdir, filehead+'.npy'))
+				#print("RM "+os.path.join(self.analdir, filehead+'.npy'))
 			totalBytes += bytes
 		dataRegistryPathTmp = '/tmp/tmp.json'
 		fh = open(dataRegistryPathTmp, 'w')

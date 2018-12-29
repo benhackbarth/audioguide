@@ -167,6 +167,7 @@ class distanceCalculations:
 	def getSimCalcStartAndLength(self, cpsseg, tgtseg, tgtstart, superimposeObj):
 		if superimposeObj.peakAlign: # align peaks
 			tgtstart += int(tgtseg.desc['peakTime-seg'].get(0, None)-cpsseg.desc['peakTime-seg'].get(0, None)) 
+		#print("after", tgtstart, tgtseg.lengthInFrames, cpsseg.lengthInFrames, tgtseg.desc['peakTime-seg'].get(0, None), cpsseg.desc['peakTime-seg'].get(0, None))
 		tgt_len = tgtseg.lengthInFrames-tgtstart
 		if superimposeObj.simCalcDur == "corpusDur":	
 			cps_len = cpsseg.lengthInFrames

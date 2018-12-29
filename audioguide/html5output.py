@@ -3,21 +3,21 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys
+import sys, os
 import audioguide.util as util
 import numpy as np
 
 
 
 
-
 class htmloutput:
 	def __init__(self,):
+		ag_jsfolder_path = os.path.join(os.path.split(util.__file__)[0], 'js')
 		self.htmlHead = '''<!doctype html>
 	<title>AudioGuide Concatenation Log</title>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-	<script src="http://www.chartjs.org/dist/2.7.2/Chart.js"></script>
-	<script src="http://www.chartjs.org/samples/latest/utils.js"></script>
+	<script src="%s/moment.min.js"></script>
+	<script src="%s/Chart.2.7.2.js"></script>
+	<script src="%s/utils.js"></script>
 	<style>
 	canvas {
 		-moz-user-select: none;
@@ -25,7 +25,7 @@ class htmloutput:
 		-ms-user-select: none;
 	}
 	</style>
-'''
+'''%(ag_jsfolder_path, ag_jsfolder_path, ag_jsfolder_path)
 		self.htmlBody = ''
 		self.chartcnt = 0
 	
