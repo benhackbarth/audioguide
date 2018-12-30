@@ -38,9 +38,12 @@ class distanceCalculations:
 		self.searchMinMax = []
 		self.logTextOutput = ''
 		self.lengthAtPasses = ['%i'%len(self.corpusObjs)] # start with initial size for printing
+		self.lengthAtPassesVerbose = [] 
 		for spidx, spassobj in enumerate(seach_pass_objs):
 			mind = sys.maxsize
 			maxd = -1*sys.maxsize
+			lastPass = spidx == len(seach_pass_objs)-1				
+			
 			if len(self.corpusObjs) < 1: return False
 
 
@@ -94,7 +97,6 @@ class distanceCalculations:
 					if spassobj.minratio != None and ratio < spassobj.minratio: continue
 					if spassobj.maxratio != None and ratio > spassobj.maxratio: continue
 					newList.append(c)
-				self.corpusObjs = newList
 			else:
 				########################################################
 				## search segmented and timevarying feature distances ##
@@ -129,7 +131,6 @@ class distanceCalculations:
 				
 				mind = self.corpusObjs[0].sim_accum
 				maxd = self.corpusObjs[-1].sim_accum
-				lastPass = spidx == len(seach_pass_objs)-1				
 
 				# clip corpus list to reflect search results and scope
 				if spassobj.method == 'closest':
@@ -144,14 +145,16 @@ class distanceCalculations:
 					elif spassobj.method == 'farthest_percent':
 						newList = self.corpusObjs[numb_entries:]
 				
-				### if this is the last pass
-				if lastPass and len(newList) > 1: # make a random choice
-					newList = [random.choice(newList)]
-				#self.logTextOutput += "\tdistance calc pass #%i - %s - %i -> %i ( %2.2f <-> %2.2f )\n"%(spidx+1, spassobj.method, len(self.corpusObjs), len(newList), mind, maxd)
-				self.corpusObjs = newList
-				
-			
+			if len(newList) < 1: return False
+			### if this is the last pass
+			if lastPass and len(newList) > 1: # make a random choice
+				self.lengthAtPassesVerbose.append( '%i -> %i (random)'%(len(self.corpusObjs), len(newList)) )
+				newList = [random.choice(newList)]
+			else:
+				self.lengthAtPassesVerbose.append( '%i -> %i'%(len(self.corpusObjs), len(newList)) )
+
 			self.lengthAtPasses.append('%i'%(len(newList)))
+			self.corpusObjs = newList
 		# done with loop
 		assert len(self.corpusObjs) == 1
 		self.searchResults.append( self.corpusObjs[0] )

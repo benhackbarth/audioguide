@@ -627,7 +627,7 @@ class SuperimposeTracker():
 
 
 class outputEvent:
-	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, renderDur, alignPeaksBool, minOutputMidi=21):		
+	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, durationSelect, durationMin, durationMax, alignPeaksBool, minOutputMidi=21):		
 		# cps segment stuff
 		self.sfseghandle = sfseghandle
 		self.filename = sfseghandle.concatFileName
@@ -665,32 +665,30 @@ class outputEvent:
 		self.envSlope = sfseghandle.envSlope
 		
 		# test for which duration to use - the target's or the corpus'
-		if renderDur == 'cps':
+		if durationSelect == 'cps':
 			self.duration = self.cpsduration * (1./self.transratio)
-		elif renderDur == 'tgt':
+		elif durationSelect == 'tgt':
 			self.duration = self.tgtsegdur
-		
-		self.timeInScore = timeInScore
+
+		# duration min/max
+		if durationMin != None and self.duration < durationMin:
+			newEndSec = min(self.sfSkip+durationMin, self.sfseghandle.soundfileTotalDuration)
+			self.duration = newEndSec-self.sfSkip
+		if durationMax != None and self.duration > durationMax:
+			self.duration = durationMax
+			
 		# align peak of tgt and cps segments?
+		self.timeInScore = timeInScore
 		if alignPeaksBool:
 			eventPeak = timeInScore+(self.peaktimeSec*(1./self.transratio))
 			tgtPeak = self.tgtsegstart+self.tgtsegpeak
-			print("\n\n", timeInScore, self.peaktimeSec, self.tgtsegstart, self.tgtsegpeak, tgtPeak-eventPeak, "\n\n", )
+			#print("\n\n", timeInScore, self.peaktimeSec, self.tgtsegstart, self.tgtsegpeak, tgtPeak-eventPeak, "\n\n", )
 			self.timeInScore += tgtPeak-eventPeak
 
 		
 	####################################	
-	def makeCsoundOutputText(self, channelMethod, minSegmentDuration, maxSegmentDuration, instru=1):
+	def makeCsoundOutputText(self, channelMethod, instru=1):
 		if channelMethod == 'mix': channelMethod = 'stereo' # to support deprecated mix option
-		if minSegmentDuration != None:
-			if self.duration < minSegmentDuration:
-				newEndSec = min(self.sfSkip+minSegmentDuration, self.sfseghandle.soundfileTotalDuration)
-				self.duration = newEndSec-self.sfSkip
-				
-			
-		if maxSegmentDuration != None and self.duration > maxSegmentDuration:
-			self.duration = maxSegmentDuration
-			
 		return "i%i  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(instru, self.timeInScore, self.duration, self.envDb, self.filename, self.sfSkip, self.transposition, self.rmsSeg, self.peaktimeSec, self.effDurSec, self.envAttackSec, self.envDecaySec, self.envSlope, self.voiceID, self.simSelects, self.tgtsegdur, self.tgtsegnumb, self.stretchcode, channelMethod)
 	####################################	
 	def makeLabelText(self):
@@ -735,13 +733,13 @@ def quantizeTime(outputEvents, method, interval, p):
 	
 	if method == 'snapToGrid':
 		'''Quantize each note's start time to the nearest value
-		of OUTPUT_QUANTIZE_TIME_INTERVAL seconds'''
+		of OUTPUTEVENT_QUANTIZE_TIME_INTERVAL seconds'''
 		for oe in outputEvents:
 			oe.timeInScore = (int(oe.timeInScore/interval))*interval
 		
 	elif method == 'medianAggregate':
 		'''Sets each note's start time to the median time
-		of notes found in time slices of OUTPUT_QUANTIZE_TIME_INTERVAL
+		of notes found in time slices of OUTPUTEVENT_QUANTIZE_TIME_INTERVAL
 		length in seconds.'''
 		lastEvent = outputEvents[-1].timeInScore
 		for oe in outputEvents:

@@ -1,3 +1,21 @@
+##################
+## Version 1.32 ##
+##################
+
+• Change in the Chartjs support in the log.html was made so that the log.html works without an internet connection.
+ 
+• Several options were renamed for clarity.  These are now detailed in the “Post-Concatenation Event Manipulation” of the documentation.
+	CSOUND_ALIGN_PEAKS was renamed OUTPUTEVENT_ALIGN_PEAKS
+	OUTPUT_QUANTIZE_TIME_METHOD was renamed OUTPUTEVENT_QUANTIZE_TIME_METHOD
+	OUTPUT_QUANTIZE_TIME_INTERVAL was renamed OUTPUTEVENT_QUANTIZE_TIME_INTERVAL
+	OUTPUT_TIME_STRETCH was renamed OUTPUTEVENT_TIME_STRETCH
+	OUTPUT_TIME_ADD was renamed OUTPUTEVENT_TIME_ADD
+	CSOUND_RENDER_DUR was renamed OUTPUTEVENT_DURATION_SELECT
+	CSOUND_SEGMENT_MIN_DUR was renamed OUTPUTEVENT_DURATION_MIN
+	CSOUND_SEGMENT_MAX_DUR was renamed OUTPUTEVENT_DURATION_MAX
+
+
+
 #################
 ## Version 1.3 ##
 #################
@@ -38,6 +56,6 @@
 
 • Rendered concatenations can now be automatically normalized with CSOUND_NORMALIZE and CSOUND_NORMALIZE_PEAK_DB.
 
-• You can now override the duration of corpus sounds in the Csound rendering process with CSOUND_SEGMENT_MIN_DUR and CSOUND_SEGMENT_MAX_DUR.
+• You can now override the duration of corpus sounds in the Csound rendering process with CSOUND_SEGMENT_MIN_DUR and CSOUND_SEGMENT_MAX_DUR (these variable names changed in v1.32).
 
 • Numerous bug fixes, including a bug in the segmentation algorithm that made it die.

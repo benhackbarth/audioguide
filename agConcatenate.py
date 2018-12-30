@@ -299,8 +299,8 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		cps.updateWithSelection(selectCpsseg, timeInSec, segidx)
 		cpsEffDur = selectCpsseg.desc['effDurFrames-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
-		eventTime = (timeInSec*ops.OUTPUT_TIME_STRETCH)+ops.OUTPUT_TIME_ADD
-		outputEvents.append( concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.CSOUND_RENDER_DUR, ops.CSOUND_ALIGN_PEAKS) )
+		eventTime = (timeInSec*ops.OUTPUTEVENT_TIME_STRETCH)+ops.OUTPUTEVENT_TIME_ADD
+		outputEvents.append( concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.OUTPUTEVENT_DURATION_SELECT, ops.OUTPUTEVENT_DURATION_MIN, ops.OUTPUTEVENT_DURATION_MAX, ops.OUTPUTEVENT_ALIGN_PEAKS) )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
 		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
@@ -310,8 +310,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		printLabel += ' '*(24-len(printLabel))
 		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
-		htmlSelectionTable.append(["%.2f"%timeInSec, int(maxoverlaps)+1] + distanceCalculations.lengthAtPasses[:-1] )
-
+		htmlSelectionTable.append(["%.2f"%timeInSec, int(maxoverlaps)+1] + distanceCalculations.lengthAtPassesVerbose )
 p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
 p.maketable(htmlSelectionTable)
@@ -327,7 +326,7 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ###########################
 ## temporal quantization ##
 ###########################
-concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUT_QUANTIZE_TIME_METHOD, float(ops.OUTPUT_QUANTIZE_TIME_INTERVAL), p)
+concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUTEVENT_QUANTIZE_TIME_METHOD, float(ops.OUTPUTEVENT_QUANTIZE_TIME_INTERVAL), p)
 
 p.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
@@ -447,7 +446,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	if minTime < 0:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
-	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SEGMENT_MIN_DUR, ops.CSOUND_SEGMENT_MAX_DUR) for oe in outputEvents ])
+	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
 	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:

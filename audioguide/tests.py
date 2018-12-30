@@ -107,23 +107,26 @@ UserVar_types = {
 ########  CONCATENATE SELECTION  #######
 'RANDOM_SEED': ['None', 'a number'],
 'OUTPUT_GAIN_DB': ['a number'],
-'OUTPUT_TIME_STRETCH': ['a number greater than zero'],
-'OUTPUT_TIME_ADD': ['a number'],
-'OUTPUT_QUANTIZE_TIME_METHOD': ['None', 'snapToGrid', 'medianAggregate'],
-'OUTPUT_QUANTIZE_TIME_INTERVAL': ['a number greater than zero'],
 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS': ['True or False'],
 'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION': ['True or False'],
+
+#######  POST-CONCATENATION EVENT MANIPULATION  #######
+'OUTPUTEVENT_ALIGN_PEAKS': ['True or False'],
+'OUTPUTEVENT_DURATION_SELECT': ['cps', 'tgt'],
+'OUTPUTEVENT_DURATION_MIN': ['None', 'a number'],
+'OUTPUTEVENT_DURATION_MAX': ['None', 'a number'],
+'OUTPUTEVENT_TIME_STRETCH': ['a number greater than zero'],
+'OUTPUTEVENT_TIME_ADD': ['a number'],
+'OUTPUTEVENT_QUANTIZE_TIME_METHOD': ['None', 'snapToGrid', 'medianAggregate'],
+'OUTPUTEVENT_QUANTIZE_TIME_INTERVAL': ['a number greater than zero'],
+
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
 'CSOUND_BITS': ['an integer greater than zero'],
-'CSOUND_ALIGN_PEAKS': ['True or False'],
 'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix'], # mix is deprecated 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
-'CSOUND_SEGMENT_MIN_DUR': ['None', 'a number'],
-'CSOUND_SEGMENT_MAX_DUR': ['None', 'a number'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
-'CSOUND_RENDER_DUR': ['cps', 'tgt'],
 'CSOUND_NORMALIZE': ['True or False'],
 'CSOUND_NORMALIZE_PEAK_DB': ['a number'],
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
