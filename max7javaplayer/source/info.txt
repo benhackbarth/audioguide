@@ -1,0 +1,6 @@
+To build, make sure java is up to date.  Then run in the terminal:
+
+javac -cp ./json-simple-1.1.1.jar:"/Applications/Max.app/Contents/Resources/C74/packages/max-mxj/java-classes/lib/max.jar": MaxAgJsonOutputReader.java
+
+jar cf MaxAgJsonOutputReader.jar MaxAgJsonOutputReader*.class ./json-simple-1.1.1.jar
+

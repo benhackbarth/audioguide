@@ -174,8 +174,9 @@ else:
 ## TARGET SEGMENT LOOP ##
 #########################
 p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgt.segs)+1)
-htmlSelectionTable = [['time', 'number of selected segments', ]]
-for s in ops.SEARCH: htmlSelectionTable[0].append(s.method)
+htmlSelectionTable = [['time x overlap', ]]
+for sidx, s in enumerate(ops.SEARCH):
+	htmlSelectionTable[0].append('spass #%s: %s'%(sidx+1, s.method))
 
 
 for segidx, tgtseg in enumerate(tgt.segs):
@@ -310,7 +311,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		printLabel += ' '*(24-len(printLabel))
 		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
-		htmlSelectionTable.append(["%.2f"%timeInSec, int(maxoverlaps)+1] + distanceCalculations.lengthAtPassesVerbose )
+		htmlSelectionTable.append(["%.2fx%i"%(timeInSec, int(maxoverlaps)+1), ] + distanceCalculations.lengthAtPassesVerbose )
 p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
 p.maketable(htmlSelectionTable)
