@@ -135,6 +135,7 @@ class corpus:
 		self.preloadlist = []
 		self.preLimitSegmentList = []
 		self.postLimitSegmentNormList = []
+		self.selectedSegmentList = []
 		self.simSelectRuleByCorpusId = []
 		self.len = len(corpusFromUserOptions)
 		
@@ -370,6 +371,7 @@ class corpus:
 		return test
 	############################################################################
 	def updateWithSelection(self, cpsh, timeInSec, tgtsegidx):
+		if cpsh not in self.selectedSegmentList: self.selectedSegmentList.append(cpsh)
 		self.data['lastVoice'] = cpsh.voiceID
 		self.data['selectionTimeByVoice'][cpsh.voiceID].append(timeInSec)
 		self.data['cspInfo'][cpsh.voiceID]['selectedTargetSegments'].append(tgtsegidx)
@@ -663,6 +665,7 @@ class outputEvent:
 		self.envAttackSec = sfseghandle.envAttackSec
 		self.envDecaySec = sfseghandle.envDecaySec
 		self.envSlope = sfseghandle.envSlope
+		self.classification = sfseghandle.classification
 		
 		# test for which duration to use - the target's or the corpus'
 		if durationSelect == 'cps':
@@ -705,12 +708,15 @@ class outputEvent:
 	####################################	
 	def makeDictOutput(self):
 		dicty = {}
-		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDecaySec', 'envSlope', 'filename', 'peaktimeSec', 'sfSkip', 'simSelects', 'transposition', 'tgtsegnumb', 'envDb']:
+		for key in ['timeInScore', 'sfchnls', 'duration', 'envAttackSec', 'envDecaySec', 'envSlope', 'filename', 'peaktimeSec', 'sfSkip', 'transposition', 'tgtsegnumb', 'envDb']:
 			dicty[key] = getattr(self, key)
 	
+		dicty['corpusIdNumber'] = self.voiceID
+		dicty['classificationNumber'] = self.classification
+		dicty['simultaneousSelectionNumber'] = self.simSelects
+		
 		dicty['peakRms'] = self.powerSeg
 		dicty['peakRmsDb'] = util.ampToDb(self.powerSeg)
-		dicty['corpusId'] = self.voiceID
 		dicty['midiPitch'] = self.midiFromFilename
 		dicty['envScaleDb'] = self.envDb
 		return dicty

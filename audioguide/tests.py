@@ -119,16 +119,18 @@ UserVar_types = {
 'OUTPUTEVENT_TIME_ADD': ['a number'],
 'OUTPUTEVENT_QUANTIZE_TIME_METHOD': ['None', 'snapToGrid', 'medianAggregate'],
 'OUTPUTEVENT_QUANTIZE_TIME_INTERVAL': ['a number greater than zero'],
+'OUTPUTEVENT_CLASSIFY': ['a dictionary'],
 
 #############  CSOUND RENDERING  ############
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
 'CSOUND_BITS': ['an integer greater than zero'],
-'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix'], # mix is deprecated 
+'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix', 'oneChannelPerClassification'], # mix is deprecated 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_NORMALIZE': ['True or False'],
 'CSOUND_NORMALIZE_PEAK_DB': ['a number'],
+
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_OVERRIDE_DATA_PATH': ['None', 'a string'],
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],

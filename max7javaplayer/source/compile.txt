@@ -4,3 +4,5 @@ javac -cp ./json-simple-1.1.1.jar:"/Applications/Max.app/Contents/Resources/C74/
 
 jar cf MaxAgJsonOutputReader.jar MaxAgJsonOutputReader*.class ./json-simple-1.1.1.jar
 
+
+More info about compilation in MaxAgJsonOutputReader.java.

@@ -123,19 +123,22 @@ if ops.NORMALIZATION_METHOD == 'standard':
 			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
 		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
 	p.maketable(normalizationTable)
-	
-elif ops.NORMALIZATION_METHOD == 'cluster':
-	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
-	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
-	clusteredSegLists = []
-	for segs, clustList in [(tgt.segs, tgtClusts), (cps.postLimitSegmentNormList, cpsClusts)]:
-		for cidx in clustList:
-			clusteredSegLists.append([seg for seg in segs if seg.cluster == cidx])
-	for segList in clusteredSegLists:
-		if len(segList) == 0: continue
-		for dobj in AnalInterface.normalizeDescriptors:
-			stats = sfsegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfsegment.applyDescriptorNormalisation(segList, dobj, stats)
+
+# BROKEN IN PYTHON 3	
+#elif ops.NORMALIZATION_METHOD == 'cluster':
+#	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
+#	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
+#	clusteredSegLists = []
+#	for segs, clustList in [(tgt.segs, tgtClusts), (cps.postLimitSegmentNormList, cpsClusts)]:
+#		for cidx in clustList:
+#			clusteredSegLists.append([seg for seg in segs if seg.cluster == cidx])
+#	for segList in clusteredSegLists:
+#		if len(segList) == 0: continue
+#		for dobj in AnalInterface.normalizeDescriptors:
+#			stats = sfsegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+#			sfsegment.applyDescriptorNormalisation(segList, dobj, stats)
+#
+
 
 
 
@@ -177,7 +180,6 @@ p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgt.segs)+1)
 htmlSelectionTable = [['time x overlap', ]]
 for sidx, s in enumerate(ops.SEARCH):
 	htmlSelectionTable[0].append('spass #%s: %s'%(sidx+1, s.method))
-
 
 for segidx, tgtseg in enumerate(tgt.segs):
 	segSeek = 0
@@ -222,7 +224,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		##############################
 		## get valid corpus handles ##
 		##############################
-		validSegments = cps.evaluateValidSamples(tif, timeInSec, tgtseg.idx, ops.ROTATE_VOICES, ops.VOICE_PATTERN, ops.VOICE_TO_ONSET_MAPPING, ops.CLUSTER_MAPPING, tgtseg.cluster, superimp)
+		validSegments = cps.evaluateValidSamples(tif, timeInSec, tgtseg.idx, ops.ROTATE_VOICES, ops.VOICE_PATTERN, ops.VOICE_TO_ONSET_MAPPING, ops.CLUSTER_MAPPING, tgtseg.classification, superimp)
 		if len(validSegments) == 0:
 			superimp.skip('no corpus sounds made it past restrictions and limitations', None, timeInSec)
 			segSeek += ops.SUPERIMPOSE.incr
@@ -329,6 +331,20 @@ outputEvents.sort(key=lambda x: x.timeInScore)
 ###########################
 concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUTEVENT_QUANTIZE_TIME_METHOD, float(ops.OUTPUTEVENT_QUANTIZE_TIME_INTERVAL), p)
 
+
+##################################
+## CORPUS OUTPUT CLASSIFICATION ##
+##################################
+if ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
+	classifications = descriptordata.soundSegmentClassification(ops.OUTPUTEVENT_CLASSIFY['descriptors'], [oe.sfseghandle for oe in outputEvents], numbClasses=ops.OUTPUTEVENT_CLASSIFY['numberClasses'])
+	for cidx, classified in enumerate(classifications): outputEvents[cidx].classification = int(classified)	
+else:
+	for didx in range(len(outputEvents)): outputEvents[didx].classification = 0 # no classification, so 0
+
+
+#########################
+## CREATE OUTPUT FILES ##
+#########################
 p.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
 
@@ -354,6 +370,7 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 	output['target'] = {'filename': tgt.filename, 'sfSkip': tgt.startSec, 'duration': tgt.endSec-tgt.startSec, 'segs': tgtSegDataList, 'fileduation': AnalInterface.rawData[tgt.filename]['info']['lengthsec'], 'chn': AnalInterface.rawData[tgt.filename]['info']['channels']} 
 	output['corpus_file_list'] = list(set(allusedcpsfiles))
 	output['selectedEvents'] = [oe.makeDictOutput() for oe in outputEvents]
+	output['outputparse'] = {'simultaneousSelections': int(max([d['simultaneousSelectionNumber'] for d in output['selectedEvents']])+1), 'classifications': max(ops.OUTPUTEVENT_CLASSIFY['numberClasses'], 1), 'corpusIds': int(max([d['corpusIdNumber'] for d in output['selectedEvents']])+1)}
 	fh = open(ops.DICT_OUTPUT_FILEPATH, 'w')
 	json.dump(output, fh)
 	fh.close()
@@ -448,7 +465,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, bits=ops.CSOUND_BITS)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, ops.OUTPUTEVENT_CLASSIFY, bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)

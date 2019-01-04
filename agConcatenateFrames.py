@@ -339,7 +339,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 	from audioguide import csoundinterface as csd
 	for noteinfo in outputEvents:
 		csSco += "i1  %.3f  %.3f  %.3f  \"%s\"  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %.3f  %i  %i  %f  %i  \"%s\"  \"%s\"\n"%(noteinfo['timeInScore'], noteinfo['duration'], 0, noteinfo['filename'], noteinfo['sfSkip'], 1, -10, 0, 1, AnalInterface.f2s(ops.EXPERIMENTAL['envAttackFrames']), AnalInterface.f2s(ops.EXPERIMENTAL['envDecayFrames']), 1, 1, 1, 0, tidx, "None", "stereo")
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe['sfchnls'] for oe in outputEvents]), 2, bits=ops.CSOUND_BITS)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe['sfchnls'] for oe in outputEvents]), 2, ops.OUTPUTEVENT_CLASSIFY, bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 
 	if ops.CSOUND_RENDER_FILEPATH != None:

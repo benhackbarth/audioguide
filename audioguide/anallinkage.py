@@ -246,6 +246,10 @@ EnergyEnvelope  = 1
 		if 'descriptors' in ops.CLUSTER_MAPPING:
 			for s in ops.CLUSTER_MAPPING['descriptors']:
 				self.addDescriptorIfNeeded(d(s+'-seg', origin='CLUSTER_MAPPING'), ops, addParents=True)
+		# add classification descriptors
+		if 'descriptors' in ops.OUTPUTEVENT_CLASSIFY:
+			for s in ops.OUTPUTEVENT_CLASSIFY['descriptors']:
+				self.addDescriptorIfNeeded(d(s, origin='CLASSIFICATION'), ops, addParents=True)
 		# add segmentation data descriptor
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)

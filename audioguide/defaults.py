@@ -46,6 +46,7 @@ OUTPUTEVENT_QUANTIZE_TIME_METHOD = None # snapToGrid | medianAggregate
 OUTPUTEVENT_DURATION_SELECT = 'cps' # cps | tgt
 OUTPUTEVENT_DURATION_MIN = None
 OUTPUTEVENT_DURATION_MAX = None
+OUTPUTEVENT_CLASSIFY = {'numberClasses': 0, 'descriptors': ['mfcc1-seg', 'mfcc2-seg', 'mfcc3-seg', 'mfcc4-seg']} # only classifies if numberClasses >= 2
 
 ############  CSOUND RENDERING  ############
 CSOUND_SR = 48000

@@ -1,8 +1,1 @@
-Audioguide player by Gilbert Nouno which works in Max7/8.  Works with the json output (created by default as output/output.json).
-
-To build, make sure java is up to date.  Then:
-
-javac -cp ./json-simple-1.1.1.jar:"/Applications/Max.app/Contents/Resources/C74/packages/max-mxj/java-classes/lib/max.jar": MaxAgJsonOutputReader.java
-
-jar cf MaxAgJsonOutputReader.jar MaxAgJsonOutputReader*.class ./json-simple-1.1.1.jar
-
+Audioguide player by Gilbert Nouno which works in Max6/7/8 with java and the mxj object.  Lemouton’s samplor~ is also required.  Works by reading the json AudioGuide’s output (created by default as output/output.json).

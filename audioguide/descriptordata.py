@@ -170,50 +170,66 @@ class segmentedDescriptorData:
 
 
 
+#
+#
+#class clusterAnalysis:
+#	def __init__(self, paramDict, tgtSegObjs, cpsSegObjs, savepath):
+#		#from sompy_wrapper import functions as clusterFunc
+#		import sompy_wrapper as clusterFunc
+#		self.savepath = savepath
+#		self.paramDict = paramDict
+#		self.targetData = buildFeatureArray(tgtSegObjs, paramDict['descriptors'])
+#		self.corpusData = buildFeatureArray(cpsSegObjs, paramDict['descriptors'])
+#		self.corpusDataNorm, self.targetDataNorm = clusterFunc.dataScaling(self.corpusData, self.targetData, paramDict['normalise'])
+#
+#		self.corpusData_loc, self.targetData_loc, self.clusterModel = clusterFunc.clusterSamples(paramDict['type'], self.corpusDataNorm, self.targetDataNorm, [paramDict['size'], paramDict['size'], paramDict['makeHitMap']])
+#		# assign cluster nodes in segment objects
+#		for lidx, loc in enumerate(self.targetData_loc): tgtSegObjs[lidx].cluster = loc				
+#		for lidx, loc in enumerate(self.corpusData_loc): cpsSegObjs[lidx].cluster = loc				
+#		if paramDict['makePickleFile']: self.makePickleFile()
+#	####
+#	def getClusterNumbers(self):
+#		return set(self.targetData_loc), set(self.corpusData_loc)
+#	####
+#	def makePickleFile(self):
+#		import pickle
+#		picklePath = util.verifyOutputPath('output/clusterdata.pk1', self.savepath)		
+#		data = {'params': self.paramDict, 'targetData': self.targetData, 'corpusData': self.corpusData}
+#		output = open(picklePath, 'wb')
+#		pickle.dump(data, output)			
+#		output.close()
+#	####
+#
 
 
-class clusterAnalysis:
-	def __init__(self, paramDict, tgtSegObjs, cpsSegObjs, savepath):
-		#from sompy_wrapper import functions as clusterFunc
-		import sompy_wrapper as clusterFunc
-		self.savepath = savepath
-		self.paramDict = paramDict
-		self.targetData = self.buildFeatureArray(tgtSegObjs, paramDict['descriptors'])
-		self.corpusData = self.buildFeatureArray(cpsSegObjs, paramDict['descriptors'])
-		self.corpusDataNorm, self.targetDataNorm = clusterFunc.dataScaling(self.corpusData, self.targetData, paramDict['normalise'])
+def buildFeatureArray(segmentObjList, featureList):
+	data = np.empty( (len(segmentObjList), len(featureList)) )
+	for sidx, seg in enumerate(segmentObjList):
+		for didx, d in enumerate(featureList):
+			data[sidx][didx] = seg.desc[d].get(0, None)
+	return data
 
-		self.corpusData_loc, self.targetData_loc, self.clusterModel = clusterFunc.clusterSamples(paramDict['type'], self.corpusDataNorm, self.targetDataNorm, [paramDict['size'], paramDict['size'], paramDict['makeHitMap']])
-		# assign cluster nodes in segment objects
-		for lidx, loc in enumerate(self.targetData_loc): tgtSegObjs[lidx].cluster = loc				
-		for lidx, loc in enumerate(self.corpusData_loc): cpsSegObjs[lidx].cluster = loc				
-		if paramDict['makePickleFile']: self.makePickleFile()
-	####
-	def getClusterNumbers(self):
-		return set(self.targetData_loc), set(self.corpusData_loc)
-	####
-	def makePickleFile(self):
-		import pickle
-		picklePath = util.verifyOutputPath('output/clusterdata.pk1', self.savepath)		
-		data = {'params': self.paramDict, 'targetData': self.targetData, 'corpusData': self.corpusData}
-		output = open(picklePath, 'wb')
-		pickle.dump(data, output)			
-		output.close()
-	####
-	def buildFeatureArray(self, segmentObjList, featureList):
-		data = np.empty( (len(segmentObjList), len(featureList)) )
-		for sidx, seg in enumerate(segmentObjList):
-			for didx, d in enumerate(featureList):
-				data[sidx][didx] = seg.desc[d+'-seg'].get(0, None)
-		return data
 
-	
-
+def soundSegmentClassification(descriptors, segObjs, numbClasses=4):
+	try:
+		from sklearn.cluster import KMeans
+	except ImportError:
+		print("To run sound segment classification, you need to install sklearn.  Run the command 'pip install -U scikit'")
+		return
+	data = buildFeatureArray(segObjs, descriptors)
+	kmeans = KMeans(n_clusters=numbClasses)
+	kmeans.fit(data)
+	y_km = kmeans.fit_predict(data)
+	return y_km
 
 
 
 
 def peakTimeSeg(powers):
 	return np.argmax(powers)+0.5 # the middle of the peak window, reduces error to +/-0.5
+
+
+
 
 def logAttackTime(powers):
 	idx = np.argmax(powers)

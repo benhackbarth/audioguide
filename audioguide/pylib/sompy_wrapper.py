@@ -18,7 +18,14 @@ def dataScaling(featuresCorpus, featuresTargets, scaling_type):
 		featuresCorpus = scaler.transform(featuresCorpus)
 		featuresTargets = scaler.transform(featuresTargets)
 	return featuresCorpus, featuresTargets
-	
+
+
+def dataScaling2(features):
+	from sklearn import preprocessing
+	scaler = preprocessing.StandardScaler().fit(features)
+	featuresNormed = scaler.transform(features)
+	return featuresNormed
+
 
 def setup(path2feat_corpus,path2feat_target,feat2use,path2audiofiles,path2feat_names,scaling_type):
     
@@ -39,6 +46,20 @@ def setup(path2feat_corpus,path2feat_target,feat2use,path2audiofiles,path2feat_n
     print('Corpus: #features='+str(featuresCorpus.shape[1])+' . #soundfiles = ' + str(featuresCorpus.shape[0]) )
     print('Target: #features='+str(featuresTargets.shape[1])+' . #soundfiles = ' + str(featuresTargets.shape[0]) ) 
     return featuresCorpus, featuresTargets, instancesTargets, instancesCorpus
+
+
+def classifySamples(testDataIn, numbClasses, hitMapBool):
+	  sm = SOM.SOM('sm', trainDataIn, mapsize = [numbClasses, numbClasses], norm_method = 'var', initmethod='pca')
+	  sm.train(n_job=1, shared_memory='no',verbose='off')
+
+	  if hitMapBool: sm.hit_map(testDataIn)
+
+	  testData_proj = sm.project_data(testDataIn)
+	  testData_loc = sm.ind_to_xy(testData_proj)[:,2]
+
+	  return testData_loc
+
+
 
 
 

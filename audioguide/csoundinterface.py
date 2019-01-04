@@ -8,7 +8,7 @@ import audioguide.util as util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, bits=32, useTargetAmplitude=0):	
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, numberClasses, bits=32, useTargetAmplitude=0):	
 	if channelRenderMethod == "corpusmax":
 		nchnls = max(listOfSfchannelsInScore) # use maximum number of channels for a corpus item
 	elif channelRenderMethod in ["mix", "stereo"]:
@@ -17,6 +17,8 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 		nchnls = cpsLength
 	elif channelRenderMethod == "oneChannelPerOverlap":
 		nchnls = maxOverlaps
+	elif channelRenderMethod == "oneChannelPerClassification":
+		nchnls = numberClasses
 	else:
 		util.error("csdrenderer", "No known channel render method '%s'\n"%channelRenderMethod)
 
