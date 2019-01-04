@@ -96,8 +96,9 @@ instr 1
 	iSimSelectNumb = p15
 	iTgtSegDur = p16
 	iTgtSegNumb = p17
-	SstretchCode   strget   p18
-	SchannelRenderType   strget   p19
+	iClassification = p18
+	SstretchCode   strget   p19
+	SchannelRenderType   strget   p20
 	
 	print giNoteCounter ; used by audioguide for its printed progress bar
 
@@ -247,6 +248,18 @@ instr 1
 		endif 
 	endif
 	
+	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerClassification"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then
+			outch     int(iClassification+1), asnd1
+		elseif (iFileChannels == 2) then
+			outch     int(iClassification+1), asnd1+asnd2
+		elseif (iFileChannels == 4) then
+			outch     int(iClassification+1), asnd1+asnd2+asnd3+asnd4
+		endif 
+	endif
+	
+
 	
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin

@@ -172,7 +172,7 @@ class corpusSegment(sfsegment):
 		self.sim_accum = 0. # for similarity calculations
 		self.selectionTimes = []
 		self.segfileData = segfileData
-		self.classification = None
+		self.classification = 0
 		self.metadata = metadata
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
@@ -227,7 +227,7 @@ class targetSegment(sfsegment):
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
-		self.classification = None
+		self.classification = 0
 		self.numberSelectedUnits = 0
 		self.idx = segmentidx
 	###################################################

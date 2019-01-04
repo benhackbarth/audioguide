@@ -338,8 +338,6 @@ concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUTEVENT_QUANTIZE_TIME_ME
 if ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
 	classifications = descriptordata.soundSegmentClassification(ops.OUTPUTEVENT_CLASSIFY['descriptors'], [oe.sfseghandle for oe in outputEvents], numbClasses=ops.OUTPUTEVENT_CLASSIFY['numberClasses'])
 	for cidx, classified in enumerate(classifications): outputEvents[cidx].classification = int(classified)	
-else:
-	for didx in range(len(outputEvents)): outputEvents[didx].classification = 0 # no classification, so 0
 
 
 #########################
@@ -465,7 +463,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, ops.OUTPUTEVENT_CLASSIFY, bits=ops.CSOUND_BITS)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
