@@ -1,1 +1,1 @@
-Audioguide player by Gilbert Nouno which works in Max6/7/8 with java and the mxj object.  Lemouton’s samplor~ is also required.  Works by reading the json AudioGuide’s output (created by default as output/output.json).
+Audioguide player by Gilbert Nouno which works in Max6/7/8 with java and the mxj object.  Lemouton’s samplor~ is also required.  Works by reading AudioGuide’s json output (created by default as output/output.json).

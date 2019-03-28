@@ -36,7 +36,7 @@ p.middleprint('SOUNDFILE CONCATENATION')
 ## TARGET ##
 ############
 p.logsection( "TARGET" )
-tgt = sfsegment.target(ops.TARGET)
+tgt = sfsegment.target(ops.TARGET, AnalInterface)
 tgt.initAnal(AnalInterface, ops, p)
 tgt.stageSegments(AnalInterface, ops, p)
 
@@ -338,6 +338,21 @@ concatenativeclasses.quantizeTime(outputEvents, ops.OUTPUTEVENT_QUANTIZE_TIME_ME
 if ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
 	classifications = descriptordata.soundSegmentClassification(ops.OUTPUTEVENT_CLASSIFY['descriptors'], [oe.sfseghandle for oe in outputEvents], numbClasses=ops.OUTPUTEVENT_CLASSIFY['numberClasses'])
 	for cidx, classified in enumerate(classifications): outputEvents[cidx].classification = int(classified)	
+
+
+
+#########################################
+## target signal decomposition cleanup ##
+#########################################
+if tgt.decompose != {}:
+	for oeidx, oe in enumerate(outputEvents): 
+		outputEvents[oeidx].decomposedstream = int(oe.timeInScore/tgt.decompose['origduration'])
+		oe.timeInScore = oe.timeInScore%tgt.decompose['origduration']
+	tgt.filename = tgt.decompose['origfilename']
+	tgt.startSec = 0
+	tgt.endSec = tgt.decompose['origduration']
+	AnalInterface.rawData[tgt.decompose['origfilename']] = {'info': {'channels': 1, 'lengthsec': tgt.decompose['origduration']}}
+
 
 
 #########################

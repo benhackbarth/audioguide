@@ -280,10 +280,24 @@ def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAm
 
 
 class target: # the target
-	def __init__(self, userOptsTargetObject):
+	def __init__(self, userOptsTargetObject, AnalInterface):
 		self.filename = userOptsTargetObject.filename
+		self.filename = util.verifyPath(self.filename, AnalInterface.searchPaths)
+		self.filename = os.path.abspath(self.filename)
 		self.startSec = userOptsTargetObject.start
 		self.endSec = userOptsTargetObject.end
+		
+		# check for signal decomposition
+		self.decompose = userOptsTargetObject.decompose
+		if self.decompose != {}:
+			if self.startSec == None: self.startSec = 0
+			import audioguide.signaldecompose as signaldecompose
+			newtargetpath, origtargetduration = signaldecompose.decomposeTargetSf(self.decompose['type'], self.filename, self.startSec, self.endSec, self.decompose['streams'], self.decompose['fftsize'], self.decompose['hopsize'])
+			self.decompose['origfilename'] = self.filename
+			self.decompose['origduration'] = origtargetduration
+			self.filename = newtargetpath
+	
+
 		self.segmentationThresh = userOptsTargetObject.thresh
 		self.segmentationOffsetRise = userOptsTargetObject.offsetRise
 		self.segmentationOffsetThreshAdd = userOptsTargetObject.offsetThreshAdd
@@ -308,8 +322,6 @@ class target: # the target
 	def initAnal(self, AnalInterface, ops, p):
 		# Start by loading the entire target as an 
 		# sfsegment to get the whole amplitude envelope.
-		self.filename = util.verifyPath(self.filename, AnalInterface.searchPaths)
-		self.filename = os.path.abspath(self.filename)
 		# see if we need to time stretch the target file...
 		if self.stretch != 1:
 			self.timeStretch(AnalInterface, ops, p)

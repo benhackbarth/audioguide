@@ -93,7 +93,7 @@ for file in args:
 	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	
 	
-	filetosegment = sfsegment.target(ops.TARGET)
+	filetosegment = sfsegment.target(ops.TARGET, AnalInterface)
 	filetosegment.initAnal(AnalInterface, ops, p)
 	filetosegment.stageSegments(AnalInterface, ops, p)
 

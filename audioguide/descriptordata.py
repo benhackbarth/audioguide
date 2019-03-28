@@ -213,12 +213,16 @@ def buildFeatureArray(segmentObjList, featureList):
 def soundSegmentClassification(descriptors, segObjs, numbClasses=4):
 	try:
 		from sklearn.cluster import KMeans
+		from sklearn.preprocessing import StandardScaler
 	except ImportError:
-		print("To run sound segment classification, you need to install sklearn.  Run the command 'pip install -U scikit'")
+		print("To run sound segment classification, you need to install sklearn.  Run the command 'pip install -U scikit-learn'")
 		return
 	data = buildFeatureArray(segObjs, descriptors)
+	scaler = StandardScaler()
+	scaler.fit(data)
+	scaleddata = scaler.transform(data)
 	kmeans = KMeans(n_clusters=numbClasses)
-	kmeans.fit(data)
+	kmeans.fit(scaleddata)
 	y_km = kmeans.fit_predict(data)
 	return y_km
 

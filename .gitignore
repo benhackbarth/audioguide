@@ -6,7 +6,7 @@ targets/*
 www/*
 *.bbprojectd
 *.pyc
-audioguide/data/*
+audioguide/data*
 audioguide/__pycache__/*
 release.py
 examples/*.txt

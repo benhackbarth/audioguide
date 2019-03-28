@@ -36,7 +36,7 @@ p.middleprint('EXPERIMENTAL FRAME-BASED CONCATENATION')
 ## TARGET ##
 ############
 p.logsection( "TARGET" )
-tgt = sfsegment.target(ops.TARGET)
+tgt = sfsegment.target(ops.TARGET, AnalInterface)
 tgt.initAnal(AnalInterface, ops, p)
 tgt.stageSegments(AnalInterface, ops, p)
 
