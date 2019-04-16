@@ -75,16 +75,28 @@ class CorpusOptionsEntry(object):
 class SearchPassOptionsEntry(object):
 	def __init__(self, *args, **kwargs):	
 		self.method = args[0]
-		if self.method.find('_parse') != -1:
-			self.parse = True
-			self.method = self.method.replace('_parse','')
-			self.parsedescriptor, self.parseSymbol, self.parsevalue = util.parseEquationString(args[1], ['==', '!=', '<', '<=', '>', '>='])
-			self.parsedescriptor = SingleDescriptor(self.parsedescriptor)
+		if self.method == 'parser':
 			self.parsetest = args[1]
-			self.parselists = [args[2], args[3]]
-			self.descriptor_list = [self.parsedescriptor] + args[2] + args[3]
+			self.submethod = args[2]
+			self.parse_choiceargs = list(args[3:])
+			self.parsedescriptor, self.parseSymbol, self.parsevalue = util.parseEquationString(self.parsetest, ['==', '!=', '<', '<=', '>', '>='])
+			self.parsedescriptor = SingleDescriptor(self.parsedescriptor)
+			self.descriptor_list = [self.parsedescriptor]
+			# test to see if it is a percentage
+			if self.parsevalue.find('%') == -1:
+				self.needMinMax = False
+			else: # its a percentage
+				self.needMinMax = True
+				self.parsevalue = float(self.parsevalue.replace('%', ''))
+			
+			if self.submethod == 'corpus_select':
+				pass
+			else:
+				self.descriptor_list += args[3] + args[4] # add other descriptors for loading
+			print(self.parsetest, self.submethod, self.parsedescriptor, self.parseSymbol, self.parsevalue, self.needMinMax, self.descriptor_list)
 		else:
-			self.parse = False
+			self.submethod = None
+			self.needMinMax = False
 			self.descriptor_list = args[1:]
 		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
 		for k in kwargs:
@@ -93,7 +105,6 @@ class SearchPassOptionsEntry(object):
 		for k, v in _defaults.items(): setattr(self, k, kwargs.get(k, v))
 		#####
 		if self.method == 'closest': self.complete_results = True
-	########################################
 
 
 

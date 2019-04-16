@@ -158,7 +158,8 @@ p.makeHtmlChartDescriptorNorm(AnalInterface, tgt.segs, cps.postLimitSegmentNormL
 p.logsection( "CONCATENATION" )
 tgt.setupConcate(AnalInterface)
 AnalInterface.done()
-distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, p)
+distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, tgt.segs, p)
+distanceCalculations.setTarget(ops.SEARCH, tgt.segs)
 superimp = concatenativeclasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
 cps.setupConcate(tgt, AnalInterface)
 outputEvents = []

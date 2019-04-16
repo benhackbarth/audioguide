@@ -16,7 +16,7 @@ class BreakIt(Exception):
 
 
 class distanceCalculations:
-	def __init__(self, superimposeObj, randomseed, AnalInterface, p):
+	def __init__(self, superimposeObj, randomseed, AnalInterface, tgtsegs, p):
 		random.seed(randomseed)
 		self.p = p
 		self.searchResults = []
@@ -29,7 +29,21 @@ class distanceCalculations:
 		if superimposeObj.maxOnset != None:
 			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.maxOnset)
 		else:
-			self.segmentDensityAmpScalers[0] = 1/8.		
+			self.segmentDensityAmpScalers[0] = 1/8.
+	##############################
+	def setTarget(self, spassList, tgtsegs):
+		# check to see if spasses need min/max
+		for spassobj in spassList:
+			if spassobj.needMinMax:
+				assert spassobj.parsedescriptor.seg
+				# loop through target handles again, but only happens once per unique limit string
+				tmp_data = [ts.desc[spassobj.parsedescriptor.name].get(0, None) for ts in tgtsegs]
+				tmp_data.sort()
+				# overwrite value with correct descriptor value
+				spassobj.parsevalue = tmp_data[ int((spassobj.parsevalue/100.)*(len(tmp_data)-1)) ]
+				del tmp_data
+				spassobj.needMinMax = False
+
 	##############################
 	def setCorpus(self, cpssegs):
 		self.corpusObjs = cpssegs
@@ -47,43 +61,36 @@ class distanceCalculations:
 			if len(self.corpusObjs) < 1: return False
 
 
-			if spassobj.parse:
-				test = eval("%f %s %f"%(tgtseg.desc[spassobj.parsedescriptor.name].get(0, None), spassobj.parseSymbol, float(spassobj.parsevalue)))
-				if test: spassobj.descriptor_list = spassobj.parselists[0] # use first list
-				else: spassobj.descriptor_list = spassobj.parselists[1]    # use second list
-#			
-#			if spassobj.method == 'closest_parse':
-#				######################
-#				## descriptor parse ##
-#				######################
-#				# spass('closest_parse', parsestring, dobjList1, dobjList2)
-#				limit_pieces = util.parseEquationString(spassobj.parsestring, ['==', '!=', '<', '<=', '>', '>='])
-#				print(limit_pieces)
-#				print(dir(spass))
-#
-#		
-#				assert limit_pieces[0] in [dobj.name for dobj in AnalInterface.requiredDescriptors]
-#				for dobj in AnalInterface.requiredDescriptors:
-#				#	print dobj, dobj.name, limit_pieces[0]
-#					if dobj.name == limit_pieces[0]: break
-#				self.d = dobj
-#				self.symb = limit_pieces[1]
-#				# test to see if it is a percentage
-#				if limit_pieces[2].find('%') == -1:
-#					self.needMinMax = True
-#					self.value = float(limit_pieces[2])
-#				else: # its a percentage
-#					self.needMinMax = False
-#					self.percent = float(limit_pieces[2].replace('%', ''))
-#				self.cpsScope = cpsScope # scope is a list of applicable voiceIDs
-#				self.cnt_reject = []
-#
-#				sys.exit()
-		
-			if spassobj.method == 'ratio_limit': # uses un-normalised descriptor values
-				###############################
-				## limit descriptor by ratio ##
-				###############################
+			####################
+			## parser methods ##
+			####################
+			if spassobj.method == 'parser':
+				newList = []
+				parseTest = eval("%f %s %f"%(tgtseg.desc[spassobj.parsedescriptor.name].get(0, None), spassobj.parseSymbol, float(spassobj.parsevalue)))						
+				#############################################
+				## select corpus ids based on feature test ##
+				#############################################
+				if spassobj.submethod == 'corpus_select':
+					for c in self.corpusObjs:
+						if parseTest and c.voiceID in spassobj.parse_choiceargs[0]:
+							newList.append(c)
+						elif not parseTest and c.voiceID in spassobj.parse_choiceargs[1]:
+							newList.append(c)
+
+				##############################################
+				## select descriptors based on feature test ##
+				##############################################
+				elif spassobj.submethod in ['closest', 'closest_percent', 'farthest', 'farthest_percent']:
+					if parseTest: dlist = spassobj.parse_choiceargs[0]
+					else: dlist = spassobj.parse_choiceargs[1]
+					mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, dlist, spassobj.submethod, True, superimposeObj, randomizeAmpForSimSelection)
+					newList = self.selectFromSortedList(spassobj.submethod, spassobj.percent)
+
+
+			###############################
+			## limit descriptor by ratio ##
+			###############################
+			elif spassobj.method == 'ratio_limit': # uses un-normalised descriptor values
 				assert len(spassobj.descriptor_list) == 1 and spassobj.descriptor_list[0].seg
 				ratioDobj = spassobj.descriptor_list[0]
 				newList = []
@@ -97,54 +104,18 @@ class distanceCalculations:
 					if spassobj.minratio != None and ratio < spassobj.minratio: continue
 					if spassobj.maxratio != None and ratio > spassobj.maxratio: continue
 					newList.append(c)
-			else:
-				########################################################
-				## search segmented and timevarying feature distances ##
-				########################################################		
-				min_accum = sys.maxsize
-				for c in self.corpusObjs:
-					#print c.filename, c.scaleDistance
-					c.sim_accum = 0.
-					tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
-					try:
-						for d in spassobj.descriptor_list:
-							tgtvals, cpsvals = c.getValuesForSimCalc( tgtseg, tgt_start, array_len, d, superimposeObj )
-							if d.seg:
-								# SPECIAL EXCEPTION IF MANIPULATING POWER FOR SIMULTANEOUS LAYERING:
-								if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
-									tgtvals *= random.uniform(self.segmentDensityAmpScalers[0], self.segmentDensityAmpScalers[1])							
-								dist = ((tgtvals-cpsvals)**2)*(d.weight*c.scaleDistance)
-								#print "\t", dist
-								c.sim_accum += dist
-								if c.sim_accum > min_accum and not spassobj.complete_results: raise BreakIt
-							else:
-								peaks = tgtseg.desc['peakTime-seg'].get(0, None), c.desc['peakTime-seg'].get(0, None)
-								dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc['power'], peaks=peaks)
-								c.sim_accum += dist*d.weight*c.scaleDistance
-								if c.sim_accum > min_accum and not spassobj.complete_results and spassobj.method == 'closest': raise BreakIt
-						if c.sim_accum < min_accum: min_accum = c.sim_accum
-					except BreakIt: pass
-				# sort by accum distance
-				self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
-				#for cidx, c in enumerate(self.corpusObjs):
-				#	print cidx, c.filename, c.sim_accum
+			########################################################
+			## search segmented and timevarying feature distances ##
+			########################################################		
+			elif spassobj.method in ['closest', 'farthest', 'closest_percent', 'farthest_percent']:
+				mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, spassobj.descriptor_list, spassobj.method, spassobj.complete_results, superimposeObj, randomizeAmpForSimSelection)
 				
-				mind = self.corpusObjs[0].sim_accum
-				maxd = self.corpusObjs[-1].sim_accum
-
 				# clip corpus list to reflect search results and scope
-				if spassobj.method == 'closest':
-					newList = [self.corpusObjs[0]]
-				elif spassobj.method == 'farthest':
-					newList = [self.corpusObjs[-1]]
-				else:
-					assert spassobj.percent != None
-					numb_entries = max(2, int(len(self.corpusObjs)*(spassobj.percent/100.))) # two!
-					if spassobj.method == 'closest_percent':
-						newList = self.corpusObjs[:numb_entries]
-					elif spassobj.method == 'farthest_percent':
-						newList = self.corpusObjs[numb_entries:]
-				
+				newList = self.selectFromSortedList(spassobj.method, spassobj.percent)
+
+			
+			
+			#print (spassobj.method, spassobj.submethod, len(newList))
 			if len(newList) < 1: return False
 			### if this is the last pass
 			if lastPass and len(newList) > 1: # make a random choice
@@ -152,6 +123,8 @@ class distanceCalculations:
 				newList = [random.choice(newList)]
 			else:
 				self.lengthAtPassesVerbose.append( '%i -> %i'%(len(self.corpusObjs), len(newList)) )
+			if spassobj.method == 'parser':
+				self.lengthAtPassesVerbose[-1] = "%s %s"%(parseTest, self.lengthAtPassesVerbose[-1])
 
 			self.lengthAtPasses.append('%i'%(len(newList)))
 			self.corpusObjs = newList
@@ -178,15 +151,54 @@ class distanceCalculations:
 			cps_len = cpsseg.desc['effDurFrames-seg'].get(0, None)
 		array_len = min(tgt_len, cps_len)
 		return tgtstart, array_len
+	##############################
+	def getFeatureDifferences(self, tgtseg, tgtSeek, descriptor_list, spassMethod, complete_results, superimposeObj, randomizeAmpForSimSelection):
+		min_accum = sys.maxsize
+		for c in self.corpusObjs:
+			#print c.filename, c.scaleDistance
+			c.sim_accum = 0.
+			tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
+			try:
+				for d in descriptor_list:
+					tgtvals, cpsvals = c.getValuesForSimCalc( tgtseg, tgt_start, array_len, d, superimposeObj )
+					if d.seg:
+						# SPECIAL EXCEPTION IF MANIPULATING POWER FOR SIMULTANEOUS LAYERING:
+						if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
+							tgtvals *= random.uniform(self.segmentDensityAmpScalers[0], self.segmentDensityAmpScalers[1])							
+						dist = ((tgtvals-cpsvals)**2)*(d.weight*c.scaleDistance)
+						#print "\t", dist
+						c.sim_accum += dist
+						if c.sim_accum > min_accum and not complete_results: raise BreakIt
+					else:
+						peaks = tgtseg.desc['peakTime-seg'].get(0, None), c.desc['peakTime-seg'].get(0, None)
+						dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc['power'], peaks=peaks)
+						c.sim_accum += dist*d.weight*c.scaleDistance
+						if c.sim_accum > min_accum and not complete_results and spassMethod == 'closest': raise BreakIt
+				if c.sim_accum < min_accum: min_accum = c.sim_accum
+			except BreakIt: pass
+		# sort by accum distance
+		self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
+		#for cidx, c in enumerate(self.corpusObjs):
+		#	print cidx, c.filename, c.sim_accum
+		
+		mind = self.corpusObjs[0].sim_accum
+		maxd = self.corpusObjs[-1].sim_accum
 
-
-
-
-
-
-
-
-
+		return mind, maxd
+	##############################
+	def selectFromSortedList(self, method, percent):
+		if method == 'closest':
+			newList = [self.corpusObjs[0]]
+		elif method == 'farthest':
+			newList = [self.corpusObjs[-1]]
+		else:
+			assert percent != None
+			numb_entries = max(2, int(len(self.corpusObjs)*(percent/100.))) # two!
+			if method == 'closest_percent':
+				newList = self.corpusObjs[:numb_entries]
+			elif method == 'farthest_percent':
+				newList = self.corpusObjs[numb_entries:]
+		return newList
 
 
 

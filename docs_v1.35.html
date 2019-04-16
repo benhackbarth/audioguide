@@ -164,14 +164,14 @@ $('body').scrollspy({
 	<div class="row">
 <!--Main Content -->
 <div class="col-xs-9 bs-docs-mainbar">
-<p align="center"><h1>AudioGuide1.34 Manual</h1>
+<p align="center"><h1>AudioGuide1.35 Manual</h1>
 By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno.<br>
 Copyright Ben Hackbarth, 2011-2018.</p><br>
 
 
 
 <section id="Installation" class="group"><h2>Installation</h2>
-For the moment AudioGuide1.34 only works on OS X.  On more current versions of OS X it should run out of the box with python2 or python3.  Here is a complete list of the resources that AudioGuide1.34 requires on your computer:
+For the moment AudioGuide1.35 only works on OS X.  On more current versions of OS X it should run out of the box with python2 or python3.  Here is a complete list of the resources that AudioGuide1.35 requires on your computer:
 <ul>
 <li><b>csound6</b> - Needed if you would like AudioGuide to automatically render concatenations (which you probably do).  Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python.  Upgrading to the latest python2.7 will automatically install numpy.  If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>.<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation.  Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
 </section>
@@ -199,7 +199,7 @@ The reason that segmentation and concatenation are separated into discrete steps
 
 
 <section id="CorpusSegmentation" class="group"><h2>Corpus Segmentation</h2>
-There are several tools in AudioGuide1.34 to segment long soundfiles into smaller chucks for use in concatenation.  The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py.  agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis.  Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
+There are several tools in AudioGuide1.35 to segment long soundfiles into smaller chucks for use in concatenation.  The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py.  agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis.  Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
 <ul>
 <li> Use whole soundfiles as corpus segments.  If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip this section and proceed to the <a href="#Concatenating">concatenation</a> section (However make sure tell AudioGuide not to search for segmentation textfiles by setting the corpus attribute wholeFile=True.  See <a href="#ManipulatingHowDirectoriesAreRead">Manipulating How Directories Are Read</a> for more info.).
 <li> Create segmentation files by hand.  You can do this in Audacity with its 'Labels' feature.  Create a label track and indicate the start and end times of desired sound segments.  Then "Export Labels..." and give the outputfile the same name as the soundfile + '.txt'.  So, 'examples/lachenmann.aiff' would need a label file named 'examples/lachenmann.aiff.txt'.
@@ -213,7 +213,7 @@ There are several tools in AudioGuide1.34 to segment long soundfiles into smalle
 The script you use to segment your corpus files according to it's acoustic features is called &lsquo;agSegmentSf.py&rsquo;.  AgSegmentSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.34 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.35 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agSegmentSf.py examples/lachenmann.aiff
 </code></pre>
@@ -223,7 +223,7 @@ AudioGuide will think for a second, and then output the following data detailing
 
 <pre class="language-none"><code class="language-none">---------------------- AUDIOGUIDE SEGMENT SOUNDFILE ----------------------
 
-Evaluating /Users/ben/Documents/AudioGuide1.34/examples/lachenmann.aiff from 0.00-64.65
+Evaluating /Users/ben/Documents/AudioGuide1.35/examples/lachenmann.aiff from 0.00-64.65
 
 AN ONSET HAPPENS when
 The amplitude crosses the Relative Onset Trigger Threshold: -40.00 (-t option)
@@ -236,10 +236,10 @@ AN OFFSET HAPPENS when
 
 
 Found 144 segments
-Wrote file /Users/ben/Documents/AudioGuide1.34/examples/lachenmann.aiff.txt
+Wrote file /Users/ben/Documents/AudioGuide1.35/examples/lachenmann.aiff.txt
 </code></pre>
 
-As a result of running this python script, AudioGuide1.34 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.35 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 
 
@@ -282,7 +282,7 @@ The textfiles created by agSegmentSf.py use a segmentation labeling format ident
 A script you can use to segment your corpus files for use with granular synthesis is called &lsquo;agGranulateSf.py&rsquo;.  Like agSegmentSf.py, agGranulateSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.  Unlike agSegmentSf.py, this script chops up a soundfile into evenly size grains and provides a mechanism for adjusting grain overlap.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.34 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.35 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agGranuateSf.py examples/lachenmann.aiff
 </code></pre>
@@ -290,7 +290,7 @@ To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.34 folder and ru
 There are similar flags to the agSegment script, as we only want to use grains where there is audio present.  Thus the -t, -a, and -d remain.  Grain length in second is specified with the -g flag and grain overlap is specified with -o.
 <ul> <li id="flag--g"><b>-g &#60;value&#62;</b> (<span style="color:green">greater than zero</span>; the default is <span style="color:green">0.1</span>) - This flag sets the length of generated grains in seconds.  All segments generated with agGranulate will be this length.</li><li id="flag--o"><b>-o &#60;value&#62;</b> (<span style="color:green">greater than zero, less than -g</span>; the default is <span style="color:green">0.05</span>) - This flag sets the distance between sucessive grain overlaps in seconds.  If this value is 0.05 a new grain will begin every 0.05 seconds.  If -g is 0.3, the overlap of grains will be 6.</li><li id="flag--t"><b>-t &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-40</span>) - This flag gives the onset trigger threshold value in dB.  When the soundfile's amplitude rises above the threshold, grains start being generated.  Higher values closer to 0 will lead to fewer grains.</li><li id="flag--d"><b>-d &#60;value&#62;</b> (<span style="color:green">between 0 and 100</span>; the default is <span style="color:green">+12</span>) - This flag sets the relative offset trigger threshold.  This value is added to the soundfile’s minimum amplitude.  During segmentation, if a frame’s amplitude is below this threshold, it causes grains to stop being generated. For instance, if the lowest amplitude in the soundfile is -82 and -d is set to +12, a dB value of -70 dB will cause grains to cease.  Also see -a.</li><li id="flag--a"><b>-a &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-80</span>) - This flag changes the segmentation offset absolute threshold. When segmenting the target, if a frame's amplitude is below this value it will cause grains to stop being generated. This variable is an absolute value whereas -d specifies a value relative to the soundfile’s minimum amplitude. Effectively, whichever of these two variables is higher will be the offset threshold.  Also see -d.</li></ul>
 
-As a result of running this python script, AudioGuide1.34 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.35 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 <figure class="figure">
   <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationGranulate.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
@@ -310,15 +310,15 @@ See examples/06-granular.py for usage and details.
 
 
 <section id="ConcatenatingwithagConcatenatepy" class="group"><h2>Concatenating with agConcatenate.py</h2>
-Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.34 options file as the first (and only) argument.  
+Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.35 options file as the first (and only) argument.  
 <br><br>
-To run one of the examples in the examples directory, run the following command inside the AudioGuide1.34 directory:
+To run one of the examples in the examples directory, run the following command inside the AudioGuide1.35 directory:
 <pre><code>python agConcatenate.py examples/01-simplest.py
 </code></pre>
 
 ...which will use the options contained in &lsquo;examples/01-simplest.py&rsquo; to parameterize the concatenative algorithm.  In this options file you specify a target sound, the corpus sounds, and (if you like) lots of other options that parameterize the concatenative process.  When run, the &lsquo;agConcatenate.py&rsquo; script will perform the following operations:
 <ul>
-<li>  Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk.  Analysis files are stored in a directory called &lsquo;AudioGuide1.34/audioguide/data/&rsquo; in the AudioGuide1.34 folder.  This directory can become quite large since these files are quite substantial in size.  Removing this folder will cause all analysis files to be recomputed).  
+<li>  Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk.  Analysis files are stored in a directory called &lsquo;AudioGuide1.35/audioguide/data/&rsquo; in the AudioGuide1.35 folder.  This directory can become quite large since these files are quite substantial in size.  Removing this folder will cause all analysis files to be recomputed).  
 <li>  Segment the target sound according to your options file.  An Audacity-style label file is created in a file called &lsquo;output/tgtlabels.txt&rsquo; in the output directory.
 <li>  Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
 <li> (If you&rsquo;ve specified them) Remove corpus segments according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
@@ -349,7 +349,7 @@ The TARGET variable is written as a tsf() object which requires a path to a soun
 
 
 <ul>
-<li><b>start</b> - The time in seconds to start reading the soundfile.<li><b>end</b> - The time in seconds to stop reading the soundfile.  <li><b>thresh</b> - Segmentation onset threshold: a value from -100 to 0. This is equilavent to the function of the <a href="#flag--t">-t flag</a>. <li><b>offsetRise</b> - Segmentation offset ratio: a number greater than 1.  This is equilavent to the function of the <a href="#flag--r">-r flag</a>.<li><b>offsetThreshAdd</b> - Segmentation offset relative threshold: a positive value in dB.  This is equilavent to the function of the <a href="#flag--a">-a flag</a>.<li><b>offsetThreshAbs</b> - Segmentation offset absolute threshold: a negative value in dB.  This is equilavent to the function of the <a href="#flag--d">-d flag</a>.<li><b>minSegLen</b> - Segmentation: the minimum duration in seconds of a target segment.<li><b>maxSegLen</b> - Segmentation: the maximum duration in seconds of a target segment.<li><b>scaleDb</b> - Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft.  The target&rsquo;s amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it&rsquo;s energy profile.<li><b>midiPitchMethod</b> - same as corpus method documented <a href="#midiPitchMethod">here</a>.<li><b>stretch</b> - Uses SuperVp to time stretch/compress the target sound before analysis and concatenation.  Stretched sound files are saved and reused in the audioguide/data_stretched_sfs directory.  A value of 1, the default, will cause no time stretching to be applied.  2 will double the duration of the soundfile.  Note that, in order to use this option, you must set the SUPERVP_BIN variable in the AudioGuide1.34/audioguide/defaults.py file.<li><b>segmentationFilepath</b> - by default the Target sound is segmented at runtime.  However, if you&rsquo;d like to specify a user-defined segmentation, you may give a file path to this variable.  Note that this file must be a textfile with the same format as corpus segmentation files.</ul>
+<li><b>start</b> - The time in seconds to start reading the soundfile.<li><b>end</b> - The time in seconds to stop reading the soundfile.  <li><b>thresh</b> - Segmentation onset threshold: a value from -100 to 0. This is equilavent to the function of the <a href="#flag--t">-t flag</a>. <li><b>offsetRise</b> - Segmentation offset ratio: a number greater than 1.  This is equilavent to the function of the <a href="#flag--r">-r flag</a>.<li><b>offsetThreshAdd</b> - Segmentation offset relative threshold: a positive value in dB.  This is equilavent to the function of the <a href="#flag--a">-a flag</a>.<li><b>offsetThreshAbs</b> - Segmentation offset absolute threshold: a negative value in dB.  This is equilavent to the function of the <a href="#flag--d">-d flag</a>.<li><b>minSegLen</b> - Segmentation: the minimum duration in seconds of a target segment.<li><b>maxSegLen</b> - Segmentation: the maximum duration in seconds of a target segment.<li><b>scaleDb</b> - Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft.  The target&rsquo;s amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it&rsquo;s energy profile.<li><b>midiPitchMethod</b> - same as corpus method documented <a href="#midiPitchMethod">here</a>.<li><b>stretch</b> - Uses SuperVp to time stretch/compress the target sound before analysis and concatenation.  Stretched sound files are saved and reused in the audioguide/data_stretched_sfs directory.  A value of 1, the default, will cause no time stretching to be applied.  2 will double the duration of the soundfile.  Note that, in order to use this option, you must set the SUPERVP_BIN variable in the AudioGuide1.35/audioguide/defaults.py file.<li><b>segmentationFilepath</b> - by default the Target sound is segmented at runtime.  However, if you&rsquo;d like to specify a user-defined segmentation, you may give a file path to this variable.  Note that this file must be a textfile with the same format as corpus segmentation files.</ul>
 
 
 <pre class="language-python"><code class="language-python">TARGET = tsf('cage.aiff') # uses the whole soundfile at its given amplitude
@@ -572,40 +572,76 @@ Use the d() object to specify a descriptor, how it is weighted, and how it is no
 
 
 <div id="SEARCHvariable" class="subgroup"><h3>SEARCH variable and spass() object</h3>
-The SEARCH variable tells AudioGuide how to pick corpus segments to match target segments.  The idea here is make a <i>very</i> flexible searching structure where the user can create multiple search passes based on different descriptor criteria.
+<p>The SEARCH variable tells AudioGuide how to pick corpus segments to match target segments.  The SEARCH variable is a list of spass() objects which is evaluated in order for each segment in the target soundfile.  Multiple search operations are chained together -- the output of each spass() becomes the input of the following spass().</p> 
 
-The SEARCH variable is a list of spass() objects.  Each spass() has the following parameters: 
-<pre class="language-python"><code class="language-python">spass(search_type, descriptor1...descriptorN, percent=None, minratio=None, maxratio=None)
+<pre class="language-python"><code class="language-python">SEARCH = [
+spass(...), # first spass.  the input is all valid corpus samples
+spass(...), # second spass.  the input is the output from the previous spass
+]
 </code></pre>
 
-<ul>
-<li><b>search_type</b> - describes what kind of search to perform, among the following methods:	<ul><li><b>&lsquo;closest&rsquo;</b> - Return the best matching segment.<li><b>&lsquo;closest_percent&rsquo;</b> - Return the top <i>percent</i> percent of the best matching segments.<li><b>&lsquo;farthest&rsquo;</b> - Return the worst matching segment.<li><b>&lsquo;farthest_percent&rsquo;</b> - Return the worst <i>percent</i> percent of segments.<li><b>&lsquo;ratio_limit&rsquo;</b> - Return segments where the ratio of the target descriptor value to the segment&rsquo;s value falls between minratio and maxratio.  Only works for averaged descriptors.	</ul><li><b>descriptor1...descriptorN</b> - a series of d() objects of any length.  If there is only d() object, similarity will be judged according to the difference between taget and corpus descriptor distances.  If there are mutiple descriptors listed, each descriptor will be equally important in determining which segments match.  The d() objects 'weight' keyword can further influence which samples are selected where there are mutiple descriptors.<li><b>percent</b> - Only valid when search_type='closest_percent' or 'farthest_percent' where this keyword sets the percentage of segments that may pass through this spass() object.<li><b>minratio</b> - Only valid when search_type='ratio_limit' where this keyword sets the minimum allowable ratio.<li><b>maxratio</b> - Only valid when search_type='ratio_limit' where this keyword sets the maximum allowable ratio.</ul>
 
 
-Here is the most simple case of a SEARCH variable:
+<p>The idea here is make a very flexible searching method where the user can create multiple search passes based on different descriptor criteria.  The first argument of spass(), its 'method', is a string which denotes the type of search - i.e. how target and corpus segments are compared.  A summary of different methods are listed below:</p>
+
+	<ul><li><b>closest</b> - picks the best matching corpus sound according to one of more descriptors.<li><b>closest_percent</b> - returns a percentage of the best matching corpus sounds according to one of more descriptors.<li><b>ratio_limit</b> - returns any corpus sounds if, for a given descriptor, the ratio of the target segment/corpus segment falls within certain user specified limits.<li><b>parser</b> - Structured as an if-then-else, this method toggles between two different actions depending on a whether a taget segment's descriptor passes a test.	</ul>
+
+<p>spass() objects with the method <b>closest</b> return the single best matching corpus sound according to a list descriptor objects.  This spass() objects should only be used as the last (or only) item of the SEARCH list.</p>
+<pre class="language-python"><code class="language-python">spass('closest', d('centroid')) # pick the best matching corpus sound according to time-varying centroids
+
+spass('closest', d('centroid'), d('mfccs-seg'), d('zeroCross-delta')) # pick the best matching corpus sound according to the equally weighted distances of centroid, segments mffcs, and first order zeroCross.
+</code></pre>
+
+
+<p>spass() objects with the method <b>closest_percent</b> return a percentage of the best matching corpus samples based on a list of descriptors.  The keyword 'percent' is required.</p>
+<pre class="language-python"><code class="language-python">spass('closest_percent', d('power-seg'), d('effDur-seg', norm=1), percent=10) # let the best matching 10 percent of courpus sounds through this pass according to averaged power and effective duration.
+</code></pre>
+<p>Note that if 'closest_percent' is the last (or only) entry in the SEARCH list, the final segment is randomly chosen among remaining corpus sounds.</p>
+
+
+<p>spass() objects with the method <b>ratio_limit</b> use a single segmented descriptor and divide the targe value by each corpus value.  Only corpus samples whose ratio is within the specified limits (keywords minratio and maxratio) are allowed to pass.  If either the upper or lower limit is omitted, is has no effect.</p>
+<pre class="language-python"><code class="language-python">spass('ratio_limit', d('effDur-seg'), minratio=0.9, maxratio=1.1) # let through corpus sounds if the ratio of target duration/corpus duration is between 0.9 to 1.1.
+</code></pre>
+<p>Note that ratio_limit only works with one segmented descriptor. It uses unnormalized descriptor values so that, in the case of the above example, the ratio is obtained by dividing the target segment's effDur by the corpus segment's effDur.</p>
+
+
+<p>The <b>parser</b> spass() method toggles between two different actions depending on a whether each taget segment passes a test.  
+Each spass() has the following parameters:</p>  
+<pre class="language-python"><code class="language-python">spass('parser', test, submethod, ifTrue, ifFalse)
+</code></pre>
+	<ul><li><b>test</b> - a string which is a boolean test of a target segment's segmented descriptor.  e.g. 'power-seg > 0.1'<li><b>submethod</b> - a string denoting the type of operation to perform - possibilities are <b>closest</b>, <b>closest_percent</b>, and <b>corpus_filter</b><li><b>ifTrue</b> - a list of items to perform if &lsquo;test&rsquo; is True.<li><b>ifFalse</b> - a list of items to perform if &lsquo;test&rsquo; is False.	</ul>
+<p>The first two submethods behave exactly like those outlined above.  For instance:</p>
+
+<pre class="language-python"><code class="language-python">spass('parser', 'closest', 'effDur-seg > 0.4', [d('zeroCross')], [d('zeroCross-delta')]) # if the target sound is less than 0.4 second long, pick the best corpus sound according to zeroCrossings; otherwise pick the best sound according to the first order difference of zeroCrossings
+
+spass('parser', 'f0-seg == 0', 'closest_percent', [d('f0')], [d('mfccs-seg')], percent=10) # if f0-seg equals 0, return the closest 10 percent of matches to f0; otherwise return the 10 percent best matches according to mfccs-seg
+
+spass('parser', 'closest', 'noisiness-seg >= 50%', [d('mfccs-seg')], [d('f0')]) # if this target segment's noisiness is in the upper 50 percentile among all target segments, return the best matching corpus sound according to mfccs; other use f0.
+</code></pre>
+
+<p>The third method, <b>corpus_filter</b>, uses the target descriptor test to determine which items of the CORPUS list are valid:</p>
+<pre class="language-python"><code class="language-python">spass('parser', 'effDur-seg > 0.4', 'corpus_filter', [0], [1, 2]) # if the effective duration is less that 0.4 seconds, use corpus samples from arguemnt 1 of the corpus list; otherwise used samples from argument 2 and 3.
+</code></pre>
+
+
+<div id="SEARCHvariable_examples"><h4>Contextual Examples</h4>
+<p>Here is the most simple case of a SEARCH variable:</p>
 <pre class="language-python"><code class="language-python">SEARCH = [spass('closest', d('centroid'))] # will search all corpus segments and select the one with the &lsquo;closest' time varying centroid to the target segment.
 </code></pre>
 
-
-Note that the first argument is the type of search performed -- in this case, selecting the closest sample.  Following the arguments are a list of descriptor objects which specify which descriptors to use:
+<p>You may list as many descriptors are you want.  The selected sample will be an average of all descriptors listed.</p>
 
 <pre class="language-python"><code class="language-python">SEARCH = [spass('closest', d('centroid'), d('effDur-seg'))] # will search all corpus segments and select the one with the &lsquo;closest' centroid and effective duration compared to the target segment.
 </code></pre>
 
 
-Ok, great.  As you can probably imagine, the first argument, &lsquo;closest&rsquo;, tells AudioGuide to pick the closest sound.  But, there are also other possibilities:
+<p>If you use &lsquo;closest_percent&rsquo; as the one and only spass object in the SEARCH variable, AudioGuide will select a corpus segment randomly among the final candidates.</p>
 
-<pre class="language-python"><code class="language-python">SEARCH = [spass('farthest', d('centroid'))] # return the worst matching segment.
-
-SEARCH = [spass('closest_percent', d('centroid'), percent=20)] # return the top 20 percent best matches.
-
-SEARCH = [spass('farthest_percent', d('centroid'), percent=20)] # return the worst 20 percent of matches.
-
-SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.5)] # return segments who's centroid-seg is at least half the value of the target's centroid-seg
+<pre class="language-python"><code class="language-python">SEARCH = [spass('closest_percent', d('centroid'), percent=20)] # pick randomally between the top 20 percent best matches.
 </code></pre>
 
+<p>However, you can also 'chain' spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:</p>
 
-If you use &lsquo;closest_percent&rsquo; or &lsquo;farthest_percent&rsquo; as the one and only spass object in the SEARCH variable, AudioGuide will select a corpus segment randomly among the final candidates.  However, you can also chain spass objects together, essentially constructing a hierarchical search algorithm.  So, for example, take the following SEARCH variable with two separate phases:
 
 <pre class="language-python"><code class="language-python">SEARCH = [
 spass('closest_percent', d('effDur-seg'), percent=20), # take the best 20% of matches from the corpus
@@ -613,14 +649,22 @@ spass('closest', d('mfccs')), # now find the best matching segment from the 20 p
 ]
 </code></pre>
 
+<p>I use the above example a lot when using AudioGuide.  It first matches effDur-seg, the effective duration of the target measured agains&rsquo;t the effective duration of each corpus segment.  It retains the 20% closest matches, and throws away the worst 80%.  Then, with the remaining 20%, the timbre of the sounds are matched according to mfccs.</p>
 
-I use the above example a lot when using AudioGuide.  It first matches effDur-seg, the effective duration of the target measured agains&rsquo;t the effective duration of each corpus segment.  It retains the 20% closest matches, and throws away the worst 80%.  Then, with the remaining 20%, the timbre of the sounds are matched according to mfccs.
-
-<pre class="language-python"><code class="language-python">SEARCH = [spass('ratio_limit', d('centroid-seg'), minratio=0.9, maxratio=1.1)] # reduce the number of samples in the corpus such 
+<pre class="language-python"><code class="language-python">SEARCH = [
+spass('ratio_limit', d('f0-seg'), minratio=0.943, maxratio=1.059),# only let through corpus samples that are within +/-1 semitone of the target segment's f0
+spass('closest', d('mfccs')), # now find the best matching segment according to timbre
+] 
 </code></pre>
 
+<p>To help the user understand how different spasses are functioning, the log.html file, created by default, contains a table in the concatenation section which shows information about the size of the corpus through each spass for each target segement search.  The following is the table created for examples/09-parseSearch.py.  For each pass, the size of the corpus is shown before and after the spass() operation.  When a 'parser' spass() is used, the result of the boolean test is shown as well.</p>
 
-Remember, the order of the spass objects in the SEARCH variable is very important -- it is essentially the order of operations.
+<table border="1"><tr><th>time x overlap</th><th>spass #1: closest_percent</th><th>spass #2: parser</th><th>spass #3: closest</th></tr><tr><td>1.46x1</td><td>252 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>4.74x1</td><td>252 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>7.82x1</td><td>252 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>0.26x1</td><td>252 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>1.10x1</td><td>251 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>5.17x1</td><td>251 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>6.83x1</td><td>252 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>9.47x1</td><td>252 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>4.34x1</td><td>251 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>4.49x1</td><td>250 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>8.53x1</td><td>252 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>0.68x1</td><td>250 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>6.42x1</td><td>251 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>10.28x1</td><td>252 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>7.28x1</td><td>251 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>6.13x1</td><td>251 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr><tr><td>7.08x1</td><td>250 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>8.93x1</td><td>251 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>10.53x1</td><td>251 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>8.34x1</td><td>251 -> 50</td><td>False 50 -> 10</td><td>10 -> 1</td></tr><tr><td>7.62x1</td><td>250 -> 50</td><td>True 50 -> 10</td><td>10 -> 1</td></tr></table>
+
+
+
+</div>
+
 </div>
 
 

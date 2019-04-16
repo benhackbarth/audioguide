@@ -258,7 +258,7 @@ def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAm
 	if dobj.describes_energy: # powers are summed
 		mixture = tgt_vals + (cps_vals*cpsAmpScale)
 	elif dobj.name == 'zeroCross': 
-		mixture = np.max(tgt_vals, cps_vals)	
+		mixture = np.maximum(tgt_vals, cps_vals)	
 	else: # power averaged
 		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
 		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale
