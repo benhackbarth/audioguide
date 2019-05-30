@@ -292,7 +292,7 @@ class target: # the target
 		if self.decompose != {}:
 			if self.startSec == None: self.startSec = 0
 			import audioguide.signaldecompose as signaldecompose
-			newtargetpath, origtargetduration = signaldecompose.decomposeTargetSf(self.decompose['type'], self.filename, self.startSec, self.endSec, self.decompose['streams'], self.decompose['fftsize'], self.decompose['hopsize'])
+			newtargetpath, origtargetduration = signaldecompose.decomposeTargetSf(self.filename, self.startSec, self.endSec, self.decompose)
 			self.decompose['origfilename'] = self.filename
 			self.decompose['origduration'] = origtargetduration
 			self.filename = newtargetpath

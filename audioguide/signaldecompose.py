@@ -12,32 +12,56 @@ import audioguide.util as util
 
 
 
-def decomposeTargetSf(type, filename, startsec, endsec, n_streams, fftsize, hopsize):
+def decomposeTargetSf(filename, startsec, endsec, params):
 	# create directory if needed
 	descomposedir = os.path.join(os.path.dirname(__file__), 'data_decomposedtargets')
 	if not os.path.exists(descomposedir): os.makedirs(descomposedir)
 
+	assert 'type' in params and params['type'] in ['NMF', 'HPSS']
 
-	assert type in ['NMF']
-
-	checksum = util.listToCheckSum([filename, util.getTimeStamp(filename), n_streams, str(startsec), str(endsec), fftsize, hopsize])[:12]
-	decomposedSoundfile = os.path.join(descomposedir, '%s-%s.wav'%(os.path.splitext(os.path.split(filename)[1])[0], checksum))
-	decomposedJsonfile = os.path.join(descomposedir, '%s-%s.json'%(os.path.splitext(os.path.split(filename)[1])[0], checksum))
+	checksum = util.listToCheckSum([filename, util.getTimeStamp(filename), str(startsec), str(endsec)] + list(params.values()))[:12]
+	filehead = '%s-%s-%s'%(os.path.splitext(os.path.split(filename)[1])[0], params['type'], checksum)
+	decomposedSoundfile = os.path.join(descomposedir, filehead+'.wav')
+	decomposedJsonfile = os.path.join(descomposedir, filehead+'.json')
 	
 	if not os.path.exists(decomposedSoundfile):
-		print("Decomposing %s into %i audio streams"%(filename, n_streams))
-		dur = __NMF__(filename, startsec, endsec, n_streams, decomposedSoundfile, fftsize, hopsize)
+		if params['type'] == 'NMF':
+			dur = __NMF__(filename, startsec, endsec, params['streams'], decomposedSoundfile, params['fftsize'], params['hopsize'])
+		if params['type'] == 'HPSS':
+			dur = __HPSS__(filename, startsec, endsec, decomposedSoundfile, params['fftsize'], params['hopsize'])
+
 		fh = open(decomposedJsonfile, 'w')
-		json.dump({'duration': dur, 'path': filename, 'n_streams': n_streams, 'type': type, 'fftsize': fftsize, 'hopsize': hopsize}, fh)
+		data = {'duration': dur, 'path': filename}
+		data.update(params)
+		json.dump(data, fh)
 		fh.close()
-		print("Resulting file written to %s (%f sec)\n"%(decomposedSoundfile, dur*n_streams))
+		print("Resulting file written to %s (%f sec)\n"%(decomposedSoundfile, data['duration']))
 		return decomposedSoundfile, dur
 	else:
 		fh = open(decomposedJsonfile, 'r')
-		dicty = json.load(fh)
+		data = json.load(fh)
 		fh.close()
-		print("Using target sound %s (%f sec)\n"%(decomposedSoundfile, dicty['duration']*n_streams))
-		return decomposedSoundfile, dicty['duration']
+		print("Using target sound %s (%f sec)\n"%(decomposedSoundfile, data['duration']))
+		return decomposedSoundfile, data['duration']
+
+
+
+
+
+
+def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize):
+	'''pitch/noise separation
+		creates an output soundfile that is the length of the inputsoundfile * 2'''
+	import numpy, scipy, librosa
+	print("Decomposing %s into pitch/noise audio streams"%(inputsoundfile))
+	if endsec == None: durationsec = None
+	else: durationsec = endsec-startsec
+	x, sr = librosa.load(inputsoundfile, offset=startsec, duration=durationsec, sr=None)
+	x_harmonic, x_percussive = librosa.effects.hpss(x)
+	outputsamples = numpy.append(x_harmonic, x_percussive)
+	librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
+	return len(x)/float(sr)
+
 
 
 
@@ -46,15 +70,14 @@ def decomposeTargetSf(type, filename, startsec, endsec, n_streams, fftsize, hops
 def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fftsize, hopsize, sparseDictLearn=False):
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
-
 	import numpy, scipy, librosa
+	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	
 	# To preserve the native sampling rate of the file, use sr=None
 	if endsec == None: durationsec = None
 	else: durationsec = endsec-startsec
 	
 	x, sr = librosa.load(inputsoundfile, offset=startsec, duration=durationsec, sr=None)
-	
 	S = librosa.stft(x, n_fft=fftsize, hop_length=hopsize, win_length=fftsize)
 	X = numpy.absolute(S) # use spectral magnitudes, not complex spectrum
 	
@@ -67,12 +90,11 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	
 	# ifft for each decomposed signals, write to disk
 	outputsamples = numpy.zeros(len(x)*n_components)
-	#outputsamples2 = numpy.zeros(len(x))
 	for n in range(n_components):
 		Y = scipy.outer(W[:,n], H[n])*numpy.exp(1j*numpy.angle(S))
 		y = librosa.istft(Y, hop_length=hopsize, win_length=fftsize)
 		outputsamples[n*len(x):(n*len(x))+len(y)] = y
-		#outputsamples2[:len(y)] += y
 	librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
-
 	return len(x)/float(sr)
+
+

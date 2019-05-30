@@ -19,8 +19,8 @@
 ################################################################################
 ## You can do this by adding the 'decompose' keyword to the tsf() variable.   ##
 ## This will break the target sound in the a number of independant streams.   ##
-## At the moment only NMF signal decomposition is supported.  This works by   ##
-## creating a new target soundfile in the directory                           ##
+## At the moment only NMF and HPSS signal decomposition are supported.  This  ##
+## works by creating a new target soundfile in the directory                  ##
 ## audioguide/data_decomposedtargets.  It will be the duration of the         ##
 ## original target sound times the number of streams.  The concatenative      ##
 ## process then takes place on the longer, decomposed target  to ensure       ##
@@ -38,7 +38,11 @@
 
 TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2, decompose={'type': 'NMF', 'streams': 5, 'fftsize': 1024, 'hopsize': 256})
 
-#TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2) # uncomment to compare to the target sound without decomposition
+# to separate a target into pitched/noise components, use HPSS (time-series harmonic-percussive separation):
+#TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2, decompose={'type': 'HPSS', 'fftsize': 1024, 'hopsize': 256})
+
+# uncomment to compare to the target sound without decomposition:
+#TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2) 
 
 
 CORPUS = [csf('heat sink.aiff'), csf('lachenmann.aiff'),]
