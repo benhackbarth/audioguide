@@ -69,7 +69,7 @@ if ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
 ## CORPUS ##
 ############
 p.logsection( "CORPUS" )
-cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
+cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, ops.SEARCH_PATHS, AnalInterface, p)
 
 
 

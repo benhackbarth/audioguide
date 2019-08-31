@@ -88,7 +88,7 @@ p.html.jschart_timeseries(yarray=np.array([AnalInterface.f2s(i) for i in range(t
 ## CORPUS ##
 ############
 p.logsection( "CORPUS" )
-cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, AnalInterface, p)
+cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING, ops.SEARCH_PATHS, AnalInterface, p)
 
 htmlCorpusTable = [['', 'minimum', 'maximum', 'average']]
 segmentLength = [c.segmentDurationSec for c in cps.postLimitSegmentNormList]

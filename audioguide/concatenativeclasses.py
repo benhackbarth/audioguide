@@ -131,7 +131,7 @@ class cpsLimit:
 
 ################################################################################
 class corpus:
-	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, restrictCorpusSelectionsByFilenameString, AnalInterface, p):
+	def __init__(self, corpusFromUserOptions, corpusGlobalAttributesFromOptions, restrictCorpusSelectionsByFilenameString, searchPaths, AnalInterface, p):
 		self.preloadlist = []
 		self.preLimitSegmentList = []
 		self.postLimitSegmentNormList = []
@@ -186,19 +186,31 @@ class corpus:
 			if os.path.isdir(cobj.name): fileType = 'dir'
 			if os.path.isfile(cobj.name): fileType = 'file'
 			if os.path.islink(cobj.name): fileType = 'link'
-			
 			# use non-standard location segmentation file?
-			if cobj.segmentationFile == None: # add default name of segmentation file if nothing is specified by the user			
-				cobj.segmentationFile = cobj.name+cobj.segmentationExtension
+			if cobj.segmentationFile == None: # add default name of segmentation file if nothing is specified by the user; also look in search paths
+				segmentationSearchPaths = searchPaths[:]
+				segmentationSearchPaths.insert(0, os.path.split(cobj.name)[0])
+				segmentationSearchPaths = list(set(segmentationSearchPaths))
+				possibilities = []
+				for d in segmentationSearchPaths:
+					testpath = os.path.join(d, os.path.split(cobj.name)[1]+cobj.segmentationExtension)
+					possibilities.append(testpath)
+					if os.path.exists(testpath):
+						cobj.segmentationFile = testpath
+						break
+
 			elif type(cobj.segmentationFile) == str: # if a single string
-				cobj.segmentationFile = cobj.segmentationFile
+				cobj.segmentationFile = cobj.segmentationFile				
+
 			elif type(cobj.segmentationFile) in [tuple, list]: # a list of seg files
 				tmp = []
 				for string in cobj.segmentationFile:
-					tmp.append(path.test(string, ops.CORPUS_SEARCH_PATH)[1])
+					tmp.append(path.test(string, ops.SEARCH_PATHS)[1])
 				cobj.segmentationFile = tmp
+
+
 			if not cobj.segmentationFile:
-				util.error("ops", "Bad Source input name -> %s.  Not a file, a directory"%cobj.segmentationFile)
+				util.error("ops", "Cannot find segmentation file -> %s"%cobj.segmentationFile)
 			
 			if fileType == 'file': # an audio file
 				##################
@@ -211,7 +223,9 @@ class corpus:
 				if cobj.wholeFile:
 					times.append([0, None])
 				else:
-					times.extend(util.readAudacityLabelFile(cobj.segmentationFile))
+					sgs = util.readAudacityLabelFile(cobj.segmentationFile)
+					times.extend(sgs)
+					p.log( "Using segments from segmentation file %s (%i segments)"%(cobj.segmentationFile, len(sgs)) )
 				for timeSeg in times:
 					writeLine = [cobj.name]
 					writeLine.extend(timeSeg)
