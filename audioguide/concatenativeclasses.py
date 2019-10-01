@@ -12,6 +12,35 @@ import audioguide.tests as tests
 
 
 
+
+def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFileBool):
+	# ignore directories 
+	if os.path.isdir(cobjname): return 'corpusdirectory'
+	#print("testing", cobjname, searchPaths, segmentationExtension)
+	segmentationSearchPaths = searchPaths[:]
+	segmentationSearchPaths.insert(0, os.path.split(cobjname)[0])
+	segmentationSearchPaths = list(set(segmentationSearchPaths))
+	possibilities = []
+	foundit = None
+	for d in segmentationSearchPaths:
+		testpath = os.path.join(d, os.path.split(cobjname)[1]+segmentationExtension)
+		possibilities.append(testpath)
+		#print("\ttesting path", testpath, os.path.exists(testpath))
+		if os.path.exists(testpath):
+			foundit = testpath
+			break
+	# if not found
+	if foundit == None and os.path.isdir(cobjname) and not wholeFileBool:
+		util.error('segmentation file', "Cannot find any segmentation file for '%s' (tested %s).  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(cobjname, possibilities, cobjname))
+	elif foundit == None and not wholeFileBool:
+		util.error('segmentation file', "Cannot find any segmentation file for '%s' (tested %s)."%(cobjname, possibilities))
+	return foundit
+
+
+
+
+
+
 	
 
 class parseOptions:
@@ -188,20 +217,9 @@ class corpus:
 			if os.path.islink(cobj.name): fileType = 'link'
 			# use non-standard location segmentation file?
 			if cobj.segmentationFile == None: # add default name of segmentation file if nothing is specified by the user; also look in search paths
-				segmentationSearchPaths = searchPaths[:]
-				segmentationSearchPaths.insert(0, os.path.split(cobj.name)[0])
-				segmentationSearchPaths = list(set(segmentationSearchPaths))
-				possibilities = []
-				for d in segmentationSearchPaths:
-					testpath = os.path.join(d, os.path.split(cobj.name)[1]+cobj.segmentationExtension)
-					possibilities.append(testpath)
-					if os.path.exists(testpath):
-						cobj.segmentationFile = testpath
-						break
-
+				cobj.segmentationFile = findSegmentationFile(cobj.name, searchPaths[:], cobj.segmentationExtension, cobj.wholeFile)
 			elif type(cobj.segmentationFile) == str: # if a single string
 				cobj.segmentationFile = cobj.segmentationFile				
-
 			elif type(cobj.segmentationFile) in [tuple, list]: # a list of seg files
 				tmp = []
 				for string in cobj.segmentationFile:
@@ -238,11 +256,10 @@ class corpus:
 				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, AnalInterface.validSfExtensions)
 				cobj.segmentationFile = None # don't print it
 				for file in files:
-					segFileTest = file+cobj.segmentationExtension
-					if not cobj.wholeFile and not os.path.isfile(segFileTest):
-						util.error('segmentation file', "Cannot find segmentation file '%s'.  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(segFileTest, cobj.name))
-					if os.path.exists(segFileTest):
+					segFileTest = findSegmentationFile(file, searchPaths, cobj.segmentationExtension, cobj.wholeFile)
+					if segFileTest != None and os.path.exists(segFileTest):
 						times = util.readAudacityLabelFile(segFileTest)
+						p.log( "Using segments from segmentation file %s (%i segments)"%(segFileTest, len(times)) )
 					else:
 						times = [[0, None]]
 					for timeSeg in times:
