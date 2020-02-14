@@ -149,7 +149,7 @@ class sfsegment:
 class corpusSegment(sfsegment):
 	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
 		# initalise the sound segment object	
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
@@ -158,6 +158,7 @@ class corpusSegment(sfsegment):
 		self.voiceID = voiceID
 		self.midiPitchMethod = midiPitchMethod
 		self.limitObjList = limitObjList
+		self.pitchfilter = pitchfilter
 		self.scaleDistance = scaleDistance
 		self.postSelectAmpBool = postSelectAmpBool
 		self.postSelectAmpMin = postSelectAmpMin
@@ -399,7 +400,17 @@ class target: # the target
 		if ops.SEGMENTATION_FILE_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
 				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
+				if False:
+					midilist = []
+					import mu
+					for f in range(start, end):
+						if self.whole.desc['power'][f] < 0.0005: continue
+						midi = mu.midiPitchToNoteNameString(mu.frq2midi(self.whole.desc['f0'][f]))
+						midi = midi.replace(' ','')
 	
+						midilist.append((midi))
+					peakidx = np.argmax(self.whole.desc['power'][start:end])
+					print("\n\nSegment %.2f: -- %s"%(AnalInterface.f2s(start), str(midilist)))
 		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):

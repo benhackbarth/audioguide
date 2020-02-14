@@ -8,8 +8,9 @@ import audioguide.util as util
 
 
 def testOpsDict(dicty):
+	#print(UserVar_types)
 	for name, value in dicty.items():
-		#print name, value
+		#print (name, value)
 		if not name in UserVar_types:
 			util.error("user variable", "I don't have an option called %s\n :("%(name))
 		outcomes = []

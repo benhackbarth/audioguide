@@ -98,8 +98,6 @@ htmlCorpusTable.append(['power', min(power), max(power), np.mean(power)])
 p.maketable(htmlCorpusTable)
 
 
-
-
 ###################
 ## NORMALIZATION ##
 ###################

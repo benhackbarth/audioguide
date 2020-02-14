@@ -459,14 +459,21 @@ EnergyEnvelope  = 1
 		totalBytes = 0
 		currenttimestamp = time.time()
 		listToRemove = []
+		removedCount = 0
 		for timestamp, bytes, filehead in timeordered:
 			timediff = currenttimestamp-timestamp
 			# if total bytes is over 1 gb and file hasn't been used for a week...
 			if timediff > secondLimit and totalBytes > byteLimit:
 				listToRemove.append(filehead)
 				del self.dataRegistry[filehead]
+				#os.remove(os.path.join(self.analdir, filehead+'.npy'))
+				#os.remove(os.path.join(self.analdir, filehead+'.json'))
+				removedCount += 2
 				#print("RM "+os.path.join(self.analdir, filehead+'.npy'))
+				#print("RM "+os.path.join(self.analdir, filehead+'.json'))
 			totalBytes += bytes
+		if removedCount > 0:
+			print("deleted %i outdated analysis files"%removedCount)
 		dataRegistryPathTmp = '/tmp/tmp.json'
 		fh = open(dataRegistryPathTmp, 'w')
 		json.dump(self.dataRegistry, fh)

@@ -318,7 +318,7 @@ def getTransposition(tgtseg, cpsseg):
 	if cpsseg.transMethod == None: return quantize(0, cpsseg.transQuantize)
 	# FORCE A SEMITONE TRANSPOSITION
 	elif cpsseg.transMethod.startswith('semitone'):
-		trans = int(cpsseg.transMethod.split()[1])
+		trans = float(cpsseg.transMethod.split()[1])
 		return trans
 	# FORCE A SINGLE CHROMA
 	elif cpsseg.transMethod.startswith('single-pitch'):

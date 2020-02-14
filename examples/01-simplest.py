@@ -9,4 +9,4 @@ spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percen
 spass('closest', d('mfccs'))
 ]
 
-SUPERIMPOSE = si(maxSegment=2) # SUPERIMPOSE documented in 03-superimposition.py
+SUPERIMPOSE = si(maxSegment=6) # SUPERIMPOSE documented in 03-superimposition.py

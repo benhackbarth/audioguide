@@ -215,39 +215,28 @@ class corpus:
 			if os.path.isdir(cobj.name): fileType = 'dir'
 			if os.path.isfile(cobj.name): fileType = 'file'
 			if os.path.islink(cobj.name): fileType = 'link'
-			# use non-standard location segmentation file?
-			if cobj.segmentationFile == None: # add default name of segmentation file if nothing is specified by the user; also look in search paths
-				cobj.segmentationFile = findSegmentationFile(cobj.name, searchPaths[:], cobj.segmentationExtension, cobj.wholeFile)
-			elif type(cobj.segmentationFile) == str: # if a single string
-				cobj.segmentationFile = cobj.segmentationFile				
-			elif type(cobj.segmentationFile) in [tuple, list]: # a list of seg files
-				tmp = []
-				for string in cobj.segmentationFile:
-					tmp.append(path.test(string, ops.SEARCH_PATHS)[1])
-				cobj.segmentationFile = tmp
+			
+			# list of segmentation files?				
+			if type(cobj.segmentationFile) in [tuple, list]: # a list of seg files
+				cobj.segmentationFile = [path.test(string, ops.SEARCH_PATHS)[1] for string in cobj.segmentationFile]
 
-
-			if not cobj.segmentationFile:
-				util.error("ops", "Cannot find segmentation file -> %s"%cobj.segmentationFile)
 			
 			if fileType == 'file': # an audio file
 				##################
 				## input a FILE ## -- look for audacity-style txt label file
 				##################
-				times = []
-				#for segFile in cobj.segmentationFile:
-				if not cobj.wholeFile and not os.path.isfile(cobj.segmentationFile):
-					util.error('segmentation file', "Cannot find segmentation file '%s'"%cobj.segmentationFile)
+				times = []				
 				if cobj.wholeFile:
 					times.append([0, None])
 				else:
+					cobj.segmentationFile = findSegmentationFile(cobj.name, searchPaths[:], cobj.segmentationExtension, cobj.wholeFile)
+					if not os.path.isfile(cobj.segmentationFile):
+						util.error('segmentation file', "Cannot find segmentation file '%s'"%cobj.segmentationFile)
 					sgs = util.readAudacityLabelFile(cobj.segmentationFile)
 					times.extend(sgs)
 					p.log( "Using segments from segmentation file %s (%i segments)"%(cobj.segmentationFile, len(sgs)) )
 				for timeSeg in times:
-					writeLine = [cobj.name]
-					writeLine.extend(timeSeg)
-					timeList.append( writeLine )
+					timeList.append( [cobj.name] + timeSeg )
 				cobj.numbSfFiles = 1
 			elif fileType == 'dir': # a directory
 				#######################
@@ -263,9 +252,7 @@ class corpus:
 					else:
 						times = [[0, None]]
 					for timeSeg in times:
-						writeLine = [file]
-						writeLine.extend(timeSeg)
-						timeList.append( writeLine )
+						timeList.append( [file] + timeSeg )
 				cobj.numbSfFiles = len(files)
 			# reset counters...
 			segCount = 0
@@ -294,8 +281,8 @@ class corpus:
 					if type(cobj.excludeStr) not in [list, tuple]: cobj.excludeStr = [cobj.excludeStr]
 					for test in cobj.excludeStr:
 						if util.matchString(stringMatchPath, test, caseSensative=True): skip = True
-					if skip: continue
-				#        minTime / maxTime
+					if skip: continue		
+				#  minTime / maxTime
 				# matchTime: includeTimes/excludeTimes
 				if len(cobj.includeTimes) > 0:
 					skip = True
@@ -332,7 +319,7 @@ class corpus:
 					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
 
 				
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': []} )	
 			###########################
@@ -352,12 +339,12 @@ class corpus:
 			self.preLimitSegmentList.append(cpsSeg)
 		
 		self.evaluatePreConcateLimitations()
-
+		self.evaluateCorpusPitchFilters()
+		self.finalizeSegmentNormList()
+		
 		p.percentageBarClose(txt="Read %i/%i segments (%.0f%%, %.2f min.)"%(self.data['postLimitSegmentCount'], len(self.preLimitSegmentList), self.data['postLimitSegmentCount']/float(len(self.preLimitSegmentList))*100., self.data['totalLengthInSeconds']/60.))
 
 		self.printConcateLimitations(p)
-
-
 	############################################################################
 	############################################################################
 	def evaluatePreConcateLimitations(self):
@@ -366,20 +353,55 @@ class corpus:
 			for cpsLimitObj in limitList:
 				cpsLimitObj.checkminMax(self.preLimitSegmentList)
 		# test corpus segments for validity (can be restricted by used descriptor limits)
+		self.postLimitSegmentList = []
 		for csfs in self.preLimitSegmentList:
 			passed = []
 			for limitObj in csfs.limitObjList:
 				passed.append(limitObj.test(csfs))
 			if False in passed:
 				continue # then ignore this segment!
+			self.postLimitSegmentList.append(csfs)
+	############################################################################
+	############################################################################
+	def evaluateCorpusPitchFilters(self):
+		'''csf(pitchfilter=) removes segments from a csf() entry based on whether or not each segment matches midipitches specified by the user.  The user supplies a dictionary with a list of pitches.  pitches less than 12 will be treated as pitch classes, i.e. if 0 is given, all pitches modulo 12 which equal 0 will be included.  Corpus segments' pitches may be transposed to fit the given pitches -- the 'tolerance' key specifies a semitone tranposition tolerance.  For instance, pitchfilter={'pitches': [60], 'tolerance': 3} will include all segments whose pitch is +-3 semitones from 60, and audioguide will transpose these pitches to be played back at the neaest pitch found in pitches, in this case 60.  Note that this feature will override any other transposition given in csf(transMethod=).  Also note that a corpus segment's pitch is determined with the segment's MIDIPitch-seg, which can be controled according to csf(midiPitchMethod=)
+		csf('pianosamples', pitchfilter={'pitches': [60, 68, 73]}), # discard any segments that do not match any of the given pitches
+		csf('pianosamples', pitchfilter={'pitches': [60, 68, 73], 'tolerance': 3}), # discard any segments that do not match any of the given pitches +=3 semitones
+		csf('pianosamples', pitchfilter={'pitches': [0, 64], 'tolerance': 3}), # C in any octave and E4 will make it through!
+		'''
+		tmplist = []
+		for c in self.postLimitSegmentList:
+			#c.pitchfilter = {}
+			#c.pitchfilter = {'pitches': [60, 66, 73], 'tolerance': 3}
+			
+			if c.pitchfilter == {}:
+				tmplist.append(c)
+			else:
+				midipitch = c.desc['MIDIPitch-seg'].get(None, None)
+				differences = []
+				for p in c.pitchfilter['pitches']:
+					if p < 12: # it's a pitch class
+						differences.append(p-(midipitch%12))
+					else: # it's a midi pitch
+						differences.append(p-midipitch)
+				absdiff = np.abs(differences)
+				if np.min(absdiff) > c.pitchfilter['tolerance']: continue
+				closestpitchidx = np.argmin(absdiff)
+				c.transMethod = 'semitone %f'%differences[closestpitchidx] # overrides any other transmethod!
+				tmplist.append(c)
+		self.postLimitSegmentList = tmplist
+	############################################################################
+	############################################################################
+	def finalizeSegmentNormList(self):
+		for csfs in self.postLimitSegmentList:			
 			# add the segment since if passed any user-supplied limitations...
 			self.data['postLimitSegmentDictVoice'][csfs.voiceID].append(csfs)
-			self.postLimitSegmentNormList.append(csfs)
 			self.data['totalLengthInSeconds'] += csfs.segmentDurationSec
 			self.data['postLimitSegmentCount'] += 1
+		self.postLimitSegmentNormList = self.postLimitSegmentList
 		# test to make sure some samples made it though usert limitations... 
 		if self.data['postLimitSegmentCount'] == 0:
-			util.error('CORPUS', "No database segments made it into the selection pool.  Check limits..")
+			util.error('CORPUS', "No database segments made it into the selection pool.  Check limits and pitchfilters...")
 	############################################################################
 	def printConcateLimitations(self, p): # return only same with a certain starting prefix
 		# print corpus segment data
