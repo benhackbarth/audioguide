@@ -1,24 +1,27 @@
 ##################
+## Version 1.37 ##
+##################
+• Added csf(pitchfilter) method. See docs. Thanks to Grégoire Lorieux for the idea.
+
+
+##################
 ## Version 1.34 ##
 ##################
-
-• Added support for target sf NMF signal decomposition.  See examples/08-polyphony.py 
+• Added support for target sf NMF signal decomposition. See examples/08-polyphony.py. Thanks to PA Trembley.
 
 
 ##################
 ## Version 1.33 ##
 ##################
-
 • Added a Max/MSP 6/7/8 java-based player for audioguide concatenations by Gilbert Nouno.
  
 
 ##################
 ## Version 1.32 ##
 ##################
-
 • Change in the Chartjs support in the log.html was made so that the log.html works without an internet connection.
  
-• Several options were renamed for clarity.  These are now detailed in the “Post-Concatenation Event Manipulation” of the documentation.
+• Several options were renamed for clarity. These are now detailed in the “Post-Concatenation Event Manipulation” of the documentation.
 	CSOUND_ALIGN_PEAKS was renamed OUTPUTEVENT_ALIGN_PEAKS
 	OUTPUT_QUANTIZE_TIME_METHOD was renamed OUTPUTEVENT_QUANTIZE_TIME_METHOD
 	OUTPUT_QUANTIZE_TIME_INTERVAL was renamed OUTPUTEVENT_QUANTIZE_TIME_INTERVAL
@@ -33,16 +36,14 @@
 #################
 ## Version 1.3 ##
 #################
-
-• A longstanding bug was generating mostly incorrect f0 values.  This is now fixed (Thanks to PA) and f0 should work much better.
+• A longstanding bug was generating mostly incorrect f0 values. This is now fixed (Thanks to PA) and f0 should work much better.
 
 
 
 ##################
 ## Version 1.3b ##
 ##################
-
-• Experimental script agConcatenateFrames.py was added, to support frame-by-frame concatenation (as opposed to segment-based concatenation).  Try agConcatenateFrames.py examples/07-concatenateframes.py
+• Experimental script agConcatenateFrames.py was added, to support frame-by-frame concatenation (as opposed to segment-based concatenation). Try agConcatenateFrames.py examples/07-concatenateframes.py
 
 • Bug fixes in ratio_limit (divide by zero error) and csf() restrictRepetition (Ben error)
 
@@ -51,22 +52,21 @@
 ##################
 ## Version 1.29 ##
 ##################
-
 • AudioGuide no longer depends on the pysdif module.
 
-• AudioGuide is now cross-compatible with Python2 and Python3.  I’ve tested the code fairly thoroughly, and everything seems to work (midi file output is currently broken in Pyhon3).  Please send bugs if you find them.
+• AudioGuide is now cross-compatible with Python2 and Python3. I’ve tested the code fairly thoroughly, and everything seems to work (midi file output is currently broken in Pyhon3). Please send bugs if you find them.
 
-• The log.txt output file from the agConcatenate.py script has been replaced with log.html.  It logs similar information, but also includes interactive graphs and charts plotting corpus and target descriptor data using chartjs.  I would like to augment this in the future.
+• The log.txt output file from the agConcatenate.py script has been replaced with log.html. It logs similar information, but also includes interactive graphs and charts plotting corpus and target descriptor data using chartjs. I would like to augment this in the future.
 
-• The agSegmentSf.py has a new option, -m, called multirise, which is disabled by default.  However when this flag is added to a corpus file segmentation call, the segmentation algorithm will loop over the corpus soundfile several times, varying the user supplied riseRatio (-r) +/- 20%.  This results in more segments being generated that can overlap with each other; certain segments will start at the same time, but last different durations.  See the FinessingCorpusSegmentation section of the documentation.
+• The agSegmentSf.py has a new option, -m, called multirise, which is disabled by default. However when this flag is added to a corpus file segmentation call, the segmentation algorithm will loop over the corpus soundfile several times, varying the user supplied riseRatio (-r) +/- 20%. This results in more segments being generated that can overlap with each other; certain segments will start at the same time, but last different durations. See the FinessingCorpusSegmentation section of the documentation.
 
-• A new segmentation script called agGranulateSf.py has been added.  It is useful for creating corpi with fixed-duration overlapping grains suitable for granular synthesis.  See the documentation in examples/06-granular.py for details.
+• A new segmentation script called agGranulateSf.py has been added. It is useful for creating corpi with fixed-duration overlapping grains suitable for granular synthesis. See the documentation in examples/06-granular.py for details.
 
 • A section about normalization has been added to the documentation.
 
-• Csound rendering has changed slightly to be more flexible with regard to corpus soundfiles with different numbers of channels.  By default, CSOUND_CHANNEL_RENDER_METHOD is now “corpusmax” and rendering supports 4-channel corpus files.
+• Csound rendering has changed slightly to be more flexible with regard to corpus soundfiles with different numbers of channels. By default, CSOUND_CHANNEL_RENDER_METHOD is now “corpusmax” and rendering supports 4-channel corpus files.
 
-• You can now set the bit depth of concatenations rendered with Csound with CSOUND_BITS.  32 bit output files are now supported.
+• You can now set the bit depth of concatenations rendered with Csound with CSOUND_BITS. 32 bit output files are now supported.
 
 • Rendered concatenations can now be automatically normalized with CSOUND_NORMALIZE and CSOUND_NORMALIZE_PEAK_DB.
 
