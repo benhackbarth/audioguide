@@ -70,6 +70,6 @@
 
 • Rendered concatenations can now be automatically normalized with CSOUND_NORMALIZE and CSOUND_NORMALIZE_PEAK_DB.
 
-• You can now override the duration of corpus sounds in the Csound rendering process with CSOUND_SEGMENT_MIN_DUR and CSOUND_SEGMENT_MAX_DUR (these variable names changed in v1.32).
+• You can now override the duration of corpus sounds in the Csound rendering process with CSOUND_SEGMENT_MIN_DUR and CSOUND_SEGMENT_MAX_DUR (these variable names will change in v1.32).
 
 • Numerous bug fixes, including a bug in the segmentation algorithm that made it die.

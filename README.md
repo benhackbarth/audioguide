@@ -17,3 +17,8 @@ AudioGuide differs from other programs for concatenative synthesis in several no
 * AudioGuide has a robust and flexible system for defining how corpus samples are matched to target segments.  One may find the best match according to a single descriptor, but one may also define multiple search "passes", effectively creating a hierarchical search routine.  One may also create boolean tests within the search function to further nuance the search process.  See [here](http://www.benhackbarth.com/audioGuide/docs_v1.35.html#SEARCHvariable).
 
 * By default AudioGuide creates a csound score that is automatically rendered at the end of the concatenative process.  However the program is also capable of creating a json output, which can be played in Max (patch provided in the distro), textfile output as well as midi output.
+
+
+
+
+
