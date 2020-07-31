@@ -218,6 +218,8 @@ def timeVaryingDistance(array1, array2, dist=None, envelopeMask=None, energyWeig
 		return pearsonCorr(array1[0:l], array2[0:l])
 	elif dist == 'kullback':
 		return kullback(array1, array2)
+	elif dist == "dtw":
+		return dtwDist(array1, array2)
 	elif dist.find('fixedSize') != -1: # written as fixedSize-2, fixedSize-4, etc.
 		return fixedSizeDigest(array1, array2, dist, peaks) # divided by the length
 	else:
