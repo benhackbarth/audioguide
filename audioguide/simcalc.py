@@ -289,7 +289,7 @@ def dtwDist(x,y):
 	except ImportError:
 		print(ImportError, "scipy package is not installed.")
 	"""Dynamic Time Warping Distance"""
-	dist, _ = fastdtw(x, y, dist=euclidian)
+	dist, _ = fastdtw(x, y, dist=euclidean)
 	return dist
 
 
