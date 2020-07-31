@@ -280,7 +280,7 @@ def pearsonCorr(x,y):
 
 def dtwDist(x,y):
 	try:
-		from fastdtw import dtw
+		from fastdtw import fastdtw
 	except ImportError:
 		print(ImportError, "fastdtw package is not installed.")
 
@@ -289,7 +289,7 @@ def dtwDist(x,y):
 	except ImportError:
 		print(ImportError, "scipy package is not installed.")
 	"""Dynamic Time Warping Distance"""
-	dist, _ = fastdtw(x, y, distance=euclidian)
+	dist, _ = fastdtw(x, y, dist=euclidian)
 	return dist
 
 
