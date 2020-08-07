@@ -10,7 +10,7 @@ defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
 opspath = audioguide.optionsfiletest(sys.argv)
 sys.path.append(libpath)
 # import audioguide's submodules
-from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage
+from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage, musicalwriting
 # import other modules
 import numpy as np
 import json
@@ -98,6 +98,7 @@ htmlCorpusTable.append(['power', min(power), max(power), np.mean(power)])
 p.maketable(htmlCorpusTable)
 
 
+
 ###################
 ## NORMALIZATION ##
 ###################
@@ -122,28 +123,13 @@ if ops.NORMALIZATION_METHOD == 'standard':
 		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
 	p.maketable(normalizationTable)
 
-# BROKEN IN PYTHON 3	
-#elif ops.NORMALIZATION_METHOD == 'cluster':
-#	clusterObj = descriptordata.clusterAnalysis(ops.CLUSTER_MAPPING, tgt.segs, cps.postLimitSegmentNormList, os.path.dirname(__file__))
-#	tgtClusts, cpsClusts = clusterObj.getClusterNumbers()
-#	clusteredSegLists = []
-#	for segs, clustList in [(tgt.segs, tgtClusts), (cps.postLimitSegmentNormList, cpsClusts)]:
-#		for cidx in clustList:
-#			clusteredSegLists.append([seg for seg in segs if seg.cluster == cidx])
-#	for segList in clusteredSegLists:
-#		if len(segList) == 0: continue
-#		for dobj in AnalInterface.normalizeDescriptors:
-#			stats = sfsegment.getDescriptorStatistics(segList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-#			sfsegment.applyDescriptorNormalisation(segList, dobj, stats)
-#
 
 
 
 
-
-############################################################################
-## get raw and normalized segemented sdesciptors for graphing in log.html ##
-############################################################################
+###########################################################################
+## get raw and normalized segemented desciptors for graphing in log.html ##
+###########################################################################
 p.makeHtmlChartDescriptorNorm(AnalInterface, tgt.segs, cps.postLimitSegmentNormList)	
 
 	
@@ -158,6 +144,9 @@ tgt.setupConcate(AnalInterface)
 AnalInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, tgt.segs, p)
 distanceCalculations.setTarget(ops.SEARCH, tgt.segs)
+
+instruments = musicalwriting.instruments(ops.INSTRUMENTS, ops.CORPUS, ops.SCORE_OUTPUT_FILEPATH, tgt.lengthInFrames, AnalInterface.hopLengthSec, p)
+
 superimp = concatenativeclasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
 cps.setupConcate(tgt, AnalInterface)
 outputEvents = []
@@ -172,33 +161,39 @@ else:
 	tgt.segs = sorted(tgt.segs, key=operator.attrgetter("segmentStartSec"))
 
 
-#########################
-## TARGET SEGMENT LOOP ##
-#########################
+#################
+## CONCATENATE ##
+#################
 p.startPercentageBar(upperLabel="CONCATINATING", total=len(tgt.segs)+1)
 htmlSelectionTable = [['time x overlap', ]]
 for sidx, s in enumerate(ops.SEARCH):
 	htmlSelectionTable[0].append('spass #%s: %s'%(sidx+1, s.method))
 
-for segidx, tgtseg in enumerate(tgt.segs):
-	segSeek = 0
+
+while False in [t.selectiondone for t in tgt.segs]:
 	p.percentageBarNext()
-	while True:
+	for segidx, tgtseg in enumerate(tgt.segs):
+		if tgtseg.selectiondone == True:
+			continue
 		##############################################################
 		## check to see if we are done with this particular segment ##
 		##############################################################
-		if segSeek >= tgtseg.lengthInFrames: break 
+		if tgtseg.seek >= tgtseg.lengthInFrames: 
+			tgtseg.selectiondone = True
+			continue 
 		########################################
 		## run selection superimposition test ##
 		########################################
-		tif = tgtseg.segmentStartFrame+segSeek
-		if tif >= tgt.lengthInFrames: break
+		tif = tgtseg.segmentStartFrame+tgtseg.seek
+		if tif >= tgt.lengthInFrames:
+			tgtseg.selectiondone = True
+			continue 
 		timeInSec = AnalInterface.f2s(tif)
-		tgtsegdur =  tgtseg.segmentDurationSec - AnalInterface.f2s(segSeek)
+		tgtsegdur =  tgtseg.segmentDurationSec - AnalInterface.f2s(tgtseg.seek)
 		segidxt = superimp.test('segidx', segidx, ops.SUPERIMPOSE.minSegment, ops.SUPERIMPOSE.maxSegment)
 		overt = superimp.test('overlap', tif, ops.SUPERIMPOSE.minOverlap, ops.SUPERIMPOSE.maxOverlap)
 		onsett = superimp.test('onset', tif, ops.SUPERIMPOSE.minOnset, ops.SUPERIMPOSE.maxOnset)
-		trigVal = tgtseg.thresholdTest(segSeek, AnalInterface.tgtOnsetDescriptors)
+		trigVal = tgtseg.thresholdTest(tgtseg.seek, AnalInterface.tgtOnsetDescriptors)
 		trig = trigVal >= tgt.segmentationThresh
 		####################################################
 		# skip selecting if some criteria doesn't match!!! #
@@ -210,7 +205,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 				superimp.skip('maximum onsets at this time', superimp.cnt['onset'][tif], timeInSec)
 			if overt == 'notok':
 				superimp.skip('maximum overlapping selections', superimp.cnt['overlap'][tif], timeInSec)
-			segSeek += ops.SUPERIMPOSE.incr
+			tgtseg.seek += ops.SUPERIMPOSE.incr
 			continue # next frame
 		##############################################################
 		## see if a selection should be forced without thresholding ##
@@ -218,24 +213,24 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		if 'force' not in [onsett, overt, segidxt]: # test for amplitude threshold
 			if not trig:
 				superimp.skip('target too soft', trigVal, timeInSec)
-				segSeek += ops.SUPERIMPOSE.incr
+				tgtseg.seek += ops.SUPERIMPOSE.incr
 				continue # not loud enough, next frame
 		##############################
 		## get valid corpus handles ##
 		##############################
-		validSegments = cps.evaluateValidSamples(tif, timeInSec, tgtseg.idx, ops.ROTATE_VOICES, ops.VOICE_PATTERN, ops.VOICE_TO_ONSET_MAPPING, ops.CLUSTER_MAPPING, tgtseg.classification, superimp)
+		validSegments = cps.evaluateValidSamples(tif, timeInSec, tgtseg.idx, ops.ROTATE_VOICES, ops.VOICE_PATTERN, ops.VOICE_TO_ONSET_MAPPING, ops.CLUSTER_MAPPING, tgtseg.classification, superimp, instruments)
 		if len(validSegments) == 0:
 			superimp.skip('no corpus sounds made it past restrictions and limitations', None, timeInSec)
-			segSeek += ops.SUPERIMPOSE.incr
+			tgtseg.seek += ops.SUPERIMPOSE.incr
 			continue		
 		distanceCalculations.setCorpus(validSegments)
 		################################################
 		## search and see if we find a winning sample ##
 		################################################
-		returnBool = distanceCalculations.executeSearch(tgtseg, segSeek, ops.SEARCH, ops.SUPERIMPOSE, ops.RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION)
+		returnBool = distanceCalculations.executeSearch(tgtseg, tgtseg.seek, ops.SEARCH, ops.SUPERIMPOSE, ops.RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION)
 		if not returnBool: # nothing valid, so skip to new frame...
 			superimp.skip('no corpus sounds made it through the search passes', None, timeInSec)
-			segSeek += ops.SUPERIMPOSE.incr
+			tgtseg.seek += ops.SUPERIMPOSE.incr
 			continue
 		###################################################
 		## if passing this point, picking a corpus sound ##
@@ -245,7 +240,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		######################################
 		## MODIFY CHOSEN SAMPLES AMPLITUDE? ##
 		######################################
-		minLen = min(tgtseg.lengthInFrames-segSeek, selectCpsseg.lengthInFrames)	
+		minLen = min(tgtseg.lengthInFrames-tgtseg.seek, selectCpsseg.lengthInFrames)	
 		if selectCpsseg.postSelectAmpBool:
 			if selectCpsseg.postSelectAmpMethod == "lstsqr":
 				try:
@@ -254,7 +249,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 					leastSqrWholeLine = 0
 					pass
 			elif selectCpsseg.postSelectAmpMethod in ["power-seg", "power-mean-seg"]:
-				tgtPower = tgtseg.desc[selectCpsseg.postSelectAmpMethod].get(segSeek, None)
+				tgtPower = tgtseg.desc[selectCpsseg.postSelectAmpMethod].get(tgtseg.seek, None)
 				cpsPower = selectCpsseg.desc[selectCpsseg.postSelectAmpMethod].get(0, None)
 				sourceAmpScale = tgtPower/cpsPower			
 			###################
@@ -276,10 +271,10 @@ for segidx, tgtseg in enumerate(tgt.segs):
 			#oneInCorpusLand = (1-cps.powerStats['mean'])/cps.powerStats['stddev']
 			#normalizationPowerRatio = (oneInCorpusLand*tgt.powerStats['stddev'])+tgt.powerStats['mean']
 			
-			preSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
-			rawSubtraction = tgtseg.desc['power'][segSeek:segSeek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
-			tgtseg.desc['power'][segSeek:segSeek+minLen] = np.clip(rawSubtraction, 0, sys.maxsize) # clip it so its above zero
-			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][segSeek:segSeek+minLen]))
+			preSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]))
+			rawSubtraction = tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
+			tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen] = np.clip(rawSubtraction, 0, sys.maxsize) # clip it so its above zero
+			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]))
 			#p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
 			
 			# recalculate onset envelope
@@ -293,7 +288,7 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		## mix chosen sample's descriptors ##
 		#####################################
 		if ops.SUPERIMPOSE.calcMethod == "mixture":
-			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, segSeek, AnalInterface)
+			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface)
 		#################################
 		## append selected corpus unit ##
 		#################################
@@ -302,10 +297,14 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		cpsEffDur = selectCpsseg.desc['effDurFrames-seg'].get(0, None)
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUTEVENT_TIME_STRETCH)+ops.OUTPUTEVENT_TIME_ADD
-		outputEvents.append( concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.OUTPUTEVENT_DURATION_SELECT, ops.OUTPUTEVENT_DURATION_MIN, ops.OUTPUTEVENT_DURATION_MAX, ops.OUTPUTEVENT_ALIGN_PEAKS) )
+		oeObj = concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, superimp.cnt['selectionCount'], tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.OUTPUTEVENT_DURATION_SELECT, ops.OUTPUTEVENT_DURATION_MIN, ops.OUTPUTEVENT_DURATION_MAX, ops.OUTPUTEVENT_ALIGN_PEAKS)
+		outputEvents.append( oeObj )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
-		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(segSeek, None), segidx, selectCpsseg.voiceID, selectCpsseg.desc['power'], distanceCalculations.returnSearchPassText(), corpusname, selectCpsseg.filename)
+		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(tgtseg.seek, None), segidx, selectCpsseg, distanceCalculations.returnSearchPassText(), corpusname)
+
+		instruments.increment(tif, tgtseg.desc['effDurFrames-seg'].get(tgtseg.seek, None), oeObj)
+
 		tgtseg.numberSelectedUnits += 1
 
 		printLabel = "searching @ %.2f x %i"%(timeInSec, maxoverlaps+1)
@@ -313,6 +312,9 @@ for segidx, tgtseg in enumerate(tgt.segs):
 		printLabel += "search pass lengths: %s"%('  '.join(distanceCalculations.lengthAtPasses))
 		p.percentageBarNext(lowerLabel=printLabel, incr=0)
 		htmlSelectionTable.append(["%.2fx%i"%(timeInSec, int(maxoverlaps)+1), ] + distanceCalculations.lengthAtPassesVerbose )
+
+
+
 p.percentageBarClose(txt='Selected %i events'%len(outputEvents))
 
 p.maketable(htmlSelectionTable)
@@ -360,6 +362,8 @@ if tgt.decompose != {}:
 p.logsection( "OUTPUT FILES" )
 allusedcpsfiles = list(set([oe.filename for oe in outputEvents]))
 
+
+instruments.write(outputEvents)
 
 
 ######################

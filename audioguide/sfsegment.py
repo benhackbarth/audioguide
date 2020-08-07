@@ -13,13 +13,18 @@ import numpy as np
 class sfsegment:
 	def __init__(self, filename, startSec, endSec, descriptors, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
 		self.filename = util.verifyPath(filename, AnalInterface.searchPaths)
+		self.printName = os.path.split(self.filename)[1] # short name for printing
+		# filename-based descriptor info
+		self.midiPitchFromFilename = descriptordata.getMidiPitchFromString(self.printName)
+		self.rmsAmplitudeFromFilename, self.dynamicFromFilename = util.getDynamicFromFilename(self.printName, notFound=-1000)
+		# other info
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.soundfileTotalDuration, self.soundfileChns = AnalInterface.validateAnalResource(self.filename)
 		self.segmentStartSec = startSec
 		self.segmentEndSec = endSec
-		self.envDb = envDb
-		self.envAttackSec = envAttackSec
-		self.envDecaySec = envDecaySec
+		self.envDb = util.getScaleDb(envDb, self)
+		self.envAttack = envAttackSec
+		self.envDecay = envDecaySec
 		self.envSlope = envSlope
 		# if startSec=None, it is begninning
 		# if endSec=None, it is end of file
@@ -38,15 +43,12 @@ class sfsegment:
 		################
 		## other shit ##
 		################
-		self.printName = os.path.split(self.filename)[1] # short name for printing
-		self.segmentHash = util.listToCheckSum([self.filename, self.segmentStartSec, self.segmentEndSec, self.envDb, self.envAttackSec, self.envDecaySec, self.envSlope])
-		self.midiPitchFromFilename = descriptordata.getMidiPitchFromString(self.printName)
-		self.rmsAmplitudeFromFilename = util.getDynamicFromFilename(self.printName, notFound=-1000)
+		self.segmentHash = util.listToCheckSum([self.filename, self.segmentStartSec, self.segmentEndSec, self.envDb, self.envAttack, self.envDecay, self.envSlope])
 		####################################
 		## get information about envelope ##
 		####################################
-		self.envAttackSec = util.getDurationFromValueOrString(self.envAttackSec, self.segmentDurationSec)
-		self.envDecaySec = util.getDurationFromValueOrString(self.envDecaySec, self.segmentDurationSec)
+		self.envAttackSec = util.getDurationFromValueOrString(self.envAttack, self.segmentDurationSec)
+		self.envDecaySec = util.getDurationFromValueOrString(self.envDecay, self.segmentDurationSec)
 		if (self.envAttackSec+self.envDecaySec+envAttackenvDecayCushionSec) > self.segmentDurationSec:
 			self.envDecaySec = self.segmentDurationSec-self.envAttackSec-envAttackenvDecayCushionSec
 		self.envAttackFrames = int(round(AnalInterface.s2f(self.envAttackSec, self.filename)))
@@ -149,7 +151,7 @@ class sfsegment:
 class corpusSegment(sfsegment):
 	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata, clipDurationToTarget, instrTag, instrParams):
 		# initalise the sound segment object	
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
 		# additional corpus-specific data
@@ -171,10 +173,12 @@ class corpusSegment(sfsegment):
 		self.restrictOverlaps = restrictOverlaps
 		self.restrictRepetition = restrictRepetition
 		self.sim_accum = 0. # for similarity calculations
-		self.selectionTimes = []
 		self.segfileData = segfileData
 		self.classification = 0
 		self.metadata = metadata
+		self.clipDurationToTarget = clipDurationToTarget
+		self.instrTag = instrTag
+		self.instrParams = instrParams
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
 		tgtvals = tgtseg.desc[dobj.name].getnorm(tgtSeek, tgtSeek+array_len)	
@@ -438,6 +442,8 @@ class target: # the target
 		self.powerStats = getDescriptorStatistics(self.segs, d('power'))
 		# initalise mixture and add norm coeffs to mixables...
 		for seg in self.segs:
+			seg.seek = 0
+			seg.selectiondone = False
 			seg.initMixture(AnalInterface)
 			for dobj in AnalInterface.mixtureDescriptors:
 				# copy the normalization paramaters from the target segments onto the mix descriptors

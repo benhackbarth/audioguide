@@ -126,11 +126,11 @@ def getDynamicFromFilename(file, notFound=-1000):
 				break
 		whichStr += 1
 	if dynamic == 'fuck':
-		return notFound
+		return notFound, None
 	elif dynamic in MAP_DYNAMICS:
-		return TYPICAL_DYNAMICS[MAP_DYNAMICS[dynamic]]
+		return TYPICAL_DYNAMICS[MAP_DYNAMICS[dynamic]], dynamic
 	else:
-		return TYPICAL_DYNAMICS[dynamic]
+		return TYPICAL_DYNAMICS[dynamic], dynamic
 
 
 def matchString(testString, matchStr, caseSensative=True):
@@ -310,6 +310,23 @@ def parseEquationString(mstr, symbs):
 	# shouldn't get here is everything worked out
 	error('parseEquationString', '"%s" - Cannot parse this equation, is not well formed'%mstr)
 
+
+
+def getScaleDb(scaleDb, sfsegmentObj):
+	# just a float
+	if True in [isinstance(scaleDb, int), isinstance(scaleDb, float)]:
+		return scaleDb
+	# is it a dict - {'_pp_': -40, '_mp_': -30}
+	elif isinstance(scaleDb, dict):
+		#### NOT IMPLEMENTED YET
+		#### NOT IMPLEMENTED YET
+		#### NOT IMPLEMENTED YET
+		return 0
+	elif scaleDb == 'filenamedyn':
+		return sfsegmentObj.rmsAmplitudeFromFilename
+	else:
+		print("\n\nerror - no known scaleDb argument type", scaleDb)
+		sys.exit()
 
 
 

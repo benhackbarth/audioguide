@@ -11,6 +11,7 @@ def testOpsDict(dicty):
 	#print(UserVar_types)
 	for name, value in dicty.items():
 		#print (name, value)
+		if name.startswith('_'): continue # added this exception to permit user variable that start with _
 		if not name in UserVar_types:
 			util.error("user variable", "I don't have an option called %s\n :("%(name))
 		outcomes = []
@@ -31,6 +32,8 @@ def testInstance(obj1, obj2):
 def testVariable(vtype, v):
 	from audioguide.userclasses import TargetOptionsEntry as tsf
 	from audioguide.userclasses import CorpusOptionsEntry as csf
+	from audioguide.userclasses import Instrument as instr
+	from audioguide.userclasses import Score as score
 	from audioguide.userclasses import SearchPassOptionsEntry as spass
 	from audioguide.userclasses import SuperimpositionOptionsEntry as si
 	if vtype == 'True or False':
@@ -62,6 +65,12 @@ def testVariable(vtype, v):
 		if not False in [testInstance(i, spass) for i in v]: return True
 	elif vtype == 'a list of csf() objects':
 		if not False in [testInstance(i, csf) for i in v]: return True
+	elif vtype == 'a list of instr() objects':
+		if not False in [testInstance(i, instr) for i in v]: return True
+	elif vtype == 'a score() object':
+		return testInstance(v, score)
+
+
 	else: # a string for testing!
 		if v == vtype: return True
 	return False
@@ -74,6 +83,7 @@ UserVar_types = {
 'CORPUS': ['a list of csf() objects'],
 'SUPERIMPOSE': ['a si() object'],
 'SEARCH': ['a list of spass() objects'],
+'INSTRUMENTS': ['None', 'a score() object'],
 ##########  OUTPUT FILES   #######
 'CSOUND_CSD_FILEPATH': ['None', 'a string'],
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
@@ -91,6 +101,7 @@ UserVar_types = {
 'TARGET_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'TARGET_PLOT_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH': ['None', 'a string'],
+'SCORE_OUTPUT_FILEPATH': ['None', 'a string'],
 ##########  CORPUS   #######
 'CORPUS_GLOBAL_ATTRIBUTES': ['a dictionary'],
 'VOICE_PATTERN': ['a list of strings'],

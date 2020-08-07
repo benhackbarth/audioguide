@@ -4,7 +4,6 @@
 ############################################################################
 
 import sys, os
-sys.path.append('/Users/ben/Documents/audioGuide/0-new')
 import audioguide.anallinkage as anallinkage
 import audioguide.descriptordata as descriptordata
 import audioguide.util as util
@@ -34,7 +33,7 @@ class TargetOptionsEntry(object):
 
 
 class CorpusOptionsEntry(object):
-	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None):
+	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None, instrTag=None, instrParams={}, clipDurationToTarget=False):
 		self.name = name
 		self.start = start
 		self.end = end
@@ -69,7 +68,53 @@ class CorpusOptionsEntry(object):
 		self.transQuantize = transQuantize
 		self.metadata = metadata
 		self.maxPercentTargetSegments = maxPercentTargetSegments
+		self.clipDurationToTarget = clipDurationToTarget
+		self.instrTag = instrTag
+		self.instrParams = instrParams
 
+
+
+
+
+class Score(object):
+	def __init__(self, *args, **kwargs):
+		assert len(args) >= 1
+		self.instrumentobjs = args
+		self.params = { 
+		'tempo': 60,
+		'meter': '4/4',
+		}
+		self.params.update(kwargs)
+
+
+
+
+class Instrument(object):
+	def __init__(self, *args, **kwargs):
+		assert len(args) == 1
+		self.name = args[0]
+		self.params = { 
+		# VARIABLES THAT CAN BE OVERRIDDEN BY CSF instrParams={}
+		# handle polyphony
+		'polyphony_max_voices': 1, 		
+		'polyphony_min_range': None,
+		'polyphony_max_range': None,
+		'polyphony_interval_tests': [],
+		'polyphony_permit_unison': False,
+		'polyphony_max_db_difference': 4,
+		# handle temporality
+		'temporal_mode': 'sus', # dictates how duration is handled for this technique
+		'minspeed': 0.075,
+		# handle pitch
+		'pitchoverride': None, # provide a pitch to override the MIDIPitch-seg of this corpus entry. Useful for extended techniques that you want to appear on a certain pitch in the staff
+
+		
+		# INSTRUMENT_ONLY VARIABLES
+		'technique_switch_delay_map': {}, # 
+		'clef': 'G', 
+		'key': 'C', 
+		}
+		self.params.update(kwargs)
 
 
 

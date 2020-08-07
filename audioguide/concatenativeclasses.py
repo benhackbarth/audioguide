@@ -47,6 +47,8 @@ class parseOptions:
 	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
 		from audioguide.userclasses import CorpusOptionsEntry as csf
+		from audioguide.userclasses import Instrument as instr
+		from audioguide.userclasses import Score as score
 		from audioguide.userclasses import SearchPassOptionsEntry as spass
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
@@ -152,6 +154,12 @@ class cpsLimit:
 		for voiceID, numb in dicty.items():
 			percent = numb*100. / float(cps.data['cspInfo'][voiceID]['segs'])
 			p.printreject(numb, percent, cps.data['cspInfo'][voiceID]['filehead'])
+
+
+
+
+
+
 
 
 
@@ -319,9 +327,9 @@ class corpus:
 					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
 
 				
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata, cobj.clipDurationToTarget, cobj.instrTag, cobj.instrParams])
 				vcCnt += 1
-			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': []} )	
+			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': [], 'instrTag': cobj.instrTag, 'instrParams': cobj.instrParams} )	
 			###########################
 			## done with CORPUS loop ##
 			###########################
@@ -435,6 +443,12 @@ class corpus:
 		from userclasses import SingleDescriptor as d
 		self.powerStats = sfsegment.getDescriptorStatistics(self.postLimitSegmentNormList, d('power'))
 		self.totalNumberOfTargetSegments = len(tgtObj.segs)
+		
+		#####################################################################
+		## initialize any lists which track selection during concatenation ##
+		#####################################################################
+		for csfs in self.postLimitSegmentList:	
+			csfs.selectionTimes = []
 		##########################################################
 		## set up voice restriction per second as a frame value ##
 		##########################################################
@@ -444,7 +458,8 @@ class corpus:
 				self.voiceRestrictPerFrame[voiceId] = AnalInterface.s2f(infoDict['restrictInTime'], tgtObj.filename)/2
 	############################################################################
 	############################################################################
-	def evaluateValidSamples(self, timeInFrames, timeInSec, tgtSegIdx, rotateVoices, voicePattern, voiceToCorpusIdMapping, clusterMappingDict, tgtclusterId, superimp):
+	def evaluateValidSamples(self, timeInFrames, timeInSec, tgtSegIdx, rotateVoices, voicePattern, voiceToCorpusIdMapping, clusterMappingDict, tgtclusterId, superimp, instruments):
+		
 		# get which voices are valid at this selection time
 		if rotateVoices and self.data['lastVoice'] != None:
 			validVoices = [(self.data['lastVoice']+1)%self.data['numberVoices']]
@@ -472,6 +487,7 @@ class corpus:
 				end_look = int(min(timeInFrames+self.voiceRestrictPerFrame[vc], len(superimp.cnt['cpsvc_overlap'][vc])))
 				if np.sum(superimp.cnt['cpsvc_overlap'][vc][srt_look:end_look]) != 0: 
 					if vc not in voicesToRemove: voicesToRemove.append(vc)
+		#
 		# restrict corpus ID by number of selected overlapping samples
 		# uses eval() to test against overlap number...
 		for vc in validVoices:
@@ -484,7 +500,12 @@ class corpus:
 			if self.data['cspInfo'][vc]['maxPercentTargetSegments'] == None: continue
 			percentageSegmentsChosen = (float(len(set(self.data['cspInfo'][vc]['selectedTargetSegments'])))/float(self.totalNumberOfTargetSegments))*100.
 			if percentageSegmentsChosen > self.data['cspInfo'][vc]['maxPercentTargetSegments']: voicesToRemove.append(vc)
-			
+		#
+		# evaulate and set valid voices for instruments...
+		instruments.evaluate_voices(timeInFrames, validVoices)
+		instruments.setup_corpus_tests(timeInFrames)
+
+
 		###############################################
 		## NOW remove any voices that should be here ##
 		###############################################
@@ -515,7 +536,7 @@ class corpus:
 					if abs(selectedTime-timeInSec) < h.restrictRepetition:
 						passme = False
 				if not passme: continue
-			# see if it overlaps too much (dependant on each segments' duration)
+			# see if it overlaps too much (dependant on each segment's duration)
 			if h.restrictOverlaps != None:
 				max_look = min(timeInFrames+h.lengthInFrames, len(superimp.cnt['cpsvc_overlap'][h.voiceID]))
 				maxOver = np.max(superimp.cnt['cpsvc_overlap'][h.voiceID][timeInFrames:max_look])
@@ -528,9 +549,14 @@ class corpus:
 					maxOver = np.max(superimp.cnt['corpusOverlapByString'][str][0][timeInFrames:max_look])
 					if maxOver >= limit: continue
 
-			
+			################################################################################
+			## remove for instruments segment-specific restrictions i.e. pitch limit      ##
+			## polyphony                                                                  ##
+			################################################################################
+			if not instruments.test_corpus_segment(timeInFrames, h): continue
 
 
+			# if we get here, add the segment
 			validSegments.append(h)
 		return validSegments
 
@@ -621,11 +647,8 @@ class corpus:
 class SuperimposeTracker():
 	def __init__(self, tgtlength, tgtlengthsegs, overlap_inc_amp, peakAlign, peakAlignEnvelope, cpsentrylength, corpusOverlapByStringDict, p):
 		self.p = p
-		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0, 'cpsnames': [], 'corpusOverlapByString': {}}
+		self.cnt = {'onset': np.zeros(tgtlength), 'overlap': np.zeros(tgtlength), 'segidx': np.zeros(tgtlengthsegs), 'cpsvc_overlap': np.zeros((cpsentrylength, tgtlength)), 'selectionCount': 0, 'cpsnames': [], 'corpusOverlapByString': {}, 'instrument_overlap': None}
 		
-		for str, val in corpusOverlapByStringDict.items():
-			self.cnt['corpusOverlapByString'][str] = [np.zeros(tgtlength), val]
-
 		self.choiceCnt = 0 # tracks number of decisions made
 		self.overlap_inc_amp = util.dbToAmp(overlap_inc_amp)
 		self.peakAlign = peakAlign
@@ -638,7 +661,12 @@ class SuperimposeTracker():
 		if max != None and len(self.cnt[type]) > time and self.cnt[type][time] >= max: pick = 'notok'
 		return pick	
 	########################################
-	def increment(self, start, dur, segidx, cps_voiceid, powers, logtext, corpusname, cpsfilename):
+	def increment(self, start, dur, segidx, selectCpsseg, logtext, corpusname):
+		
+		cps_voiceid = selectCpsseg.voiceID
+		powers = selectCpsseg.desc['power']
+		cpsfilename = selectCpsseg.filename
+		
 		self.p.log( logtext )
 		self.cnt['segidx'][segidx] += 1
 		self.cnt['onset'][start] += 1
@@ -654,6 +682,7 @@ class SuperimposeTracker():
 					for str in self.cnt['corpusOverlapByString']:
 						if util.matchString(cpsfilename, str):
 							self.cnt['corpusOverlapByString'][str][0][start+f] += 1
+					
 			except IndexError: break # cps handle data not long enough
 	########################################
 	def skip(self, reason, value, timeinSec):
@@ -682,9 +711,10 @@ class SuperimposeTracker():
 
 
 class outputEvent:
-	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, durationSelect, durationMin, durationMax, alignPeaksBool, minOutputMidi=21):		
+	def __init__(self, sfseghandle, timeInScore, ampBoost, transposition, selection_cnt, tgtseg, simSelects, tgtsegdur, tgtsegnumb, stretchcode, f2s, durationSelect, durationMin, durationMax, alignPeaksBool, minOutputMidi=21):		
 		# cps segment stuff
 		self.sfseghandle = sfseghandle
+		self.selection_cnt = selection_cnt
 		self.filename = sfseghandle.concatFileName
 		self.printName = sfseghandle.printName
 		self.sfSkip = sfseghandle.segmentStartSec
@@ -693,6 +723,7 @@ class outputEvent:
 		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None) * f2s
 		self.powerSeg = sfseghandle.desc['power-seg'].get(0, None)
 		self.rmsSeg = util.ampToDb(self.powerSeg)
+		self.dynamicFromFilename = sfseghandle.dynamicFromFilename
 		self.midiVelocity = self.rmsSeg+127
 		if self.midiVelocity > 127: self.midiVelocity = 127
 		if self.midiVelocity < 10: self.midiVelocity = 10
@@ -709,17 +740,22 @@ class outputEvent:
 		self.transratio = 2 ** (transposition/12.)
 		self.voiceID = sfseghandle.voiceID
 		self.extraDataFromSegmentationFile = sfseghandle.segfileData
-		self.midiFromFilename = sfseghandle.desc['MIDIPitch-seg'].get(0, None)
-		self.midiPitch = self.midiFromFilename + self.transposition
-		if self.midiPitch < minOutputMidi: self.midiPitch = minOutputMidi
+		self.midi = sfseghandle.desc['MIDIPitch-seg'].get(0, None) + self.transposition
+		if self.midi < minOutputMidi: self.midi = minOutputMidi
 		self.metadata = sfseghandle.metadata
 		# amplitude envelope
 		self.envDb = ampBoost
-		self.envAttackSec = sfseghandle.envAttackSec
-		self.envDecaySec = sfseghandle.envDecaySec
 		self.envSlope = sfseghandle.envSlope
 		self.classification = sfseghandle.classification
-		
+		if sfseghandle.clipDurationToTarget:
+			self.cpsduration = tgtsegdur
+			self.envAttackSec = util.getDurationFromValueOrString(sfseghandle.envAttack, self.cpsduration)
+			self.envDecaySec = util.getDurationFromValueOrString(sfseghandle.envDecay, self.cpsduration)
+		else:
+			self.envAttackSec = sfseghandle.envAttackSec
+			self.envDecaySec = sfseghandle.envDecaySec
+		self.instrTag = sfseghandle.instrTag
+		self.instrParams = sfseghandle.instrParams
 		# test for which duration to use - the target's or the corpus'
 		if durationSelect == 'cps':
 			self.duration = self.cpsduration * (1./self.transratio)
@@ -757,7 +793,7 @@ class outputEvent:
 		return "%f\t%f\t%s\n"%(self.timeInScore, self.timeInScore+self.duration, text)
 	####################################	
 	def makeLispText(self):
-		return '(%.3f %.3f %.3f "%s" %.2f) '%(self.timeInScore, self.duration, self.midiPitch, self.filename, self.rmsSeg)
+		return '(%.3f %.3f %.3f "%s" %.2f) '%(self.timeInScore, self.duration, self.midi, self.filename, self.rmsSeg)
 	####################################	
 	def makeDictOutput(self):
 		dicty = {}
@@ -770,7 +806,7 @@ class outputEvent:
 		
 		dicty['peakRms'] = self.powerSeg
 		dicty['peakRmsDb'] = util.ampToDb(self.powerSeg)
-		dicty['midiPitch'] = self.midiFromFilename
+		dicty['midiPitch'] = self.midi
 		dicty['envScaleDb'] = self.envDb
 		return dicty
 	####################################	
