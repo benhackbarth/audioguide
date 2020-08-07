@@ -218,6 +218,8 @@ def timeVaryingDistance(array1, array2, dist=None, envelopeMask=None, energyWeig
 		return pearsonCorr(array1[0:l], array2[0:l])
 	elif dist == 'kullback':
 		return kullback(array1, array2)
+	elif dist == "dtw":
+		return dtwDist(array1, array2)
 	elif dist.find('fixedSize') != -1: # written as fixedSize-2, fixedSize-4, etc.
 		return fixedSizeDigest(array1, array2, dist, peaks) # divided by the length
 	else:
@@ -275,6 +277,22 @@ def pearsonCorr(x,y):
 	den = pow((sum_x_sq - pow(sum_x, 2) / n) * (sum_y_sq - pow(sum_y, 2) / n), 0.5)
 	if den == 0: return 0
 	return num / den
+
+def dtwDist(x,y):
+	try:
+		from fastdtw import fastdtw
+	except ImportError:
+		print(ImportError, "fastdtw package is not installed.")
+
+	try:
+		from scipy.spatial.distance import euclidean
+	except ImportError:
+		print(ImportError, "scipy package is not installed.")
+	"""Dynamic Time Warping Distance"""
+	dist, _ = fastdtw(x, y, dist=euclidean)
+	return dist
+
+
 	
 
 
