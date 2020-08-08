@@ -8,8 +8,7 @@ import audioguide.util as util
 #########################
 #  * second staff with "other" choices that didn't make it in? or a second bachroll output?
 #  * enforced minimum of sounds per instrument per segment?
-#  * need a way for non-instrument sounds to work with contactenation! at the moment they are not used
-
+#  * change signal decomp to support MW - modolus of target segment times before concate?
 
 ################################################################################
 class instruments:
