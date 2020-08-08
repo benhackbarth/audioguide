@@ -553,7 +553,7 @@ class corpus:
 			## remove for instruments segment-specific restrictions i.e. pitch limit      ##
 			## polyphony                                                                  ##
 			################################################################################
-			if not instruments.test_corpus_segment(timeInFrames, h): continue
+			if h.instrTag != None and not instruments.test_corpus_segment(timeInFrames, h): continue
 
 
 			# if we get here, add the segment

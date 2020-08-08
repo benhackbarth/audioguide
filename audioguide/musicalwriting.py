@@ -6,11 +6,10 @@ import audioguide.util as util
 #########################
 ## things to implement ##
 #########################
-#  * temporal_limit_by_descriptor_per_second = {'MIDIPitch': 4} # can only change by 4 semintones per sec
-#  * second staff with "other" choices that didn't make it in?
+#  * second staff with "other" choices that didn't make it in? or a second bachroll output?
 #  * enforced minimum of sounds per instrument per segment?
 #  * need a way for non-instrument sounds to work with contactenation! at the moment they are not used
-#  * reverse technique_switch_delay_map
+
 
 ################################################################################
 class instruments:
@@ -22,7 +21,6 @@ class instruments:
 		self.outputfile = outputfile
 		self.tgtlength = tgtlength
 		self.internaldata = {'notes': 0, 'non_instrument_events': 0, 'selections_per_voice': {}}
-		#self.events = []
 		for vidx in range(len(usercorpus)): self.internaldata['selections_per_voice'][vidx] = {}
 		
 		self.hopsizesec = hopsizesec
@@ -34,13 +32,14 @@ class instruments:
 			self.instruments[k] = {}
 			self.instruments[k]['notes'] = {}
 			self.instruments[k]['params'] = ins
-			self.instruments[k]['cpstag'] = ins.name
+			self.instruments[k]['displayname'] = ins.name
+			self.instruments[k]['cpsTags'] = ins.params['cpsTags']
 			self.instruments[k]['all_selected_times_in_frames'] = []
-			self.instruments[k]['time_in_frames_to_pitch_minmax'] = {}
+			self.instruments[k]['selected_pitches'] = {}
 			# this variable holds all valid voices for this instrument
 			self.instruments[k]['cps'] = {}
 			for c in usercorpus:
-				if not c.instrTag == ins.name: continue
+				if not c.instrTag in self.instruments[k]['cpsTags']: continue
 				self.instruments[k]['cps'][c.voiceID] = ins.params.copy()
 				# update with instrument params if not user-supplied at corpus level
 				# add values if not supplied
@@ -147,71 +146,88 @@ class instruments:
 	########################################
 	def setup_corpus_tests(self, tidx):
 		if not self.active: return True
+		'''creates a list of boolean tests for corpus segment pitch and dB that must be passed for a sample to be considered for selection'''
 		self.instrument_tests = {}
 		# loop through all instruments
 		for i in self.instruments:	
 			# loop through each voice available to each instrument
 			for v in self.instruments[i]['cps']:
 				# set up the test dict
-				self.instrument_tests[i, v] = {'pitch': [], 'db': []}
-				# if nothing selected for this frame, don't worry about it
+				self.instrument_tests[i, v] = {'pitch': [], 'pitch2': [], 'db2': []}
 				if tidx in self.instruments[i]['cps'][v]['selected_pitches']:
 					# make tests
 					minp, maxp = min(self.instruments[i]['cps'][v]['selected_pitches'][tidx]), max(self.instruments[i]['cps'][v]['selected_pitches'][tidx])
 					# max range
 					if self.instruments[i]['cps'][v]['polyphony_max_range'] != None:
 						extra_room_in_range = self.instruments[i]['cps'][v]['polyphony_max_range']-(maxp-minp)
-						self.instrument_tests[i, v]['pitch'].append('%%f >= %f and %%f <= %f'%(minp-extra_room_in_range, maxp+extra_room_in_range))
+						self.instrument_tests[i, v]['pitch2'].append('%%f >= %f and %%f <= %f'%(minp-extra_room_in_range, maxp+extra_room_in_range))
 					# min range
 					if self.instruments[i]['cps'][v]['polyphony_min_range'] != None:
 						extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_min_range']-(maxp-minp)
-						self.instrument_tests[i, v]['pitch'].append('%%f <= %f or %%f >= %f'%(minp-extra_room_in_minrange, maxp+extra_room_in_minrange))
+						self.instrument_tests[i, v]['pitch2'].append('%%f <= %f or %%f >= %f'%(minp-extra_room_in_minrange, maxp+extra_room_in_minrange))
+					# unison tests
+					if not self.instruments[i]['cps'][v]['polyphony_permit_unison']:
+						for p in self.instruments[i]['cps'][v]['selected_pitches'][tidx]:
+							self.instrument_tests[i, v]['pitch'].append('%%f != %f'%(p))
+				
 				if tidx in self.instruments[i]['cps'][v]['selected_dbs']:
 					# make tests
 					# max db
 					mindb, maxdb = min(self.instruments[i]['cps'][v]['selected_dbs'][tidx]), max(self.instruments[i]['cps'][v]['selected_dbs'][tidx])
 					if self.instruments[i]['cps'][v]['polyphony_max_db_difference'] != None:
 						extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_max_db_difference']-(maxdb-mindb)
-						self.instrument_tests[i, v]['db'].append('%%f >= %f and %%f <= %f'%(mindb-extra_room_in_minrange, maxdb+extra_room_in_minrange))
-				# interval tests
-#				if tidx in self.instruments[i]['cps'][v]['selected_pitches']:
-#					for teststring in self.instruments[i]['cps'][v]['polyphony_interval_tests']:
-#						
-#						print([[teststring, p] for p in self.instruments[i]['cps'][v]['selected_pitches'][tidx]])
-#						sys.exit()
+						self.instrument_tests[i, v]['db2'].append('%%f >= %f and %%f <= %f'%(mindb-extra_room_in_minrange, maxdb+extra_room_in_minrange))
+			# INSTRUMENT-LEVEL RESTRICTIONS
+			# do shit for pitch restriction in time
+			globalOrLocalScope = 'global'
+			# the line below needs to be redone as a global variable for this instr!!!!!!!
+			# the line below needs to be redone as a global variable for this instr!!!!!!!
+			# the line below needs to be redone as a global variable for this instr!!!!!!!
+			# the line below needs to be redone as a global variable for this instr!!!!!!!
+			# the line below needs to be redone as a global variable for this instr!!!!!!!
+			if self.instruments[i]['cps'][v]['pitch_limit_change_per_sec'] != None:
+				semitoneMovePerFrame = self.instruments[i]['cps'][v]['pitch_limit_change_per_sec']/self._s2f(1)
+				prevNotes = [(tidx-ttidx, pitchlist) for ttidx, pitchlist in self.instruments[i]['selected_pitches'].items() if ttidx < tidx]
+				futureNotes = [(ttidx-tidx, pitchlist) for ttidx, pitchlist in self.instruments[i]['selected_pitches'].items() if ttidx > tidx]
+				for notes in [prevNotes, futureNotes]:
+					if len(notes) > 0:
+						notes.sort()
+						closestFrame, closestPitches = notes[0]
+						minp, maxp = min(closestPitches), max(closestPitches)
+						semidev = closestFrame*semitoneMovePerFrame
+						for v in self.instruments[i]['cps']:
+							self.instrument_tests[i, v]['pitch2'].append('%%f >= %f and %%f <= %f'%(minp-semidev, maxp+semidev))
 
-				
 	########################################
 	def test_corpus_segment(self, tidx, cobj):
-		'''this test happens at the corpus segment level'''
+		'''this test happens on the corpus at a segment-by-segment basis'''
 		if not self.active: return True
 		if len(self.valid_instruments_per_voice[cobj.voiceID]) == 0: return False
 		cobj.instrument_candidates = []
 
-
+		PITCH = cobj.desc['MIDIPitch-seg'].get(None, None)
+		if cobj.transMethod != None and cobj.transMethod.startswith("semitone"):
+			# exception for midipitch to incorporate transposition
+			PITCH += float(cobj.transMethod.split()[1])
+		DB = util.ampToDb(cobj.desc['power-seg'].get(None, None)) + cobj.envDb
+		
 		for i in self.valid_instruments_per_voice[cobj.voiceID]:
 			add_this_instr = True
 			################################################
 			## test for descriptor-based polophony limits ##
 			################################################
 			tests = []
-			testpitch = cobj.desc['MIDIPitch-seg'].get(None, None)
-			if len(self.instrument_tests[i, cobj.voiceID]['pitch']) > 0:
-				# exception for midipitch to incorporate transposition
-				if cobj.transMethod != None and cobj.transMethod.startswith("semitone"):
-					testpitch += float(cobj.transMethod.split()[1])
-				tests.extend([teststring%(testpitch, testpitch) for teststring in self.instrument_tests[i, cobj.voiceID]['pitch']])
-							
-			if len(self.instrument_tests[i, cobj.voiceID]['db']) > 0:
-				testdb = util.ampToDb(cobj.desc['power-seg'].get(None, None)) + cobj.envDb
-				
-				# exception for midipitch to incorporate transposition
-				tests.extend([teststring%(testdb, testdb) for teststring in self.instrument_tests[i, cobj.voiceID]['db']])
+			# single pitch conditionals
+			tests.extend([teststring%(PITCH) for teststring in self.instrument_tests[i, cobj.voiceID]['pitch']])
+			# double pitch conditionals
+			tests.extend([teststring%(PITCH, PITCH) for teststring in self.instrument_tests[i, cobj.voiceID]['pitch2']])
+			# double dB conditionals			
+			tests.extend([teststring%(DB, DB) for teststring in self.instrument_tests[i, cobj.voiceID]['db2']])
+			for t in tests:
+				if not eval(t):
+					add_this_instr = False
+					break
 
-			if len(tests) > 0:
-				add_this_instr = all([eval(t) for t in tests])
-
-			#if self.instruments[i]['cps'][cobj.voiceID]['polyphony_permit_unison']
 
 
 
@@ -245,29 +261,16 @@ class instruments:
 		thisinstr['cps'][vc]['selected_times_in_frames'].append(start)
 		thisinstr['cps'][vc]['overlap_frames'][start:start+dur] += 1
 
-		# add min/max pitch info
-		if start not in thisinstr['time_in_frames_to_pitch_minmax']:
-			thisinstr['time_in_frames_to_pitch_minmax'][start] = [oeObj.midi, oeObj.midi]
-		else:
-			thisinstr['time_in_frames_to_pitch_minmax'][start][0] = min(thisinstr['time_in_frames_to_pitch_minmax'][start][0], oeObj.midi)
-			thisinstr['time_in_frames_to_pitch_minmax'][start][1] = max(thisinstr['time_in_frames_to_pitch_minmax'][start][1], oeObj.midi)
-		
-		
 		if thisinstr['cps'][vc]['technique'] in thisinstr['overlap_frames_by_technique']:
 			thisinstr['overlap_frames_by_technique'][thisinstr['cps'][vc]['technique']][event['time_tuple'][0]:event['time_tuple'][1]] += 1
-		
+
+		# pitch selection for the whole instrument
+		if start not in thisinstr['selected_pitches']: thisinstr['selected_pitches'][start] = []
+		thisinstr['selected_pitches'][start].append(oeObj.midi)
 		if start not in thisinstr['cps'][vc]['selected_pitches']: thisinstr['cps'][vc]['selected_pitches'][start] = []
 		thisinstr['cps'][vc]['selected_pitches'][start].append(oeObj.midi)
 		if start not in thisinstr['cps'][vc]['selected_dbs']: thisinstr['cps'][vc]['selected_dbs'][start] = []
 		thisinstr['cps'][vc]['selected_dbs'][start].append(oeObj.rmsSeg+oeObj.envDb)
-		# add values for polyphony limit by descriptor
-		#if start not in self.internaldata['selections_per_voice'][vc]:
-		#	self.internaldata['selections_per_voice'][vc][start] = {d:[] for d in thisinstr['cps'][vc]['polyphony_limit_range']}
-		#for d, lims in thisinstr['cps'][vc]['polyphony_limit_range'].items():
-		#	dvalue = oeObj.sfseghandle.desc[d+'-seg'].get(None, None)
-			# special exception if we are handling pitch, as the measurement needs to incorperate any transposition
-		#	if d == 'MIDIPitch': dvalue += oeObj.transposition
-		#	self.internaldata['selections_per_voice'][vc][start][d].append(dvalue) 
 
 		self.internaldata['notes'] += 1
 	########################################
@@ -315,7 +318,8 @@ class instruments:
 
 			# test if duration should be written
 			if thiscps['temporal_mode'] in ['artic']:
-				durationInMs = 0
+				#durationInMs = 0 NOPE, zero duration not possible in bach when quantizing.
+				pass
 			if timeinMs not in self.instruments[eobj.selectedinstrument]['notes']:
 				self.instruments[eobj.selectedinstrument]['notes'][timeinMs] = [[], slotData]
 			self.instruments[eobj.selectedinstrument]['notes'][timeinMs][0].append([pitchInCents, durationInMs, amp127])
@@ -325,7 +329,7 @@ class instruments:
 		clefs = ['clefs'] + [self.instruments[i]['params'].params['clef'] for i in self.instruments]
 		bachstring += "[%s] "%' '.join(clefs)
 		# set up voices
-		voicenames = ['voicenames'] + [self.instruments[i]['cpstag'] for i in self.instruments]
+		voicenames = ['voicenames'] + [self.instruments[i]['displayname'] for i in self.instruments]
 		bachstring += "[%s] "%' '.join(voicenames)
 		
 		for instru in self.instruments:

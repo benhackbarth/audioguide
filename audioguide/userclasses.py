@@ -102,6 +102,8 @@ class Instrument(object):
 		'polyphony_interval_tests': [],
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
+		# handle pitch across time
+		'pitch_limit_change_per_sec': None, 
 		# handle temporality
 		'temporal_mode': 'sus', # dictates how duration is handled for this technique
 		'minspeed': 0.075,
@@ -115,6 +117,8 @@ class Instrument(object):
 		'key': 'C', 
 		}
 		self.params.update(kwargs)
+		# if 'tags' not given, it is the name of the instrument..
+		if 'cpsTags' not in self.params: self.params['cpsTags'] = [self.name]
 
 
 

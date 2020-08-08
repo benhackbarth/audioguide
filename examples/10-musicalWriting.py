@@ -62,6 +62,6 @@ spass('closest_percent', d('power-seg', norm=1), percent=10),
 spass('closest', d('mfccs-seg')),
 ]
 
-SUPERIMPOSE = si() # don't need to worry about overlaps, as, when the instruments get filled up, selection will automatically stop. however the number of total notes selected per segment can be restricted with maxSegment=n
+SUPERIMPOSE = si() # don't need to worry about overlaps as much since, when the instruments get filled up, selection will automatically stop. however the number of total notes selected per segment can be restricted with maxSegment=n
 
 
