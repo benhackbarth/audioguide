@@ -112,9 +112,9 @@ class Instrument(object):
 
 		
 		# INSTRUMENT_ONLY VARIABLES
-		'technique_switch_delay_map': {}, # 
+		'technique_switch_delay_map': [], # 
 		'clef': 'G', 
-		'key': 'C', 
+		'key': 'CM', 
 		}
 		self.params.update(kwargs)
 		# if 'tags' not given, it is the name of the instrument..

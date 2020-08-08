@@ -9,7 +9,8 @@ import audioguide.util as util
 #  * second staff with "other" choices that didn't make it in? or a second bachroll output?
 #  * enforced minimum of sounds per instrument per segment?
 #  * change signal decomp to support MW - modolus of target segment times before concate?
-
+#  * a cleaner system of global/local scopes parsing instrument control and corpus voice control
+#  * instru mute, solo, pan
 ################################################################################
 class instruments:
 	def __init__(self, scoreFromUserOptions, usercorpus, outputfile, tgtlength, hopsizesec, p):
@@ -25,9 +26,11 @@ class instruments:
 		self.hopsizesec = hopsizesec
 		self.instruments = {}
 		self.instrument_names = []
+		self.instrumentNameToIdx = {}
 		for iidx, ins in enumerate(scoreFromUserOptions.instrumentobjs):
 			if ins.name not in self.instrument_names: self.instrument_names.append(ins.name)
 			k = '%i-%s'%(iidx, ins.name)
+			self.instrumentNameToIdx[k] = iidx
 			self.instruments[k] = {}
 			self.instruments[k]['notes'] = {}
 			self.instruments[k]['params'] = ins
@@ -245,6 +248,7 @@ class instruments:
 		# if we're passing this point, we're picking the instrument
 		vc = oeObj.sfseghandle.voiceID
 		oeObj.selectedinstrument = oeObj.sfseghandle.instrument_candidates[0]
+		oeObj.selectedInstrumentIdx = self.instrumentNameToIdx[oeObj.selectedinstrument]
 		thisinstr = self.instruments[oeObj.selectedinstrument]
 		
 		incrdur = min(dur, oeObj.sfseghandle.lengthInFrames)

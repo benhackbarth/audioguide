@@ -3,10 +3,10 @@
 ####################################################################
 
 
-TARGET = tsf('/Users/ben/Desktop/video/target.wav', thresh=-35, offsetRise=1.25, scaleDb=-2)
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 
 
-SEARCH_PATHS = ['/Users/ben/Documents/sfdb/']
+SEARCH_PATHS = ['/Users/ben/Documents/sfdb/'] # you'll need to use your own samples 8)
 CORPUS = [
 # bowed violin sounds
 csf('violin/staccato/', instrTag='violin', instrParams={'technique': 'arco', 'articulation': 'accent'}, scaleDb='filenamedyn'),
@@ -64,4 +64,5 @@ spass('closest', d('mfccs-seg')),
 
 SUPERIMPOSE = si() # don't need to worry about overlaps as much since, when the instruments get filled up, selection will automatically stop. however the number of total notes selected per segment can be restricted with maxSegment=n
 
+CSOUND_CHANNEL_RENDER_METHOD = 'oneChannelPerInstrument' # writes each instrument to its own channel in the output sound file.
 

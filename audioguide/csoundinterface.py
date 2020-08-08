@@ -8,7 +8,7 @@ import audioguide.util as util
 
 
 
-def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, numberClasses, bits=32, useTargetAmplitude=0):	
+def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, instruments, numberClasses, bits=32, useTargetAmplitude=0):	
 	if channelRenderMethod == "corpusmax":
 		nchnls = max(listOfSfchannelsInScore) # use maximum number of channels for a corpus item
 	elif channelRenderMethod in ["mix", "stereo"]:
@@ -17,6 +17,8 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 		nchnls = cpsLength
 	elif channelRenderMethod == "oneChannelPerOverlap":
 		nchnls = maxOverlaps
+	elif channelRenderMethod == "oneChannelPerInstrument":
+		nchnls = len(instruments.instruments)
 	elif channelRenderMethod == "oneChannelPerClassification":
 		nchnls = numberClasses
 	else:
@@ -93,12 +95,13 @@ instr 1
 	iDecayTime = p12
 	iEnvSlope = p13
 	iCorpusIdx = p14
-	iSimSelectNumb = p15
-	iTgtSegDur = p16
-	iTgtSegNumb = p17
-	iClassification = p18
-	SstretchCode   strget   p19
-	SchannelRenderType   strget   p20
+	iInstrumentIdx = p15
+	iSimSelectNumb = p16
+	iTgtSegDur = p17
+	iTgtSegNumb = p18
+	iClassification = p19
+	SstretchCode   strget   p20
+	SchannelRenderType   strget   p21
 	
 	print giNoteCounter ; used by audioguide for its printed progress bar
 
@@ -259,7 +262,16 @@ instr 1
 		endif 
 	endif
 	
-
+	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerInstrument"
+	if (iStrCmpResult == 0) then
+		if (iFileChannels == 1) then
+			outch     int(p15+1), asnd1
+		elseif (iFileChannels == 2) then
+			outch     int(p15+1), asnd1+asnd2
+		elseif (iFileChannels == 4) then
+			outch     int(p15+1), asnd1+asnd2+asnd3+asnd4
+		endif 
+	endif
 	
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin

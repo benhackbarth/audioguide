@@ -275,7 +275,7 @@ while False in [t.selectiondone for t in tgt.segs]:
 			rawSubtraction = tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
 			tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen] = np.clip(rawSubtraction, 0, sys.maxsize) # clip it so its above zero
 			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]))
-			#p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
+			p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
 			
 			# recalculate onset envelope
 			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
@@ -481,7 +481,7 @@ if ops.CSOUND_CSD_FILEPATH != None:
 		for oe in outputEvents:
 			oe.timeInScore -= minTime
 	csSco += ''.join([ oe.makeCsoundOutputText(ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in outputEvents ])
-	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=ops.CSOUND_BITS)
+	csd.makeConcatenationCsdFile(ops.CSOUND_CSD_FILEPATH, ops.CSOUND_RENDER_FILEPATH, ops.CSOUND_CHANNEL_RENDER_METHOD, ops.CSOUND_SR, ops.CSOUND_KSMPS, csSco, cps.len, set([oe.sfchnls for oe in outputEvents]), maxOverlaps, instruments, ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=ops.CSOUND_BITS)
 	p.log( "Wrote csound csd file %s\n"%ops.CSOUND_CSD_FILEPATH )
 	if ops.CSOUND_RENDER_FILEPATH != None:
 		csd.render(ops.CSOUND_CSD_FILEPATH, len(outputEvents), printerobj=p)
