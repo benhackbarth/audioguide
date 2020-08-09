@@ -10,7 +10,7 @@ import audioguide.util as util
 #  * enforced minimum of sounds per instrument per segment?
 #  * change signal decomp to support MW - modolus of target segment times before concate?
 #  * a cleaner system of global/local scopes parsing instrument control and corpus voice control
-#  * instru mute, solo, pan
+
 ################################################################################
 class instruments:
 	def __init__(self, scoreFromUserOptions, usercorpus, outputfile, tgtlength, hopsizesec, p):
@@ -36,7 +36,7 @@ class instruments:
 			self.instruments[k]['params'] = ins
 			self.instruments[k]['displayname'] = ins.name
 			self.instruments[k]['cpsTags'] = ins.params['cpsTags']
-			self.instruments[k]['all_selected_times_in_frames'] = []
+			#self.instruments[k]['all_selected_times_in_frames'] = []
 			self.instruments[k]['selected_pitches'] = {}
 			# this variable holds all valid voices for this instrument
 			self.instruments[k]['cps'] = {}
@@ -53,10 +53,12 @@ class instruments:
 				self.instruments[k]['cps'][c.voiceID]['selected_times_in_frames'] = []
 				self.instruments[k]['cps'][c.voiceID]['selected_pitches'] = {}
 				self.instruments[k]['cps'][c.voiceID]['selected_dbs'] = {}
-				
+				if self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] == None:
+					self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] = self.instruments[k]['cps'][c.voiceID]['minspeed']
 			# temporal restrictions in hop-sized frames
 			for voiceID in self.instruments[k]['cps']:
 				self.instruments[k]['cps'][voiceID]['minspeed_frames'] = self._s2f(self.instruments[k]['cps'][voiceID]['minspeed'])
+				self.instruments[k]['cps'][voiceID]['polyphony_minspeed_frames'] = self._s2f(self.instruments[k]['cps'][voiceID]['polyphony_minspeed'])
 			self.instruments[k]['technique_time_constraints'] = {}
 			self.instruments[k]['overlap_frames_by_technique'] = {}
 			for idx, (constrainingtech, querytech, timesec) in enumerate(ins.params['technique_switch_delay_map']):
@@ -89,6 +91,7 @@ class instruments:
 		# first test for valid techniques at this times
 		instrumentInvalidTechniques = {}
 		instrumentNearestEventInFrames = {}
+		instrumentMinSpeedRestrictions = {}
 		for i in self.instruments:
 			# test to see what techniques are invalid according to "technique_time_constraints"
 			instrumentInvalidTechniques[i] = []
@@ -101,11 +104,11 @@ class instruments:
 				if np.sum(testslice) > 0:
 					instrumentInvalidTechniques[i].append(testtech)
 			# make speed test info
-			seldiff_frames = [targettimeinframes-v for v in self.instruments[i]['all_selected_times_in_frames'] if v != targettimeinframes]
-			if len(seldiff_frames) > 0:
-				instrumentNearestEventInFrames[i] = np.min(np.abs(seldiff_frames))
-			else:
-				instrumentNearestEventInFrames[i] = None
+			if len(self.instruments[i]['selected_pitches']) > 0:
+				targettimeinframes in self.instruments[i]['selected_pitches']
+				seldiff_frames = [abs(targettimeinframes-v) for v in self.instruments[i]['selected_pitches'] if v != targettimeinframes]
+				seldiff_frames.sort()
+				instrumentMinSpeedRestrictions[i] = seldiff_frames[0], targettimeinframes in self.instruments[i]['selected_pitches']
 		######
 		self.valid_instruments_per_voice = {}
 		for vc in validVoicesList:
@@ -139,8 +142,13 @@ class instruments:
 				###################################
 				## MINSPEED temporal restriction ##
 				###################################
-				if instrumentNearestEventInFrames[i] != None and instrumentNearestEventInFrames[i] < self.instruments[i]['cps'][vc]['minspeed_frames']:
-					continue
+				if i in instrumentMinSpeedRestrictions:
+					min_dist_frames, is_polyphonic = instrumentMinSpeedRestrictions[i]
+					if is_polyphonic: invalid = min_dist_frames < self.instruments[i]['cps'][vc]['polyphony_minspeed_frames']
+					else: invalid = min_dist_frames < self.instruments[i]['cps'][vc]['minspeed_frames']
+					
+					if invalid:
+						continue
 					
 				self.valid_instruments_per_voice[vc].append(i)
 
@@ -260,7 +268,7 @@ class instruments:
 		#self.events.append(event)
 
 		# increment shit
-		thisinstr['all_selected_times_in_frames'].append(start)
+		#thisinstr['all_selected_times_in_frames'].append(start)
 		thisinstr['cps'][vc]['selected_times_in_frames'].append(start)
 		thisinstr['cps'][vc]['overlap_frames'][start:start+dur] += 1
 

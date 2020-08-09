@@ -97,9 +97,10 @@ class Instrument(object):
 		# VARIABLES THAT CAN BE OVERRIDDEN BY CSF instrParams={}
 		# handle polyphony
 		'polyphony_max_voices': 1, 		
+		'polyphony_minspeed': None,
 		'polyphony_min_range': None,
 		'polyphony_max_range': None,
-		'polyphony_interval_tests': [],
+		#'polyphony_interval_tests': [], # good idea, not implemented yet :(
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
 		# handle pitch across time

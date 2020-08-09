@@ -1,7 +1,7 @@
 #################
 ## Version 1.4 ##
 #################
-• Support for creating musical scores was added with the score() and instr() objects. See examples/10-musicalWriting.py and the "Creating Notated Scores" section of the documentation for details. For a video example, see http://www.benhackbarth.com/audioGuide/vid/index.php?v=instrumentsdemo.mp4
+• Support for creating musical scores was added with the score() and instr() objects. See the "Creating Notated Scores" section of the documentation for details. For a video walkthrough, watch https://www.youtube.com/watch?v=pSf3GJEGzcU 
 
 • The order of unit selection in agConcatenate.py has changed. In previous versions, corpus segments were selected for each target segment in turn. Now, one selection is made per target segment until there are no valid target segments remaining. This gives better results, especially when creating notated scores. This means concatenations will yield slightly different results from version 1.37.
 
