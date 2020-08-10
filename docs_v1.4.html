@@ -742,32 +742,40 @@ instr('cello', clef='F'), # only has pizz
 
 <p>As seen above with 'clef', the instr() object has keywords that affect the instrument's behavoir and how the instrument is translated into musical notation.</p>
 
-<pre class="language-python"><code class="language-python">instr('instrTag', temporal_mode='sus', minspeed=0.075, technique_switch_delay_map={}, polyphony_max_voices=1, polyphony_max_range=None, polyphony_min_range=None, polyphony_permit_unison=False, polyphony_max_db_difference=4, pitch_limit_change_per_sec=None, temporal_mode='sus', clef='G', key='CM', 'pitchoverride'=None))
+<pre class="language-python"><code class="language-python">instr('instrTag', temporal_mode='sus', minspeed=0.075, technique_switch_delay_map={}, polyphony_max_voices=1, polyphony_max_range=None, polyphony_min_range=None, polyphony_permit_unison=False, polyphony_max_db_difference=4, clef='G', key='CM', 'pitchoverride'=None))
 </code></pre>
 
 
 		
 <ul>
-<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent notes for this instrument in seconds.<li><b>technique_switch_delay_map</b> - If different technique's are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify minimum delay times needed to switich form one technique to another.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum time between polyphonic selections in seconds. This works the same way as minspeed, but only applies to polyphony.<li><b>pitch_limit_change_per_sec</b> - If a number, limits how much pitch can move over time in measured in semitones per second. A value of 3 says 'the pitch of this instrument's notes can only move up or down by 3 semitones per second.' If None, the default, there is no limit.<li><b>clef</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.<li><b>pitchoverride</b> - Overrides the pitch values of the corpus segments to a single midi pitch. pitchoverride=60 will write all notes in this instrument at C4.</ul>
+<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent note onsets for this instrument in seconds.<li><b>technique_switch_delay_map</b> - If different technique's are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify minimum delay times needed to switich form one technique to another.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum allowable time between polyphonic chord onsets in seconds. This works the same way as minspeed, but only applies to polyphonic selections.<li><b>clef</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.<li><b>pitchoverride</b> - Overrides the pitch values of the corpus segments to a single midi pitch. pitchoverride=60 will write all notes in this instrument at C4.</ul>
 
-<p>It is possible to override many of the instr() keywords in the CORPUS cps() object to futher parameterize notation. This is done by supplying a dictionary to the cps(instrParams=). Consider the following example:</p>
+<p>With a few exceptions, instr() keyword arguments may be overridden in individual csf() through the csf(instrParams={}) dictionary. In the example below, the arco violin notes have a 0.05 second minspeed and may have 2 voice polyphony. However the pizzicato sounds have a minspeed of 0.2 second and will always be monophonic:</p>
+
 <pre class="language-python"><code class="language-python">CORPUS = [
 csf("arco/", instrTag='violin', wholeFile=True)
-csf("mutedpizz/", instrTag='violin', instrParams={'notehead': 'cross'}, wholeFile=True)
-
-# and some bass sounds
-csf("arco/", instrTag='doublebass', wholeFile=True)
-csf("harmonics/", instrTag='doublebass', instrParams={'annotation': 'harmonic'} wholeFile=True)
-csf("bartokpizz/", instrTag='doublebass', instrParams={'technique': 'pizz', 'annotation': 'pizz', 'articulation': 'staccato'}, wholeFile=True)
+csf("pizz/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed':  0.2}, wholeFile=True)
 ]
 
 INSTRUMENTS = score(
-instr('violin'),
-instr('doublebass', clef='F'),
+instr('violin', minspeed=0.05, polyphony_max_voices=2),
 )
 </code></pre>
 
-<p>Here, all violin notes will have the default notehead, except for those from "mutedpizz/", which will have an x notehead. All doublebass notes selected from batrokpizz will have the pizz instruction included and a staccato symbol added to each note.</p>
+
+
+
+<p>The csf(instrParams={}) dictionary also permits assigning values for articulation, noteheads, and text annotation in the output score to individual csf() entries:</p>
+<pre class="language-python"><code class="language-python">CORPUS = [
+csf("arco/", instrTag='violin', instrParams={'annotation': 'pizz'}, wholeFile=True)
+csf("pizz/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed': 0.2, 'annotation': 'pizz'}, wholeFile=True)
+csf("tap_on_wood/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed':  0.2, 'notehead': 'cross', 'pitchoverride': 69, 'annotation': 'tryna-hit-it'}, wholeFile=True) # tapping on wood sounds will always be written on B4 with an x notehead and an accent
+]
+
+INSTRUMENTS = score(
+instr('violin', minspeed=0.05, polyphony_max_voices=2),
+)
+</code></pre>
 </div>
 
 
