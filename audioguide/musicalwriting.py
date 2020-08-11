@@ -354,7 +354,7 @@ class instruments:
 		thisinstr = self.instruments[oeObj.selectedinstrument]
 		# increment shit
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
-		self.tracker.addnote(oeObj.selectedinstrument, oeObj.sfseghandle.voiceID, start, dur, oeObj.midi, oeObj.rmsSeg+oeObj.envDb, thisinstr['cps'][vc]['technique'])
+		self.tracker.addnote(oeObj.selectedinstrument, oeObj.sfseghandle.voiceID, start, dur, thisinstr['cps'][oeObj.sfseghandle.voiceID]['cobj_to_pitch'][oeObj.sfseghandle], oeObj.rmsSeg+oeObj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
 	def write(self, outputEvents):
 		if not self.active: return
