@@ -145,7 +145,7 @@ AnalInterface.done()
 distanceCalculations = simcalc.distanceCalculations(ops.SUPERIMPOSE, ops.RANDOM_SEED, AnalInterface, tgt.segs, p)
 distanceCalculations.setTarget(ops.SEARCH, tgt.segs)
 
-instruments = musicalwriting.instruments(ops.INSTRUMENTS, ops.CORPUS, ops.SCORE_OUTPUT_FILEPATH, tgt.lengthInFrames, AnalInterface.hopLengthSec, p)
+instruments = musicalwriting.instruments(ops.INSTRUMENTS, ops.CORPUS, ops.SCORE_OUTPUT_FILEPATH, tgt.lengthInFrames, cps.postLimitSegmentNormList, AnalInterface.hopLengthSec, p)
 
 superimp = concatenativeclasses.SuperimposeTracker(tgt.lengthInFrames, len(tgt.segs), ops.SUPERIMPOSE.overlapAmpThresh, ops.SUPERIMPOSE.peakAlign, ops.SUPERIMPOSE.peakAlignEnvelope, len(ops.CORPUS), ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, p)
 cps.setupConcate(tgt, AnalInterface)

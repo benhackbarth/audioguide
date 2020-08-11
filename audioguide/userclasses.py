@@ -100,11 +100,12 @@ class Instrument(object):
 		'polyphony_minspeed': None,
 		'polyphony_min_range': None,
 		'polyphony_max_range': None,
+		
 		#'polyphony_interval_tests': [], # good idea, not implemented yet :(
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
 		# handle pitch across time
-		'pitch_limit_change_per_sec': None, 
+		'pitch_limit_in_sec': {},#{0: 3, 1: 36},
 		# handle temporality
 		'temporal_mode': 'sus', # dictates how duration is handled for this technique
 		'minspeed': 0.075,

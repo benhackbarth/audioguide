@@ -137,8 +137,7 @@ def matchString(testString, matchStr, caseSensative=True):
 	if not caseSensative:
 		testString = testString.lower()
 		matchStr = matchStr.lower()
-	if testString.find(matchStr) == -1: return False
-	else: return True
+	return testString.find(matchStr) != -1
 
 
 def readAudacityLabelFile(path):

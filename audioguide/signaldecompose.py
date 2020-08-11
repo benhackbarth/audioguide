@@ -71,6 +71,7 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
 	import numpy, scipy, librosa
+	print(librosa.__file__, librosa.version, librosa.output)
 	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	
 	# To preserve the native sampling rate of the file, use sr=None
