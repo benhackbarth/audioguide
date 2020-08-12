@@ -218,11 +218,17 @@ class instruments:
 			# make pitch/dynamics matrix
 			for voiceID in self.instruments[k]['cps']:
 				thiscps = [c for c in cpsseglist if c.voiceID == voiceID]
-				powerlist = [c.desc['power-seg'].get(None, None) for c in thiscps]
-				minp, maxp = min(powerlist), max(powerlist)
-				for c, p in zip(thiscps, powerlist):
-					c.powerzerotoone = (p-minp)/(maxp-minp)
+				# do pitch
 				self.instruments[k]['cps'][voiceID]['cobj_to_pitch'] = pitchoverride(thiscps, self.instruments[k]['cps'][voiceID]['pitchoverride'])
+				# do equally spaced dynamics
+				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc['power-seg'].get(None, None))
+				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {}
+				if len(self.instruments[k]['cps'][voiceID]['dynamics']) == 1:
+					self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][0] for c in thiscps}
+				else:
+					for idx, c in enumerate(thiscps_powersort):
+						dynidx = int((idx/float(len(thiscps_powersort)-1))*(len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01))
+						self.instruments[k]['cps'][voiceID]['cobj_to_dyn'][c] = self.instruments[k]['cps'][voiceID]['dynamics'][dynidx]
 
 		self.scoreparams = scoreFromUserOptions.params
 	########################################
@@ -341,20 +347,20 @@ class instruments:
 		if len(cobj.instrument_candidates) == 0: return False
 		else: return True
 	########################################
-	def increment(self, start, dur, oeObj):
+	def increment(self, start, dur, eobj):
 		if not self.active: return
-		if oeObj.sfseghandle.instrTag not in self.instrument_names:
-			oeObj.selectedinstrument = None
+		if eobj.sfseghandle.instrTag not in self.instrument_names:
+			eobj.selectedinstrument = None
 			self.tracker.noninstrument_num_notes += 1
 			return
 		# if we're passing this point, we're picking the instrument
-		vc = oeObj.sfseghandle.voiceID
-		oeObj.selectedinstrument = oeObj.sfseghandle.instrument_candidates[0]
-		oeObj.selectedInstrumentIdx = self.instrumentNameToIdx[oeObj.selectedinstrument]
-		thisinstr = self.instruments[oeObj.selectedinstrument]
+		vc = eobj.sfseghandle.voiceID
+		eobj.selectedinstrument = eobj.sfseghandle.instrument_candidates[0]
+		eobj.selectedInstrumentIdx = self.instrumentNameToIdx[eobj.selectedinstrument]
+		thisinstr = self.instruments[eobj.selectedinstrument]
 		# increment shit
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
-		self.tracker.addnote(oeObj.selectedinstrument, oeObj.sfseghandle.voiceID, start, dur, thisinstr['cps'][oeObj.sfseghandle.voiceID]['cobj_to_pitch'][oeObj.sfseghandle], oeObj.rmsSeg+oeObj.envDb, thisinstr['cps'][vc]['technique'])
+		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, thisinstr['cps'][eobj.sfseghandle.voiceID]['cobj_to_pitch'][eobj.sfseghandle], eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
 	def write(self, outputEvents):
 		if not self.active: return
@@ -367,16 +373,17 @@ class instruments:
 			timeinMs = int(eobj.timeInScore*1000)
 			durationInMs = int(eobj.tgtsegdur*1000) # cps duration may be modified by clipDurationToTarget; duration is the sf duration.
 			pitchInCents = thiscps['cobj_to_pitch'][eobj.sfseghandle]*100
-			
-			amp127 = 100
+			db = eobj.envDb
+			if db < -60: db = -60
+			amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
+
 			# do slots stuff
-			slotAssignEveryNote = [(1, 'technique', str(thiscps['technique']), 'text'), (2, 'temporal_mode', thiscps['temporal_mode'], 'text'), (3, 'selectnumber', int(eobj.simSelects), 'int'), (10, 'filedirectory', os.path.split(eobj.filename)[0], 'text'), (11, 'filename', eobj.printName, 'text'), (12, 'sfskiptime', eobj.sfSkip*1000, 'float'), (13, 'sftransposition', eobj.transposition, 'float'), (14, 'sfchannels', int(eobj.sfchnls), 'int')]
+			slotAssignEveryNote = [(1, 'technique', str(thiscps['technique']), 'text'), (2, 'temporal_mode', thiscps['temporal_mode'], 'text'), (3, 'selectnumber', int(eobj.simSelects), 'int'), (10, 'fullpath', eobj.filename, 'text'), (11, 'filename', eobj.printName, 'text'), (12, 'sfskiptime', eobj.sfSkip*1000, 'float'), (13, 'db_scale', eobj.envDb, 'float'), (14, 'sftransposition', eobj.transposition, 'float'), (15, 'sfchannels', int(eobj.sfchnls), 'int')]
 			slotDataOnlyOnce = {}
 			if eobj.dynamicFromFilename != None:
 				slotDataOnlyOnce[20] = eobj.dynamicFromFilename
 			else:
-				dynlist = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['dynamics']
-				slotDataOnlyOnce[20] = dynlist[int(eobj.sfseghandle.powerzerotoone*(len(dynlist)-1))]
+				slotDataOnlyOnce[20] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
 			if thiscps['articulation'] != None:
 				slotDataOnlyOnce[22] = "%s"%thiscps['articulation']
 			if thiscps['notehead'] != None:
@@ -384,13 +391,11 @@ class instruments:
 			if thiscps['annotation'] != None:
 				slotDataOnlyOnce[24] = "%s"%thiscps['annotation']
 
-			# test if duration should be written
-			if thiscps['temporal_mode'] in ['artic']:
-				#durationInMs = 0 NOPE, zero duration not possible in bach when quantizing.
-				pass
+
+
 			if timeinMs not in self.instruments[eobj.selectedinstrument]['notes']:
-				self.instruments[eobj.selectedinstrument]['notes'][timeinMs] = [[], slotDataOnlyOnce, slotAssignEveryNote]
-			self.instruments[eobj.selectedinstrument]['notes'][timeinMs][0].append([pitchInCents, durationInMs, amp127])
+				self.instruments[eobj.selectedinstrument]['notes'][timeinMs] = [[], slotDataOnlyOnce]
+			self.instruments[eobj.selectedinstrument]['notes'][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
 		
 		bachstring = 'roll '
 		# set up clefs
@@ -406,11 +411,11 @@ class instruments:
 		# 
 		for instru in self.instruments:
 			bachstring += '[ ' # instrument start
-			for time, (notelist, slotDict, slotDataEveryNote) in self.instruments[instru]['notes'].items():
+			for time, (notelist, slotDict) in self.instruments[instru]['notes'].items():
 				bachstring += '[%i.'%time # note start
 				for didx, d in enumerate(notelist):
 					# only write slots for first note
-					always = ' '.join(['[%i %s]'%(slotnumb, slotdata) for slotnumb, slotname, slotdata, slottype in slotDataEveryNote])
+					always = ' '.join(['[%i %s]'%(slotnumb, slotdata) for slotnumb, slotname, slotdata, slottype in d[3]])
 					if didx == 0:
 						once = ' '.join(['[%i %s]'%(slotnumb, slotDataOnlyOnce) for slotnumb, slotDataOnlyOnce in slotDict.items()])
 						slotstring = '[slots %s %s ]'%(once, always)
