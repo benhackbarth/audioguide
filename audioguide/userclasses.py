@@ -95,24 +95,25 @@ class Instrument(object):
 		self.name = args[0]
 		self.params = { 
 		# VARIABLES THAT CAN BE OVERRIDDEN BY CSF instrParams={}
+		# handle temporality
+		'temporal_mode': 'sus', # dictates how duration is handled for this technique
+		'minspeed': 0.075,
 		# handle polyphony
 		'polyphony_max_voices': 1, 		
 		'polyphony_minspeed': None,
 		'polyphony_min_range': None,
 		'polyphony_max_range': None,
-		
 		#'polyphony_interval_tests': [], # good idea, not implemented yet :(
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
 		# handle pitch across time
-		'pitch_limit_in_sec': {},#{0: 3, 1: 36},
-		# handle temporality
-		'temporal_mode': 'sus', # dictates how duration is handled for this technique
-		'minspeed': 0.075,
+		#'interval_exclude': [], # 	the difference in semitones between two adjectent notes may not be found in this list
+		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
+		'interval_limit_range_per_sec': None,
 		# handle pitch
-		'pitchoverride': None, # provide a pitch to override the MIDIPitch-seg of this corpus entry. Useful for extended techniques that you want to appear on a certain pitch in the staff
-
-		
+		'pitchoverride': None,
+		# handle dynamics
+		'dynamics': ('pp', 'p', 'mp', 'mf', 'f', 'ff'),
 		# INSTRUMENT_ONLY VARIABLES
 		'technique_switch_delay_map': [], # 
 		'clef': 'G', 

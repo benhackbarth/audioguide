@@ -710,72 +710,34 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 <div id="scoreVariable" class="subgroup"><h4>score() and instr()</h4>
 The score() object is assigned to 'INSTRUMENTS' in the options file. score() consists of a list of instru() objects, each of which represents an instrument in the output score. instr()s are linked to cps() entries through their first argument, the instrTag string.</p>
-<pre class="language-python"><code class="language-python"># the corpus consists of pizzicato and arco string samples tagged with the string 'violin'
-CORPUS = [
-csf("pizzicato/", instrTag='violin', wholeFile=True)
-csf("arco/", instrTag='violin', wholeFile=True)
-]
-
-# instruments specifies a score() consisting of a solo violin which is linked to both corpus items through the 'violin' instrTag.
-INSTRUMENTS = score(
-instr('violin'),
-)
-</code></pre>
+<script src="https://gist.github.com/benhackbarth/313c1c04553c28fef427c72c49a45606.js"></script>
 
 
 <p>score() may have multiple instr()s with the same instrTag; this indicates that there are more than one of a certain type of instrument in the ensemble that can use the same corpus resources.</p>
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf("pizzicato/", instrTag='violin', wholeFile=True)
-csf("arco/", instrTag='violin', wholeFile=True)
-csf("pizzicato/", instrTag='viola', wholeFile=True)
-csf("arco/", instrTag='viola', wholeFile=True)
-csf("pizzicato/", instrTag='cello', wholeFile=True)
-]
-
-INSTRUMENTS = score(
-instr('violin'),
-instr('violin'),
-instr('viola', clef='Alto'),
-instr('cello', clef='F'), # only has pizz
-)
-</code></pre>
+<script src="https://gist.github.com/benhackbarth/6936266f5db3da8a1b3f5174a6b994a4.js"></script>
 
 <p>As seen above with 'clef', the instr() object has keywords that affect the instrument's behavoir and how the instrument is translated into musical notation.</p>
 
-<pre class="language-python"><code class="language-python">instr('instrTag', temporal_mode='sus', minspeed=0.075, polyphony_max_voices=1, polyphony_max_range=None, polyphony_min_range=None, polyphony_permit_unison=False, polyphony_max_db_difference=4, technique_switch_delay_map=[], clef='G', key='CM', 'pitchoverride'=None))
+<pre class="language-python"><code class="language-python">instr('instrTag', temporal_mode='sus', minspeed=0.075, interval_limit_breakpoints=[], interval_limit_range_per_sec=None, pitchoverride=None, polyphony_max_voices=1, polyphony_max_range=None, polyphony_min_range=None, polyphony_permit_unison=False, polyphony_max_db_difference=4, technique_switch_delay_map=[], clef='G', key='CM'))
 </code></pre>
 
 
 		
 <ul>
-<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent note onsets for this instrument in seconds.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum allowable time between polyphonic chord onsets in seconds. This works the same way as minspeed, but only applies to polyphonic selections.<li><b>technique_switch_delay_map</b> - If different techniques are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify a list of minimum delay times needed to switich form one technique to another. ['tech1', 'tech2', 0.5] = to go from tech1 to tech2, there must be a delay of at least 0.5 seconds.<li><b>clef</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.<li><b>pitchoverride</b> - Must be None, a number or a dictionary. See handling pitch, below.</ul>
+<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent note onsets for this instrument in seconds.<li><b>interval_limit_breakpoints</b> - A list. Described in the Handling Time second, below.<li><b>interval_limit_range_per_sec</b> - None or a number. Described in the Handling Time second, below.<li><b>pitchoverride</b> - Must be None, a number or a dictionary. See handling pitch, below.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum allowable time between polyphonic chord onsets in seconds. This works the same way as minspeed, but only applies to polyphonic selections.<li><b>technique_switch_delay_map*</b> - If different techniques are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify a list of minimum delay times needed to switich form one technique to another. ['tech1', 'tech2', 0.5] = to go from tech1 to tech2, there must be a delay of at least 0.5 seconds.<li><b>clef*</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key*</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.</ul>
 
-<p>With a few exceptions, instr() keyword arguments may be overridden in individual csf() through the csf(instrParams={}) dictionary. In the example below, the arco violin notes have a 0.05 second minspeed and may have 2 voice polyphony. However the pizzicato sounds have a minspeed of 0.2 second and will always be monophonic:</p>
-
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf("arco/", instrTag='violin', wholeFile=True)
-csf("pizz/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed':  0.2}, wholeFile=True)
-]
-
-INSTRUMENTS = score(
-instr('violin', minspeed=0.05, polyphony_max_voices=2),
-)
-</code></pre>
-
+<p>Almost all keyword arguments may be overridden in individual csf() through the csf(instrParams={}) dictionary (those which may not be are denoted with an asterisk). In the example below, the arco violin notes have a 0.05 second minspeed and may have 2 voice polyphony. However the pizzicato sounds have a minspeed of 0.2 second and will always be monophonic:</p>
+<script src="https://gist.github.com/benhackbarth/9d844dd092a0415e0b12e753aa0d869b.js"></script>
 
 
 
 <p>The csf(instrParams={}) dictionary also permits providing information about articulation, noteheads, and text annotation in the output score for individual csf() entries:</p>
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf("arco/", instrTag='violin', instrParams={'annotation': 'pizz'}, wholeFile=True)
-csf("pizz/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed': 0.2, 'annotation': 'pizz'}, wholeFile=True)
-csf("tap_on_wood/", instrTag='violin', instrParams={'polyphony_max_voices': 1, 'minspeed':  0.2, 'notehead': 'cross', 'pitchoverride': 71, 'annotation': 'tryna-hit-it', 'articulation': 'accent'}, wholeFile=True) # tapping on wood sounds will always be written on B4 with an x notehead, an accent, and some text.
-]
+<script src="https://gist.github.com/benhackbarth/9485c548cf21b6f860120836a4968338.js"></script>
 
-INSTRUMENTS = score(
-instr('violin', minspeed=0.05, polyphony_max_voices=2),
-)
-</code></pre>
+
+
+
+
 
 
 
@@ -804,6 +766,10 @@ csf("scratchtone/", instrTag='violin', instrParams={'pitchoverride': {'type': 'f
 
 
 
+
+
+
+
 <div id="INSTRUMENTSDynamics" class="subgroup"><h3>Handling Dynamics/Volume</h3>
 <p>Audioguide puts two different kinds of dynamic information into the bachroll.</p>
 
@@ -819,6 +785,69 @@ csf('/Users/ben/Documents/sfdb/pno/short', instrTag='oboe', instrParams={}, whol
 # this directory doesn't have dynamics written into the filenames, and dynamics will be extrapolated from the list supplied:
 csf('/Users/ben/Documents/sfdb/pno/short', instrTag='oboe', instrParams={'dynamics': ['mf', 'ff']}, wholeFile=True),
 </code></pre>
+
+
+
+
+
+
+
+
+
+
+<div id="INSTRUMENTSTime" class="subgroup"><h3>Handling Time</h3>
+<p>Audioguide provides methods in the instruments interface for controlling how instr()s behave in time.</p>
+
+<p>minspeed and polyphony_minspeed are the most basic, brute-force controls, dictating the minimum time in seconds between sucessive onsets for an instrument.</p>
+
+<p>There are several more nuanced controls for how pitch may move over time. Consider, first, the unrestricted pitch selection of a solo violin concatenation:</p>
+
+<pre class="language-python"><code class="language-python">CORPUS = [
+csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
+]
+
+INSTRUMENTS = score(
+instr('violin'),
+)</code></pre>
+
+<figure class="figure">
+ <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_1.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+ <figcaption class="figure-caption"></figcaption>
+</figure>
+
+
+
+
+<p>interval_limit_breakpoints lets the user specify a list of breakpoints for how intervals are restricted over time. In the example below, the breakpoints are given as [(0,7), (1, 24)], which translates to: if the distance between this selection and the end of the last note is 0 second, restrict this intervals choice to 7 semitones. if the distance is 1 second, restrict it to 24 semitones. The algorithm interpolates these breakpoints, so if the distance in seconds is 0.5, the restriction interval will be 15.5 semitones. You must have at least 2 breakpoints, and the first time difference must be zero, but you have have additional breakpoints if you want. Any note distances greater than the biggest time difference found in interval_limit_breakpoints (in this example, 1 second), any interval is possible. This also works for polyphony.</p>
+
+<pre class="language-python"><code class="language-python">CORPUS = [
+csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
+]
+
+INSTRUMENTS = score(
+instr('violin', interval_limit_breakpoints=[(0,7), (1, 24)]),
+)</code></pre>
+
+<figure class="figure">
+ <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_2.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+ <figcaption class="figure-caption"></figcaption>
+</figure>
+
+
+<p>interval_limit_range_per_sec restricts what pitches may be selected for an instrument by limiting the total range of pitch for any given second to a number of semitones. Below, the violin is restricted to a 3 semitones total range for any one second slice of it's part. This also works for polyphony.</p>
+
+<pre class="language-python"><code class="language-python">CORPUS = [
+csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
+]
+
+INSTRUMENTS = score(
+instr('violin', interval_limit_range_per_sec=3),
+)</code></pre>
+
+<figure class="figure">
+ <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_3.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
+ <figcaption class="figure-caption"></figcaption>
+</figure>
 
 
 
@@ -1111,7 +1140,8 @@ spass('closest', d('f0-delta-seg'), d('centroid-deltadelta')), # now find the be
 			 <ul class="nav nav-stacked">
 				 <li><a href="#scoreVariable">The score() object</a></li>
 				 <li><a href="#INSTRUMENTSPitch">Handling Pitch</a></li>
-				 <li><a href="#ControllingTemporality">Handling Dynamics/Volume</a></li>
+				 <li><a href="#INSTRUMENTSDynamics">Handling Dynamics/Volume</a></li>
+				 <li><a href="#INSTRUMENTSTime">Handling Time</a></li>
 				 <li><a href="#INSTRUMENTSSlots">Other Data</a></li>
 			 </ul>
 		 </li>

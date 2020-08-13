@@ -55,6 +55,9 @@ class notetracker:
 	noninstrument_num_notes = 0
 	instrdata = {}
 	########################################
+	def __init__(self, hopsize):
+		self.hopsize = hopsize
+	########################################
 	def addinstrument(self, instr, tgtlength, instrparams, cpsids, cpsparams):
 		#self.instrToIdx[instr] = len(self.instrdata)
 		self.instrdata[instr] = {'instr': {}, 'tech': {}, 'cps': {}, 'cpsids': cpsids}
@@ -135,25 +138,44 @@ class notetracker:
 	def get_interval_restrictions(self, instrumentsobj, instr, vc, time):
 		tests = []
 		results = []
-		if len(instrumentsobj[instr]['cps'][vc]['pitch_limit_in_frames_list']) == 0: return results
-		prev, next = self._neighbor_notetimes(instr, time)		
-		if prev != None:
-			# ensure that prev is the last note's END time
-			t = max(0, time - prev + max([n[0] for n in self.instrdata[instr]['selected_notes'][prev]]) )
-			minp = min([n[1] for n in self.instrdata[instr]['selected_notes'][prev]])
-			maxp = max([n[1] for n in self.instrdata[instr]['selected_notes'][prev]])
-			tests.append([t, minp, maxp])
-		if next != None:
-			minp = min([n[1] for n in self.instrdata[instr]['selected_notes'][next]])
-			maxp = max([n[1] for n in self.instrdata[instr]['selected_notes'][next]])
-			tests.append([next-time, minp, maxp])
-		for tdiff, minp, maxp in tests:
-			for idx, (time, int) in enumerate(instrumentsobj[instr]['cps'][vc]['pitch_limit_in_frames_list'][:-1]):
-				nextrestriction = instrumentsobj[instr]['cps'][vc]['pitch_limit_in_frames_list'][idx+1]
-				if tdiff >= time and tdiff < nextrestriction[0]: break
-			timeinterpolate = (tdiff-time)/(nextrestriction[0]-time)
-			intervalextrapolate = (timeinterpolate*(nextrestriction[1]-int))+int
-			results.append([maxp-intervalextrapolate, minp+intervalextrapolate])
+		if len(instrumentsobj[instr]['cps'][vc]['interval_limit_breakpoints_frames']) > 0:
+			prev, next = self._neighbor_notetimes(instr, time)	
+			last_breakpoint_frames = instrumentsobj[instr]['cps'][vc]['interval_limit_breakpoints_frames'][-1][0] # since this list was sorted
+			if prev != None:
+				# ensure that prev is the last note's END time
+				t = max(0, time - prev + max([n[0] for n in self.instrdata[instr]['selected_notes'][prev]]) )
+				minp = min([n[1] for n in self.instrdata[instr]['selected_notes'][prev]])
+				maxp = max([n[1] for n in self.instrdata[instr]['selected_notes'][prev]])
+				tests.append([t, minp, maxp])
+			if next != None:
+				minp = min([n[1] for n in self.instrdata[instr]['selected_notes'][next]])
+				maxp = max([n[1] for n in self.instrdata[instr]['selected_notes'][next]])
+				tests.append([next-time, minp, maxp])
+			for tdiff, minp, maxp in tests:
+				if tdiff > last_breakpoint_frames:
+					# skip it since this time difference is greater than the last breakpoint time -- any interval is possible
+					continue
+				for idx, (time, int) in enumerate(instrumentsobj[instr]['cps'][vc]['interval_limit_breakpoints_frames'][:-1]):
+					nextrestriction = instrumentsobj[instr]['cps'][vc]['interval_limit_breakpoints_frames'][idx+1]
+					if tdiff >= time and tdiff < nextrestriction[0]: break
+				timeinterpolate = (tdiff-time)/(nextrestriction[0]-time)
+				intervalextrapolate = (timeinterpolate*(nextrestriction[1]-int))+int
+				results.append([maxp-intervalextrapolate, minp+intervalextrapolate])
+		if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None:
+			min_max_within_a_second = [[], []]
+			timerange = (0.5/self.hopsize)
+			for notetime in self.instrdata[instr]['selected_notes'].keys():
+				#if cpsscope != None and self.instrdata[instr]['selected_notes'][notetime][0][3] not in cpsscope: continue
+				if notetime >= time-timerange and notetime <= time+timerange:
+					d = self.get_chord_minmax(instr, notetime, vc)
+					min_max_within_a_second[0].append(d['pitchmin'])
+					min_max_within_a_second[1].append(d['pitchmax'])
+			if len(min_max_within_a_second[0]) > 0:
+				minp = min(min_max_within_a_second[0])
+				maxp = max(min_max_within_a_second[1])
+				extra_room = instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']-(maxp-minp)
+				results.append([minp-extra_room, maxp+extra_room])
+
 		return results		
 
 
@@ -169,7 +191,7 @@ class instruments:
 		#
 		self.outputfile = outputfile
 		self.tgtlength = tgtlength
-		self.tracker = notetracker()
+		self.tracker = notetracker(hopsizesec)
 		self.hopsizesec = hopsizesec
 		self.instruments = {}
 		self.instrument_names = []
@@ -194,14 +216,14 @@ class instruments:
 				self.instruments[k]['cps'][c.voiceID] = ins.params.copy()
 				# update with instrument params if not user-supplied at corpus level
 				# add values if not supplied
-				voiceparam_defaults = {'technique': None, 'notehead': None, 'annotation': None, 'articulation': None, 'canPlayWhileDoingSomethingElse': False, 'dynamics': ('pp', 'p', 'mp', 'mf', 'f', 'ff')}
+				voiceparam_defaults = {'technique': None, 'notehead': None, 'annotation': None, 'articulation': None, 'canPlayWhileDoingSomethingElse': False}
 				voiceparam_defaults.update(c.instrParams)
 				self.instruments[k]['cps'][c.voiceID].update(voiceparam_defaults)
 				# other internal shit
-				self.instruments[k]['cps'][c.voiceID]['pitch_limit_in_frames_list'] = []
-				for key, v in self.instruments[k]['cps'][c.voiceID]['pitch_limit_in_sec'].items():
-					self.instruments[k]['cps'][c.voiceID]['pitch_limit_in_frames_list'].append((self._s2f(key), v))
-				self.instruments[k]['cps'][c.voiceID]['pitch_limit_in_frames_list'].sort()
+				self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'] = []
+				for time, value in self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints']:
+					self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'].append((self._s2f(time), value))
+				self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'].sort()
 				if self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] == None:
 					self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] = self.instruments[k]['cps'][c.voiceID]['minspeed']
 			# temporal restrictions in hop-sized frames
@@ -275,7 +297,6 @@ class instruments:
 				###################################
 				if not self.tracker.test_minspeed(i, targettimeinframes, vc, self):
 					continue
-
 				# otherwise add it
 				self.valid_instruments_per_voice[vc].append(i)
 	########################################
@@ -309,7 +330,7 @@ class instruments:
 				if self.instruments[i]['cps'][v]['polyphony_max_db_difference'] != None:
 					extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_max_db_difference']-minmaxdict['dbrange']
 					self.instrument_tests[i, v]['db2'].append('%%f >= %f and %%f <= %f'%(minmaxdict['dbmin']-extra_room_in_minrange, minmaxdict['dbmax']+extra_room_in_minrange))
-			# do shit for pitch restriction in time
+			# interval restriction in time
 			for minp, maxp in self.tracker.get_interval_restrictions(self.instruments, i, v, tidx):
 				for v in self.instruments[i]['cps']:
 					self.instrument_tests[i, v]['pitch2'].append('%%f >= %f and %%f <= %f'%(minp, maxp))
