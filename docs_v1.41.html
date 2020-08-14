@@ -740,7 +740,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 
-
+ 
 
 <div id="INSTRUMENTSPitch" class="subgroup"><h3>Handling Pitch</h3>
 <p>The pitches that make it into the bach.roll come from selected corpus segment's MIDIPitch. You can change how midi pitch is evalutated with the csf(midiPitchMethod) keyword. By default, it is 'composite', which first searches for a midi pitch written into the filename of each corpus sound. If no pitch is found, midi pitch is taken from f0-seg. Generally, it is best to use sample databases with pitches in the filenames, as f0-seg is not very reliable.</p>
@@ -749,17 +749,17 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 <pre class="language-python"><code class="language-python">CORPUS = [
-# pitches from this first csf will be uniformly overwritten as 71
+# Pitches from this first csf will be uniformly overwritten as 71
 csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': 71}, wholeFile=True)
 
-# written as a dictionary, 'type'='clip' lets you speicify a low and/or high limit for clipping csf() pitches
-csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'clip', 'low': 60, 'high': 72}}, wholeFile=True)
+# Written as a dictionary, 'type'='clip' lets you speicify a low and/or high limit for clipping csf() pitches
+csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'clip', 'low': 60, 'high': 72}}, wholeFile=True),
 
-# written as a dictionary, 'type'='remap' reshapes the csf() pitches so that they are in between low and high values.
-csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'remap', 'low': 60, 'high': 72}}, wholeFile=True)
+# Written as a dictionary, 'type'='remap' reshapes the csf() pitches so that they are in between low and high values.
+csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'remap', 'low': 60, 'high': 72}}, wholeFile=True),
 
-# written as a dictionary, 'type'='file_match' let's you override the pitch of certain filenames in this csf() if they match a string. only the filename of the sf is used for string matching, not its full path. partial string matching is supported. If any of the files in csf don't match a string in the dict, the MIDIPitch value is used.
-csf("scratchtone/", instrTag='violin', instrParams={'pitchoverride': {'type': 'file_match', 'I-': 76, 'II-': 69, 'III-': 62, 'IV-': 55, }}, wholeFile=True)
+# Written as a dictionary, 'type'='file_match' let's you override the pitch of certain filenames in this csf() if they match a string. Only the filename of the sf is used for string matching, not its full path. Partial string matching is supported. If any of the files in csf don't match a string in the dict, the original MIDIPitch value is used.
+csf("scratchtone/", instrTag='violin', instrParams={'pitchoverride': {'type': 'file_match', 'I-': 76, 'II-': 69, 'III-': 62, 'IV-': 55}}, wholeFile=True),
 ]
 </code></pre>
 </div>
