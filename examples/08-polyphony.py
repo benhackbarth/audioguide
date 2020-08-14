@@ -28,12 +28,6 @@
 ## then rearranged temporally to match the original target sound's structure. ##
 ################################################################################
 
-################################################################################
-## Note that SUPERIMPOSE will likely yield denser results than normal here.   ##
-## If the target is separated into 4 streams and si(maxSegment=3), it is      ##
-## possible that 12 sounds will be chosen at a moment of sonic coincidence.   ##
-################################################################################
-
 
 
 TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2, decompose={'type': 'NMF', 'streams': 5, 'fftsize': 1024, 'hopsize': 256})

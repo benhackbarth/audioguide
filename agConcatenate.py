@@ -346,9 +346,6 @@ if ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
 ## target signal decomposition cleanup ##
 #########################################
 if tgt.decompose != {}:
-	for oeidx, oe in enumerate(outputEvents): 
-		outputEvents[oeidx].decomposedstream = int(oe.timeInScore/tgt.decompose['origduration'])
-		oe.timeInScore = oe.timeInScore%tgt.decompose['origduration']
 	tgt.filename = tgt.decompose['origfilename']
 	tgt.startSec = 0
 	tgt.endSec = tgt.decompose['origduration']

@@ -430,6 +430,17 @@ class target: # the target
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 
 		p.percentageBarClose(txt=closebartxt)
+
+		###################################
+		## hack for signal decomposition ##
+		###################################
+		if 'origduration' in self.decompose:
+			for s in self.segs:
+				s.segmentStartSec = s.segmentStartSec % self.decompose['origduration']
+				s.segmentEndSec = s.segmentStartSec + s.segmentDurationSec
+				s.segmentStartFrame = AnalInterface.getSegmentStartInFrames(s.filename, s.segmentStartSec, s.segmentEndSec, s.lengthInFrames)
+
+
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')

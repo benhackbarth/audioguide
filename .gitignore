@@ -6,6 +6,7 @@ targets/*
 www/*
 *.bbprojectd
 *.pyc
+layering_demo/*
 audioguide/data*
 audioguide/__pycache__/*
 release.py

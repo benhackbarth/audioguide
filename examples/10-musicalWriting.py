@@ -1,4 +1,5 @@
-TARGET = tsf('/Users/ben/Desktop/video/target.wav', thresh=-20, offsetRise=1.25)
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.25)
+
 
 
 SEARCH_PATHS = ['/Users/ben/Documents/sfdb/']
@@ -28,8 +29,7 @@ csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'min
 
 
 # piano
-#csf('pno/long/', instrTag='piano', instrParams={'temporal_mode': 'sus', 'technique': 'ord'}, scaleDb=-10, transMethod='random -1 1', transQuantize=1, clipDurationToTarget=True),
-csf('pno/short/', instrTag='piano', instrParams={'temporal_mode': 'artic', 'technique': 'ord', 'pitchoverride': (60, 72, 1)}, scaleDb=-10, transMethod='random -1 1', transQuantize=1),
+csf('pno/short/', instrTag='piano', instrParams={'temporal_mode': 'artic', 'technique': 'ord'}, scaleDb=-10, transMethod='random -1 1', transQuantize=1),
 ]
 
 
@@ -41,7 +41,7 @@ CORPUS_GLOBAL_ATTRIBUTES = {
 INSTRUMENTS = score(
 instr('violin', polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
 instr('violin', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('viola', clef='A', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
+instr('viola', clef='Alto', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
 instr('cello', clef='F', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]),
 
 instr('piano', clef='FG', temporal_mode='artic', polyphony_max_voices=8, polyphony_min_range=6, polyphony_max_range=18),
