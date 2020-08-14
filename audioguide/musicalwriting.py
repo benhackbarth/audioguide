@@ -12,6 +12,13 @@ import audioguide.util as util
 
 
 
+
+
+
+
+
+
+
 def pitchoverride(cobjlist, config):
 	pitchlist = [c.desc['MIDIPitch-seg'].get(None, None) for c in cobjlist]
 	minpitch, maxpitch = min(pitchlist), max(pitchlist)
