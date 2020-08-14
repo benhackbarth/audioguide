@@ -53,13 +53,16 @@ def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize
 	'''pitch/noise separation
 		creates an output soundfile that is the length of the inputsoundfile * 2'''
 	import numpy, scipy, librosa
+	import soundfile as sf
 	print("Decomposing %s into pitch/noise audio streams"%(inputsoundfile))
 	if endsec == None: durationsec = None
 	else: durationsec = endsec-startsec
 	x, sr = librosa.load(inputsoundfile, offset=startsec, duration=durationsec, sr=None)
 	x_harmonic, x_percussive = librosa.effects.hpss(x)
 	outputsamples = numpy.append(x_harmonic, x_percussive)
-	librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
+	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
+	# Write out audio as 24bit PCM WAV
+	sf.write(outputsoundfile, outputsamples, sr)
 	return len(x)/float(sr)
 
 
@@ -71,7 +74,7 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
 	import numpy, scipy, librosa
-	print(librosa.__file__, librosa.version, librosa.output)
+	import soundfile as sf
 	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	
 	# To preserve the native sampling rate of the file, use sr=None
@@ -95,7 +98,8 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 		Y = scipy.outer(W[:,n], H[n])*numpy.exp(1j*numpy.angle(S))
 		y = librosa.istft(Y, hop_length=hopsize, win_length=fftsize)
 		outputsamples[n*len(x):(n*len(x))+len(y)] = y
-	librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
+	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
+	sf.write(outputsoundfile, outputsamples, sr)
 	return len(x)/float(sr)
 
 
