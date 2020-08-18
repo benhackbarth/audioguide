@@ -439,8 +439,6 @@ class target: # the target
 				s.segmentStartSec = s.segmentStartSec % self.decompose['origduration']
 				s.segmentEndSec = s.segmentStartSec + s.segmentDurationSec
 				s.segmentStartFrame = AnalInterface.getSegmentStartInFrames(s.filename, s.segmentStartSec, s.segmentEndSec, s.lengthInFrames)
-
-
 	########################################
 	def writeSegmentationFile(self, filename):
 		fh = open(filename, 'w')

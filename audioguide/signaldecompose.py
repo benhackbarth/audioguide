@@ -82,6 +82,7 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	else: durationsec = endsec-startsec
 	
 	x, sr = librosa.load(inputsoundfile, offset=startsec, duration=durationsec, sr=None)
+
 	S = librosa.stft(x, n_fft=fftsize, hop_length=hopsize, win_length=fftsize)
 	X = numpy.absolute(S) # use spectral magnitudes, not complex spectrum
 	
@@ -101,5 +102,6 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
 	sf.write(outputsoundfile, outputsamples, sr)
 	return len(x)/float(sr)
+
 
 

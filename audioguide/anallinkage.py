@@ -448,6 +448,45 @@ EnergyEnvelope  = 1
 		return data
 	########################################################
 	########################################################
+	def analize_spectralPeaks(self, filepath, minamp=0.001, fftsize=2048, hop_length=2048, min_midi=20, max_midi=108):
+		import librosa
+		import peakutils
+		checksum = util.listToCheckSum([filepath, fftsize, hop_length, minamp, min_midi, max_midi, 'peaks'])[:12]
+		filehead = '%s-%s'%(os.path.splitext(os.path.split(filepath)[1])[0], checksum)
+		outputpath = os.path.join(self.analdir, '%s-peaks.json'%(filehead))
+	
+		if os.path.exists(outputpath):
+			fh = open(outputpath, 'r')
+			return json.load(fh)
+		y, sr = librosa.load(filepath, sr=None, mono=True)
+		outputdata = {'sr': sr, 'fftsize': fftsize, 'peaks': []}
+		halfwin = int(fftsize/2)
+		binsize = sr/float(fftsize)
+		lins = np.linspace(0, halfwin-1, num=halfwin+1)
+	
+		S = np.abs(librosa.stft(y, n_fft=fftsize, hop_length=hop_length))
+
+		for fidx, frame in enumerate(np.rot90(S)):
+			indexes = peakutils.indexes(frame, thres=minamp, min_dist=10)
+			# interpolate indexes for better frq accuracy
+			interp_indexes = peakutils.interpolate(lins, frame, ind=indexes)
+			timesec = fidx*(float(hop_length)/sr)
+			framepeaks = []
+			for ii in interp_indexes:
+				if ii < 0: continue
+				midi = util.frq2Midi(ii * binsize)
+				if midi < min_midi or midi > max_midi: continue
+				iamp = util.ampToDb(np.interp(ii, lins, frame)*(2./float(fftsize)))
+				framepeaks.append( [iamp, midi] )
+			framepeaks.sort(reverse=True)
+			outputdata['peaks'].append([timesec, framepeaks])
+
+		fh = open(outputpath, 'w')
+		json.dump(outputdata, fh)
+		return outputdata
+
+
+
 	def done(self, dataGbLimit=1, dataDayLimit=7):
 		byteLimit = dataGbLimit*125000000
 		secondLimit = dataDayLimit*24*60*60
@@ -482,6 +521,14 @@ EnergyEnvelope  = 1
 		os.rename(dataRegistryPathTmp, self.dataRegistryPath)
 ########################################################
 ########################################################
+
+
+
+
+
+
+
+
 
 
 

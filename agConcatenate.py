@@ -40,6 +40,14 @@ tgt = sfsegment.target(ops.TARGET, AnalInterface)
 tgt.initAnal(AnalInterface, ops, p)
 tgt.stageSegments(AnalInterface, ops, p)
 
+# experimental
+#tgt.peakdata = AnalInterface.analize_spectralPeaks(tgt.filename, fftsize=2048)
+#for s in tgt.segs:
+#	s.peaks = []
+#	for time, partials in tgt.peakdata['peaks']:
+#		if time >= s.segmentStartSec and time <= s.segmentEndSec:
+#			s.peaks.extend(partials)
+
 if len(tgt.segs) == 0:
 	util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(tgt.filename))
 p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(tgt.segs), np.average(tgt.seglengths)))

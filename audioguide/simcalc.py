@@ -86,6 +86,34 @@ class distanceCalculations:
 					mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, dlist, spassobj.submethod, True, superimposeObj, randomizeAmpForSimSelection)
 					newList = self.selectFromSortedList(spassobj.submethod, spassobj.percent)
 
+			################################
+			## spectralpeaks pitch filter ##
+			################################
+			elif spassobj.method == 'spectral_pitch_filter':
+
+				newList = []
+				#spass("spectralfilter", peakthreshold=-50, maxpeaks=20, peakminseparation=1, segmentmaxnoisiness=0.5, peakinterpolation=True, pitchtolerance=3),
+				#	segmentmaxnoisiness = if tat.seg nosiness is greater than this value, bypass this filter
+				#	peakminseparation = in semitones!
+				#	peakinterpolation = interpolate peaks for more precise frqs
+				#
+
+				peakthreshold = -70
+				maxpeaks = 20
+				pitchtolerance = 3
+				
+				#
+				peakfrqs = np.array(list((set([midi for db, midi in tgtseg.peaks if db >= peakthreshold]))))
+				if len(peakfrqs) == 0:
+					# nothing here!
+					newList = self.corpusObjs
+				else:
+					for c in self.corpusObjs:
+						diffs = np.abs(peakfrqs - c.desc['MIDIPitch-seg'].get(None, None))
+						sel_idx = np.argmin(diffs)
+						if diffs[sel_idx] > pitchtolerance: continue
+						c.transMethod = 'semitone %f'%(peakfrqs[sel_idx]-c.desc['MIDIPitch-seg'].get(None, None)) # overrides any other transmethod!
+						newList.append(c)
 
 			###############################
 			## limit descriptor by ratio ##
@@ -104,6 +132,12 @@ class distanceCalculations:
 					if spassobj.minratio != None and ratio < spassobj.minratio: continue
 					if spassobj.maxratio != None and ratio > spassobj.maxratio: continue
 					newList.append(c)
+
+
+
+
+
+
 			########################################################
 			## search segmented and timevarying feature distances ##
 			########################################################		
