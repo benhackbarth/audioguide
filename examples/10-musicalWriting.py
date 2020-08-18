@@ -1,3 +1,5 @@
+# See the 'Creating Notated Scores' section of the documentation
+
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.25)
 
 
