@@ -269,8 +269,12 @@ class descriptor_manager:
 					continue
 				tgtvalues = self.get(d.name, mixture=True)[tgtseek:tgtseek+mix_dur]
 				cpsvalues = cpsseg.desc.get(d.name)[:mix_dur]
-				tgtpowers = self.get('power', mixture=True)[tgtseek:tgtseek+mix_dur]
-				cpspowers = cpsseg.desc.get('power')[:mix_dur]
+				if dparams['describes_energy']:
+					mixture = tgtvalues + cpsvalues	# simple sum
+				else:	
+					tgtpowers = self.get('power', mixture=True)[tgtseek:tgtseek+mix_dur]
+					cpspowers = cpsseg.desc.get('power')[:mix_dur]
+					mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	# weighted average
 				mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	
 				#if dparams['describes_energy']:
 				#	print("ENERGY", self.sfseghandle.seek)
