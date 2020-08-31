@@ -10,8 +10,9 @@ import numpy as np
 
 
 
+
 class sfsegment:
-	def __init__(self, filename, startSec, endSec, descriptors, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01):
+	def __init__(self, filename, startSec, endSec, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01, normtag='notag'):
 		self.filename = util.verifyPath(filename, AnalInterface.searchPaths)
 		self.printName = os.path.split(self.filename)[1] # short name for printing
 		# filename-based descriptor info
@@ -26,14 +27,12 @@ class sfsegment:
 		self.envAttack = envAttackSec
 		self.envDecay = envDecaySec
 		self.envSlope = envSlope
-		# if startSec=None, it is begninning
-		# if endSec=None, it is end of file
 		if self.segmentStartSec == None: self.segmentStartSec = 0
 		else: self.segmentStartSec = self.segmentStartSec
 		if self.segmentEndSec == None: self.segmentEndSec = self.soundfileTotalDuration
 		else: self.segmentEndSec = self.segmentEndSec
 		self.segmentDurationSec = self.segmentEndSec-self.segmentStartSec		
-		# ensure length is at least 1 fram
+		# ensure length is at least 1 frame
 		self.lengthInFrames = max(1, AnalInterface.getSegmentFrameLength(self.segmentDurationSec, self.filename))
 		self.f2s = AnalInterface.f2s(1)
 		##############################################################
@@ -54,10 +53,8 @@ class sfsegment:
 		self.envAttackFrames = int(round(AnalInterface.s2f(self.envAttackSec, self.filename)))
 		self.envDecayFrames = int(round(AnalInterface.s2f(self.envDecaySec, self.filename)))
 		if (self.envAttackFrames+self.envDecayFrames) > self.lengthInFrames:
-			if self.envAttackFrames > self.envDecayFrames:
-				self.envAttackFrames = self.lengthInFrames-self.envDecayFrames
-			else:
-				self.envDecayFrames = self.lengthInFrames-self.envAttackFrames			
+			if self.envAttackFrames > self.envDecayFrames: self.envAttackFrames = self.lengthInFrames-self.envDecayFrames
+			else: self.envDecayFrames = self.lengthInFrames-self.envAttackFrames			
 		if self.envAttackFrames <= 1 and self.envDecayFrames <= 1:
 			self.envelopeMask = util.dbToAmp(self.envDb)
 		else:
@@ -72,23 +69,10 @@ class sfsegment:
 		## manage duration and time-in-frames ##
 		########################################
 		self.segmentStartFrame = AnalInterface.getSegmentStartInFrames(self.filename, self.segmentStartSec, self.segmentEndSec, self.lengthInFrames)
-
-
 		###############################
 		## initalise descriptor data ##
 		###############################
-		self.desc = descriptordata.container(descriptors, self) # for storing descriptor values from disk
-		# tells us which descriptors are:
-		#	SdifDescList - loaded from NYC analyses
-		#	ComputedDescList - transformed from loaded descriptor data - delta, deltadelta, odf, etc.
-		#	AveragedDescList - averaged descriptors from loaded descriptor data
-		AnalDescList, ComputedDescList, AveragedDescList = self.desc.getDescriptorOrigins() 
-
-		for d in AnalDescList:
-			self.desc[d.name] = AnalInterface.getDescriptorForsfsegment(self.filename, self.segmentStartFrame, self.lengthInFrames, d, self.envelopeMask)
-
-		for dobj in ComputedDescList:
-			self.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, self, None, None)
+		self.desc = AnalInterface.desc_manager.create_sf_descriptor_obj(self, AnalInterface.getDescriptorMatrix(self.filename), self.segmentStartFrame, self.lengthInFrames, tag=normtag, envelope=self.envelopeMask)
 		self.triggerinit = False
 	###################################################
 	def initThresholdTest(self, onsetDescriptorDict):		
@@ -96,8 +80,8 @@ class sfsegment:
 		self.mins = {}
 		self.maxs = {}
 		for dname, weight in onsetDescriptorDict.items():
-			self.mins[dname] = np.min(self.desc[dname][:])
-			self.maxs[dname] = np.max(self.desc[dname][:])
+			self.mins[dname] = np.min(self.desc.get(dname))
+			self.maxs[dname] = np.max(self.desc.get(dname))
 		self.triggerinit = True
 	###################################################
 	def thresholdTest(self, time, onsetDescriptorDict):		
@@ -105,7 +89,7 @@ class sfsegment:
 		trig = 0.
 		weightsum = 0.
 		for dname, weight in onsetDescriptorDict.items():
-			value = self.desc[dname][time]
+			value = self.desc.get(dname, start=time, stop=time+1)
 			if dname.find('power') != -1 or value < 0.:
 				trigadd = value / self.maxs[dname]
 			else:
@@ -151,9 +135,9 @@ class sfsegment:
 class corpusSegment(sfsegment):
 	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata, clipDurationToTarget, instrTag, instrParams):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata, clipDurationToTarget, instrTag, instrParams, normtag='cps'):
 		# initalise the sound segment object	
-		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, normtag='cps')
 		# additional corpus-specific data
 		self.userCpsStr = userCpsStr
 		self.concatFileName = concatFileName
@@ -181,22 +165,21 @@ class corpusSegment(sfsegment):
 		self.instrParams = instrParams
 	###################################################
 	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
-		tgtvals = tgtseg.desc[dobj.name].getnorm(tgtSeek, tgtSeek+array_len)	
+		tgtvals = tgtseg.desc.get(dobj.name, start=tgtSeek, stop=tgtSeek+array_len, norm=True)	
 		if superimposeObj.calcMethod == "mixture" and dobj.is_mixable and tgtseg.has_been_mixed:
 			if dobj.seg: d = dobj.parents[0]
 			else:  d = dobj.name
 			#############################
 			## USE DESCRIPTOR MIXTURES ##
 			#############################
-			tgtrawvals = tgtseg.mixdesc[d][tgtSeek:tgtSeek+array_len]
-			cpsrawvals = self.desc[d][:array_len]
+			tgtrawvals = tgtseg.desc.get(d, start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+			cpsrawvals = self.desc.get(d, stop=array_len)
 			if dobj.describes_energy:
 				mixedvals = tgtrawvals + cpsrawvals
 			else:
-				tgtrawpowers = tgtseg.mixdesc['power'][tgtSeek:tgtSeek+array_len]
-				cpsrawpowers = self.desc['power'][:array_len]
-				mixedpowers = (tgtrawpowers + cpsrawpowers)
-				mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / mixedpowers
+				tgtrawpowers = tgtseg.desc.get('power', start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+				cpsrawpowers = self.desc.get('power', stop=array_len)
+				mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / (tgtrawpowers + cpsrawpowers)
 
 			if dobj.seg: # segmented
 				if dobj.describes_energy:
@@ -212,10 +195,7 @@ class corpusSegment(sfsegment):
 				normedvals = descriptordata.normalize(mixedvals, self.desc[dobj.name].normdict['method'], self.desc[dobj.name].normdict)
 				return tgtvals, normedvals
 		else: # not mixed
-			if dobj.seg: # segmented
-				return tgtvals, self.desc[dobj.name].getnorm(0, None)	
-			else: # time-varying
-				return tgtvals, self.desc[dobj.name].getnorm(0, None)	
+			return tgtvals, self.desc.get(dobj.name, norm=True)	
 	
 
 
@@ -229,7 +209,7 @@ class targetSegment(sfsegment):
 	used by target segments.'''
 	def __init__(self, filename, segmentidx, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, midiPitchMethod):
 		# initalise the sound segment object	
-		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope)
+		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, normtag='tgt')
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
 		self.classification = 0
@@ -237,22 +217,18 @@ class targetSegment(sfsegment):
 		self.idx = segmentidx
 	###################################################
 	def initMixture(self, AnalInterface):
-		self.mixdesc = descriptordata.container(AnalInterface.mixtureDescriptors, self)
-		for dobj in AnalInterface.mixtureDescriptors:
-			if dobj.seg: continue
-			#	def setNorm(self, subtract, divide):
-			self.mixdesc[dobj.name] = np.zeros(self.lengthInFrames) # array of zeros
+		self.desc.init_mixture(AnalInterface.mixtureDescriptors)
 		self.has_been_mixed = False
-		self.originalPeak = self.desc['peakTime-seg'].get(0, None) # keep original, unsubtacted peak
+		self.originalPeak = self.desc.get('peakTime-seg') # keep original, unsubtacted peak
 	#################################
-	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
-		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
-		for d in AnalInterface.mixtureDescriptors:
-			if not d.seg: # is time-varying
-				self.mixdesc[d.name][tgtsegSeek:tgtsegSeek+mix_dur] = timeVaryingDescriptorMixture(self, tgtsegSeek, cpsh, 0, d, cpsAmpScale)
-			else: # is segmented
-				self.mixdesc[d.name].clear()
-		self.has_been_mixed = True
+#	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
+#		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
+#		for d in AnalInterface.mixtureDescriptors:
+#			if not d.seg: # is time-varying
+#				self.mixdesc[d.name][tgtsegSeek:tgtsegSeek+mix_dur] = timeVaryingDescriptorMixture(self, tgtsegSeek, cpsh, 0, d, cpsAmpScale)
+#			else: # is segmented
+#				self.mixdesc[d.name].clear()
+#		self.has_been_mixed = True
 
 
 
@@ -331,7 +307,7 @@ class target: # the target
 		if self.stretch != 1:
 			self.timeStretch(AnalInterface, ops, p)
 		# analise the whole target sound!
-		self.whole = sfsegment(self.filename, self.startSec, self.endSec, AnalInterface.requiredDescriptors, AnalInterface, envDb=self.envDb)
+		self.whole = sfsegment(self.filename, self.startSec, self.endSec, AnalInterface, envDb=self.envDb, normtag='tgtwhole')
 		self.startSec = self.whole.segmentStartSec
 		self.endSec = self.whole.segmentEndSec
 		self.whole.midiPitchMethod = self.midiPitchMethod
@@ -420,7 +396,7 @@ class target: # the target
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
 			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
-			segment.power = segment.desc['power-seg'].get(0, None) # for sorting
+			segment.power = segment.desc.get('power-seg') # for sorting
 			self.segs.append(segment)
 
 
@@ -445,9 +421,6 @@ class target: # the target
 			seg.seek = 0
 			seg.selectiondone = False
 			seg.initMixture(AnalInterface)
-			for dobj in AnalInterface.mixtureDescriptors:
-				# copy the normalization paramaters from the target segments onto the mix descriptors
-				seg.mixdesc[dobj.name].setNorm(seg.desc[dobj.name].normdict)
 	########################################
 	def plotMetrics(self, outputpath, AnalInterface, p, normalise=True):
 		import matplotlib.pyplot as plt
@@ -492,7 +465,7 @@ class target: # the target
 			
 			fig, ax = plt.subplots(figsize=p['diminches'])
 			for d in dlist:
-				ax.plot(timearray, self.whole.desc[d][:], ls='steps-post', lw=1)
+				ax.plot(timearray, self.whole.desc.get(d)[:], ls='steps-post', lw=1)
 			
 			formatter = ticker.FormatStrFormatter('%1.1f')
 			ax.xaxis.set_major_formatter(formatter)
@@ -502,7 +475,7 @@ class target: # the target
 	########################################
 	def plotSegmentation(self, outputpath, AnalInterface, p):
 		import matplotlib.pyplot as plt
-		powers = self.whole.desc['power'][:]
+		powers = self.whole.desc.get('power')[:]
 		powers -= np.min(powers)
 		powers /= np.max(powers) # normalise between 0 and 1
 		plotheight = 15.
@@ -569,15 +542,15 @@ def segmentationAlgoV2(threshold_onset, threshold_offset, riseratio, powers, odf
 
 def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True, stdDeltaDegreesOfFreedom=0):
 	if descriptorObj.seg:
-		allDescs = np.array([sfsObj.desc[descriptorObj.name].get(0, None) for sfsObj in listOfSegmentObjs])
+		allDescs = np.array([sfsObj.desc.get(descriptorObj.name) for sfsObj in listOfSegmentObjs])
 	else:
 		cnt = 0
-		for sfsObj in listOfSegmentObjs: cnt += sfsObj.desc['effDurFrames-seg'].get(0, None)
+		for sfsObj in listOfSegmentObjs: cnt += sfsObj.desc.get('effDurFrames-seg')
 		allDescs = np.empty((cnt))
 		cnt = 0
 		for sfsObj in listOfSegmentObjs: 
-			effDur = sfsObj.desc['effDurFrames-seg'].get(0, None)
-			allDescs[cnt:cnt+effDur] = sfsObj.desc[descriptorObj.name][:effDur]
+			effDur = sfsObj.desc.get('effDurFrames-seg')
+			allDescs[cnt:cnt+effDur] = sfsObj.desc.get(descriptorObj.name, stop=effDur)
 			cnt += effDur
 	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }
 

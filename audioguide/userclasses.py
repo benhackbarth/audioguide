@@ -5,7 +5,6 @@
 
 import sys, os
 import audioguide.anallinkage as anallinkage
-import audioguide.descriptordata as descriptordata
 import audioguide.util as util
 import numpy as np
 

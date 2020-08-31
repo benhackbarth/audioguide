@@ -7,6 +7,7 @@ import sys, os, subprocess, time, json
 sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import numpy as np
 import audioguide.util as util
+import audioguide.descriptordata as descriptors
 
 
 def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.join(os.getenv("HOME"), 'Applications')]):
@@ -29,7 +30,7 @@ class AnalInterface:
 
 	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
 		global descriptToFiles
-
+		self.desc_manager = descriptors.descriptor_manager()
 		# establish data directory
 		if dataDirectoryLocation == None:
 			self.dataDirectory = os.path.dirname(__file__)
@@ -270,10 +271,11 @@ EnergyEnvelope  = 1
 		self.mixtureDescriptors = []
 		tmpmix = ['power']
 		for dobj in self.requiredDescriptors:
-			if dobj.origin == 'SEARCH' and dobj.is_mixable:
+			if dobj.origin == 'SEARCH' and dobj.is_mixable and dobj.name not in tmpmix:
 				if dobj.seg: tmpmix.append(dobj.name) # make sure segs are at the end
 				else: tmpmix.insert(0, dobj.name)
-				for pobjname in dobj.parents: tmpmix.insert(0, pobjname)
+				for pobjname in dobj.parents:
+					if pobjname not in tmpmix: tmpmix.insert(0, pobjname)
 		for dname in tmpmix:
 			for dobj in self.requiredDescriptors:
 				if dobj.name == dname:
@@ -431,6 +433,10 @@ EnergyEnvelope  = 1
 		self.rawData[sffile]['arraylen'] = self.rawData[sffile]['ircamd'].shape[0]
 		# touch file in data registry
 		self.dataRegistry[filehead] = time.time(), os.stat(sffile).st_size
+	########################################################
+	########################################################
+	def getDescriptorMatrix(self, sffile):
+		return self.rawData[sffile]['ircamd']
 	########################################################
 	########################################################
 	def getDescriptorColumn(self, sffile, dname):

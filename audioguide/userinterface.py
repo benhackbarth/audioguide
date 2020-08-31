@@ -202,14 +202,14 @@ class printer:
 		nonnormalized = []
 		for dobj in segmentedDescriptorsToGraph:
 			key = dobj.name.replace('-seg', '')
-			scatter['tgt'][key] = [ts.desc[dobj.name].get(0, None) for ts in tgtsegs]
-			scatter['cps'][key] = [cs.desc[dobj.name].get(0, None) for cs in cpssegs]
+			scatter['tgt'][key] = [ts.desc.get(dobj.name) for ts in tgtsegs]
+			scatter['cps'][key] = [cs.desc.get(dobj.name) for cs in cpssegs]
 			nonnormalized.append(key)
 			# see if we have normalized values to add too
 			if dobj in AnalInterface.normalizeDescriptors:
 				key = dobj.name.replace('-seg', ' normalized')
-				scatter['tgt'][key] = [ts.desc[dobj.name].getnorm(0, None) for ts in tgtsegs]
-				scatter['cps'][key] = [cs.desc[dobj.name].getnorm(0, None) for cs in cpssegs]
+				scatter['tgt'][key] = [ts.desc.get(dobj.name, norm=True) for ts in tgtsegs]
+				scatter['cps'][key] = [cs.desc.get(dobj.name, norm=True) for cs in cpssegs]
 		self.html.addScatter2dAxisChoice(scatter, name='Descriptor Data', axisdefaults=nonnormalized[0:2])
 	###############################################
 	def writehtmllog(self, filepath):

@@ -339,7 +339,7 @@ def getTransposition(tgtseg, cpsseg):
 	# FORCE A SINGLE CHROMA
 	elif cpsseg.transMethod.startswith('single-pitch'):
 		pitch = int(cpsseg.transMethod.split()[1])
-		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
+		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
 		print("single-pitch", pitch, srcPitch, pitch-srcPitch)
 		print("single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch)
 		return pitch-srcPitch
@@ -347,7 +347,7 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('pitch-range'):
 		pitchLow = int(cpsseg.transMethod.split()[1])
 		pitchHigh = int(cpsseg.transMethod.split()[2])
-		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
+		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
 		if srcPitch < pitchLow:
 			return pitchLow-srcPitch
 		elif srcPitch > pitchHigh:
@@ -361,8 +361,8 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0']:
-		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
-		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
+		tgtPitch = tgtseg.desc.get('f0-seg') 
+		srcPitch = cpsseg.desc.get('f0-seg') 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
 		else:
@@ -370,8 +370,8 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0-chroma']:
-		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
-		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
+		tgtPitch = tgtseg.desc.get('f0-seg') 
+		srcPitch = cpsseg.desc.get('f0-seg') 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
 		else:

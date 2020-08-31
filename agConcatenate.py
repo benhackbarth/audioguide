@@ -74,7 +74,7 @@ descriptors = []
 dnames = []
 for dobj in AnalInterface.requiredDescriptors:
 	if dobj.seg or dobj.name in ['power']: continue
-	d = np.array(tgt.whole.desc[dobj.name][:])
+	d = np.array(tgt.whole.desc.get(dobj.name, copy=True))
 	d -= np.min(d)
 	d /= np.max(d)
 	d = np.around(d, 2)
@@ -93,10 +93,9 @@ cps = concatenativeclasses.corpus(ops.CORPUS, ops.CORPUS_GLOBAL_ATTRIBUTES, ops.
 htmlCorpusTable = [['', 'minimum', 'maximum', 'average']]
 segmentLength = [c.segmentDurationSec for c in cps.postLimitSegmentNormList]
 htmlCorpusTable.append(['segment length', min(segmentLength), max(segmentLength), np.mean(segmentLength)])
-power = [c.desc['power-seg'].get(None, None) for c in cps.postLimitSegmentNormList]
+power = [c.desc.get('power-seg') for c in cps.postLimitSegmentNormList]
 htmlCorpusTable.append(['power', min(power), max(power), np.mean(power)])
 p.maketable(htmlCorpusTable)
-
 
 
 ###################
@@ -104,25 +103,30 @@ p.maketable(htmlCorpusTable)
 ###################
 p.logsection( "NORMALIZATION" )
 
+#
+#if ops.NORMALIZATION_METHOD == 'standard':
+#	normalizationTable = [['descriptor', 'norm method', 'target mean', 'target stddev', 'corpus mean', 'corpus stddev', 'freedom']]
+#	for dobj in AnalInterface.normalizeDescriptors:
+#		if dobj.norm == 1:
+#			# normalize both together
+#			allsegs = tgt.segs + cps.postLimitSegmentNormList
+#			tgtStatistics = cpsStatistics = sfsegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+#			sfsegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
+#		elif dobj.norm == 2:
+#			# normalize target
+#			tgtStatistics = sfsegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+#			sfsegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
+#			# normalize corpus
+#			cpsStatistics = sfsegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
+#			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
+#		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
+#	p.maketable(normalizationTable)
+#
+#
 
-if ops.NORMALIZATION_METHOD == 'standard':
-	normalizationTable = [['descriptor', 'norm method', 'target mean', 'target stddev', 'corpus mean', 'corpus stddev', 'freedom']]
-	for dobj in AnalInterface.normalizeDescriptors:
-		if dobj.norm == 1:
-			# normalize both together
-			allsegs = tgt.segs + cps.postLimitSegmentNormList
-			tgtStatistics = cpsStatistics = sfsegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfsegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
-		elif dobj.norm == 2:
-			# normalize target
-			tgtStatistics = sfsegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfsegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
-			# normalize corpus
-			cpsStatistics = sfsegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
-	p.maketable(normalizationTable)
-
+AnalInterface.desc_manager.normalize_setup(tgt.segs + cps.postLimitSegmentNormList)
+for dobj in AnalInterface.normalizeDescriptors:
+	AnalInterface.desc_manager.normalize_descriptor(dobj.name, dobj.normmethod, dobj.norm)
 
 
 
@@ -244,13 +248,13 @@ while False in [t.selectiondone for t in tgt.segs]:
 		if selectCpsseg.postSelectAmpBool:
 			if selectCpsseg.postSelectAmpMethod == "lstsqr":
 				try:
-					leastSqrWholeLine = (np.linalg.lstsq(np.vstack([selectCpsseg.desc['power'][:minLen]]).T, np.vstack([tgtseg.desc['power'][:minLen]]).T)[0][0][0])
+					leastSqrWholeLine = (np.linalg.lstsq(np.vstack([selectCpsseg.desc.get('power', stop=minLen)]).T, np.vstack([tgtseg.desc.get('power', stop=minLen)]).T)[0][0][0])
 				except np.linalg.linalg.LinAlgError: # in case of incompatible dimensions
 					leastSqrWholeLine = 0
 					pass
 			elif selectCpsseg.postSelectAmpMethod in ["power-seg", "power-mean-seg"]:
-				tgtPower = tgtseg.desc[selectCpsseg.postSelectAmpMethod].get(tgtseg.seek, None)
-				cpsPower = selectCpsseg.desc[selectCpsseg.postSelectAmpMethod].get(0, None)
+				tgtPower = tgtseg.desc.get(selectCpsseg.postSelectAmpMethod, start=tgtseg.seek)
+				cpsPower = selectCpsseg.desc.get(selectCpsseg.postSelectAmpMethod)
 				sourceAmpScale = tgtPower/cpsPower			
 			###################
 			## fit to limits ##
@@ -268,42 +272,28 @@ while False in [t.selectiondone for t in tgt.segs]:
 		## subtract power and update onset detection ##
 		###################$###########################
 		if ops.SUPERIMPOSE.calcMethod != None:
-			#oneInCorpusLand = (1-cps.powerStats['mean'])/cps.powerStats['stddev']
-			#normalizationPowerRatio = (oneInCorpusLand*tgt.powerStats['stddev'])+tgt.powerStats['mean']
-			
-			preSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]))
-			rawSubtraction = tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]-(selectCpsseg.desc['power'][:minLen]*sourceAmpScale*ops.SUPERIMPOSE.subtractScale)
-			tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen] = np.clip(rawSubtraction, 0, sys.maxsize) # clip it so its above zero
-			postSubtractPeak = util.ampToDb(np.max(tgtseg.desc['power'][tgtseg.seek:tgtseg.seek+minLen]))
-			p.log("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
-			
-			# recalculate onset envelope
-			SdifDescList, ComputedDescList, AveragedDescList = tgtseg.desc.getDescriptorOrigins() 
-			for dobj in ComputedDescList:
-				if dobj.describes_energy and dobj.name != 'power':
-					tgtseg.desc[dobj.name] = descriptordata.DescriptorComputation(dobj, tgtseg, None, None)
-			for d in AveragedDescList:
-				tgtseg.desc[d.name].clear()
+			tgtseg.desc.mixture_subtract(selectCpsseg, sourceAmpScale*ops.SUPERIMPOSE.subtractScale, minLen, verbose=True)
 		#####################################
 		## mix chosen sample's descriptors ##
 		#####################################
 		if ops.SUPERIMPOSE.calcMethod == "mixture":
-			tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface)
+			#tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface)
+			tgtseg.desc.mixutre_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface.mixtureDescriptors)
 		#################################
 		## append selected corpus unit ##
 		#################################
 		transposition = util.getTransposition(tgtseg, selectCpsseg)
 		cps.updateWithSelection(selectCpsseg, timeInSec, segidx)
-		cpsEffDur = selectCpsseg.desc['effDurFrames-seg'].get(0, None)
+		cpsEffDur = selectCpsseg.desc.get('effDurFrames-seg')
 		maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 		eventTime = (timeInSec*ops.OUTPUTEVENT_TIME_STRETCH)+ops.OUTPUTEVENT_TIME_ADD
 		oeObj = concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, superimp.cnt['selectionCount'], tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, AnalInterface.f2s(1), ops.OUTPUTEVENT_DURATION_SELECT, ops.OUTPUTEVENT_DURATION_MIN, ops.OUTPUTEVENT_DURATION_MAX, ops.OUTPUTEVENT_ALIGN_PEAKS)
 		outputEvents.append( oeObj )
 		
 		corpusname = os.path.split(cps.data['vcToCorpusName'][selectCpsseg.voiceID])[1]
-		superimp.increment(tif, tgtseg.desc['effDurFrames-seg'].get(tgtseg.seek, None), segidx, selectCpsseg, distanceCalculations.returnSearchPassText(), corpusname)
+		superimp.increment(tif, tgtseg.desc.get('effDurFrames-seg', start=tgtseg.seek), segidx, selectCpsseg, distanceCalculations.returnSearchPassText(), corpusname)
 
-		instruments.increment(tif, tgtseg.desc['effDurFrames-seg'].get(tgtseg.seek, None), oeObj)
+		instruments.increment(tif, tgtseg.desc.get('effDurFrames-seg', start=tgtseg.seek), oeObj)
 
 		tgtseg.numberSelectedUnits += 1
 
@@ -378,7 +368,7 @@ if ops.DICT_OUTPUT_FILEPATH != None:
 	tgtSegDataList = []
 	for ts in tgt.segs:
 		thisSeg = {'startSec': ts.segmentStartSec, 'endSec': ts.segmentEndSec}
-		thisSeg['power'] = ts.desc['power-seg'].get(0, None)
+		thisSeg['power'] = ts.desc.get('power-seg')
 		thisSeg['numberSelectedUnits'] = ts.numberSelectedUnits
 		thisSeg['has_been_mixed'] = ts.has_been_mixed
 		tgtSegDataList.append(thisSeg)
@@ -472,7 +462,6 @@ if ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
 if ops.CSOUND_CSD_FILEPATH != None:
 	from audioguide import csoundinterface as csd
 	maxOverlaps = np.max([oe.simSelects for oe in outputEvents])
-	#csSco = csd.makeFtableFromDescriptor(tgt.whole.desc['power'], 'power', AnalInterface.f2s(1), ops.CSOUND_SR, ops.CSOUND_KSMPS)+'\n\n'
 	csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(tgt.endSec-tgt.startSec, tgt.whole.envDb, tgt.filename, tgt.startSec)
 	
 	# just in case that there are negative p2 times!

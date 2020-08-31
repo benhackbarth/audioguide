@@ -100,7 +100,7 @@ for file in args:
 	filetosegment.initAnal(AnalInterface, ops, p)
 	filetosegment.stageSegments(AnalInterface, ops, p)
 
-	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
+	minamp = util.ampToDb(min(filetosegment.whole.desc.get('power')))
 	p.pprint("Evaluating %s from %.2f-%.2f"%(filetosegment.filename, filetosegment.whole.segmentStartSec, filetosegment.whole.segmentEndSec), colour="BOLD")
 	p.pprint("\nAN ONSET HAPPENS when", colour="BOLD")
 	p.pprint("The amplitude crosses the Relative Onset Trigger Threshold: ${YELLOW}"+"%.2f"%options.TRIGGER_THRESHOLD+" ${NORMAL}(-t option)\n", colour="NORMAL")

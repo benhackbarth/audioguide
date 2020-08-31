@@ -82,7 +82,7 @@ for file in args:
 	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
 	filetosegment = sfsegment.target(ops.TARGET, AnalInterface)
 	filetosegment.initAnal(AnalInterface, ops, p)
-	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
+	minamp = util.ampToDb(min(filetosegment.whole.desc.get('power')))
 	p.pprint("Evaluating %s from %.2f-%.2f"%(filetosegment.filename, filetosegment.whole.segmentStartSec, filetosegment.whole.segmentEndSec), colour="BOLD")
 
 	if options.OUTPUT_FILE == '': segFile = file+'.txt'

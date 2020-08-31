@@ -124,12 +124,12 @@ class cpsLimit:
 		# loop through corpus handles again, but only happens once per unique limit string
 		tmp_data = []
 		for ch in allcpshandles:
-			#print self.origString, self.d.name, ch.desc[self.d.name].get(0, None)
+			#print self.origString, self.d.name, ch.desc.get(self.d.name)
 			if ch.voiceID not in self.cpsScope: continue # skip if outside scope
 			if self.d.seg:
-				tmp_data.append( ch.desc[self.d.name].get(0, None)  )
+				tmp_data.append( ch.desc.get(self.d.name)  )
 			else:
-				tmp_data.extend( ch.desc[self.d.name].get(0, None)  )
+				tmp_data.extend( ch.desc.get(self.d.name)  )
 		tmp_data.sort()
 		self.value = tmp_data[ int((self.percent/100.)*(len(tmp_data)-1)) ]
 		del tmp_data
@@ -137,9 +137,9 @@ class cpsLimit:
 	########################################
 	def test(self, sfobj):
 		if self.d.seg:
-			test = eval("%s %s %s"%(sfobj.desc[self.d.name].get(0, None), self.symb, self.value))
+			test = eval("%s %s %s"%(sfobj.desc.get(self.d.name), self.symb, self.value))
 		else:
-			test = eval("%s %s %s"%(np.max(sfobj.desc[self.d.name]), self.symb, self.value))
+			test = eval("%s %s %s"%(np.max(sfobj.desc.get(self.d.name), self.symb, self.value)))
 		if not test:
 			self.cnt_reject.append(sfobj)
 		return test
@@ -385,7 +385,7 @@ class corpus:
 			if c.pitchfilter == {}:
 				tmplist.append(c)
 			else:
-				midipitch = c.desc['MIDIPitch-seg'].get(None, None)
+				midipitch = c.desc.get('MIDIPitch-seg')
 				differences = []
 				for p in c.pitchfilter['pitches']:
 					if p < 12: # it's a pitch class
@@ -664,7 +664,7 @@ class SuperimposeTracker():
 	def increment(self, start, dur, segidx, selectCpsseg, logtext, corpusname):
 		
 		cps_voiceid = selectCpsseg.voiceID
-		powers = selectCpsseg.desc['power']
+		powers = selectCpsseg.desc.get('power')
 		cpsfilename = selectCpsseg.filename
 		
 		self.p.log( logtext )
@@ -719,9 +719,9 @@ class outputEvent:
 		self.printName = sfseghandle.printName
 		self.sfSkip = sfseghandle.segmentStartSec
 		self.cpsduration = sfseghandle.segmentDurationSec
-		self.effDurSec = sfseghandle.desc['effDur-seg'].get(0, None)
-		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None) * f2s
-		self.powerSeg = sfseghandle.desc['power-seg'].get(0, None)
+		self.effDurSec = sfseghandle.desc.get('effDur-seg')
+		self.peaktimeSec = sfseghandle.desc.get('peakTime-seg') * f2s
+		self.powerSeg = sfseghandle.desc.get('power-seg')
 		self.rmsSeg = util.ampToDb(self.powerSeg)
 		self.dynamicFromFilename = sfseghandle.dynamicFromFilename
 		self.midiVelocity = self.rmsSeg+127
@@ -740,7 +740,7 @@ class outputEvent:
 		self.transratio = 2 ** (transposition/12.)
 		self.voiceID = sfseghandle.voiceID
 		self.extraDataFromSegmentationFile = sfseghandle.segfileData
-		self.midi = sfseghandle.desc['MIDIPitch-seg'].get(0, None) + self.transposition
+		self.midi = sfseghandle.desc.get('MIDIPitch-seg') + self.transposition
 		if self.midi < minOutputMidi: self.midi = minOutputMidi
 		self.metadata = sfseghandle.metadata
 		# amplitude envelope
