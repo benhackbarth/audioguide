@@ -103,30 +103,8 @@ p.maketable(htmlCorpusTable)
 ###################
 p.logsection( "NORMALIZATION" )
 
-#
-#if ops.NORMALIZATION_METHOD == 'standard':
-#	normalizationTable = [['descriptor', 'norm method', 'target mean', 'target stddev', 'corpus mean', 'corpus stddev', 'freedom']]
-#	for dobj in AnalInterface.normalizeDescriptors:
-#		if dobj.norm == 1:
-#			# normalize both together
-#			allsegs = tgt.segs + cps.postLimitSegmentNormList
-#			tgtStatistics = cpsStatistics = sfsegment.getDescriptorStatistics(allsegs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-#			sfsegment.applyDescriptorNormalisation(allsegs, dobj, tgtStatistics)
-#		elif dobj.norm == 2:
-#			# normalize target
-#			tgtStatistics = sfsegment.getDescriptorStatistics(tgt.segs, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-#			sfsegment.applyDescriptorNormalisation(tgt.segs, dobj, tgtStatistics)
-#			# normalize corpus
-#			cpsStatistics = sfsegment.getDescriptorStatistics(cps.postLimitSegmentNormList, dobj, stdDeltaDegreesOfFreedom=ops.NORMALIZATION_DELTA_FREEDOM)
-#			sfsegment.applyDescriptorNormalisation(cps.postLimitSegmentNormList, dobj, cpsStatistics)
-#		normalizationTable.append([dobj.name, dobj.normmethod, tgtStatistics['mean'], tgtStatistics['stddev'], cpsStatistics['mean'], cpsStatistics['stddev'], ops.NORMALIZATION_DELTA_FREEDOM])
-#	p.maketable(normalizationTable)
-#
-#
-
 AnalInterface.desc_manager.normalize_setup(tgt.segs + cps.postLimitSegmentNormList)
-for dobj in AnalInterface.normalizeDescriptors:
-	AnalInterface.desc_manager.normalize_descriptor(dobj.name, dobj.normmethod, dobj.norm)
+AnalInterface.desc_manager.normalize_descriptors(AnalInterface.normalizeDescriptors)
 
 
 
@@ -173,6 +151,11 @@ htmlSelectionTable = [['time x overlap', ]]
 for sidx, s in enumerate(ops.SEARCH):
 	htmlSelectionTable[0].append('spass #%s: %s'%(sidx+1, s.method))
 
+
+
+for segidx, tgtseg in enumerate(tgt.segs):
+	print(segidx, tgtseg.desc.get('mfcc1', stop=3), tgtseg.desc.get('mfcc1', stop=3, norm=True), tgtseg.desc.overlord.norm_timevarying_matrix.matrix.shape)
+sys.exit()
 
 while False in [t.selectiondone for t in tgt.segs]:
 	p.percentageBarNext()
@@ -278,7 +261,8 @@ while False in [t.selectiondone for t in tgt.segs]:
 		#####################################
 		if ops.SUPERIMPOSE.calcMethod == "mixture":
 			#tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface)
-			tgtseg.desc.mixutre_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface.mixtureDescriptors)
+			tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface.mixtureDescriptors)
+			tgtseg.has_been_mixed = True
 		#################################
 		## append selected corpus unit ##
 		#################################

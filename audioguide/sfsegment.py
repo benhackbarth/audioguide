@@ -187,12 +187,10 @@ class corpusSegment(sfsegment):
 				else:
 					try: averagedVal = np.average(mixedvals, weights=mixedpowers)
 					except ZeroDivisionError: averagedVal = 0
-				normedVal = descriptordata.normalize(averagedVal, self.desc[dobj.name].normdict['method'], self.desc[dobj.name].normdict)
-				#print "mixed segmented UNNORMED", averagedVal, "NORMED", normedVal
+				normedVal = self.desc.on_the_fly_data_norm(dobj.name, averagedVal)
 				return tgtvals, normedVal
 			else: # time-varying
-				#print "mixed time-varying UNNORMED", mixedvals, "NROMED", normedvals
-				normedvals = descriptordata.normalize(mixedvals, self.desc[dobj.name].normdict['method'], self.desc[dobj.name].normdict)
+				normedvals = self.desc.on_the_fly_data_norm(dobj.name, mixedvals)
 				return tgtvals, normedvals
 		else: # not mixed
 			return tgtvals, self.desc.get(dobj.name, norm=True)	

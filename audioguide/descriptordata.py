@@ -55,7 +55,6 @@ class expandable_matrix:
 class descriptor_manager:
 	def __init__(self):
 		self.norm_timevarying_matrix = expandable_matrix()
-		self.norm_segmented_tag_dict = {}
 		self.descriptor_string_to_params = {}
 		self.sffile2matrix = {}
 		self.singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
@@ -85,23 +84,34 @@ class descriptor_manager:
 		return self.descriptor_string_to_params[dname]
 	########################################
 	def normalize_setup(self, segment_objs):
-		self.norm_objs = [o.desc for o in segment_objs]
-		self.norm_tags = list(set([o.tag for o in self.norm_objs]))
-		for t in self.norm_tags:
-			if t not in self.norm_segmented_tag_dict: self.norm_segmented_tag_dict[t] = {} 
-		self.tv_length = sum([o.len for o in self.norm_objs])
-		self.seg_length = len(self.norm_objs)
-		# make masks by tag
-		norm_obj_seg_tags = np.array([o.tag for o in self.norm_objs], dtype=object)
-		norm_obj_tv_tags = []
-		for o in self.norm_objs: norm_obj_tv_tags.extend([o.tag]*o.len)
-		norm_obj_tv_tags = np.array(norm_obj_tv_tags, dtype=object)
-		self.tagmasks = {}
-		for t in self.norm_tags: self.tagmasks[t] = {'tv': norm_obj_tv_tags == t, 'seg': norm_obj_seg_tags == t}
+		# make a list of all desc objects in order by tag...
+		self.desc_objs = [o.desc for o in segment_objs]
+		self.desc_objs.sort(key=lambda x: x.tag)
+		self.desc_obj_tags = [o.tag for o in self.desc_objs]
+		self.norm_tags = list(set(self.desc_obj_tags))
+		self.norm_coeff_tag_dict = {t: {} for t in self.norm_tags}
+		self.tv_length = sum([o.len for o in self.desc_objs])
+		self.seg_length = len(self.desc_objs)
+		# find tag change idxes
+		tag_change_seg_indxs = list(np.where(np.roll(self.desc_obj_tags, 1) != self.desc_obj_tags)[0])
+		cnt = 0
+		tag_change_tv_indxs = []
+		for idx, o in enumerate(self.desc_objs):
+			o.efflen = o.get('effDurFrames-seg')
+			if idx in tag_change_seg_indxs: tag_change_tv_indxs.append(cnt)
+			cnt += o.efflen
+		tag_change_seg_indxs.append(self.seg_length)
+		tag_change_tv_indxs.append(self.tv_length)
+		# make tag to slice dict
+		self.norm_segtag_to_slice = {}
+		self.norm_tvtag_to_slice = {}
+		for idx, tag in enumerate(self.norm_tags):	
+			self.norm_segtag_to_slice[tag] = slice(tag_change_seg_indxs[idx], tag_change_seg_indxs[idx+1])
+			self.norm_tvtag_to_slice[tag] = slice(tag_change_tv_indxs[idx], tag_change_tv_indxs[idx+1])
 	########################################
-	def _normalize_coeffs(self, dataarray, dnormmethod):
+	def _normalize_coeffs(self, dname, dataarray, dnormmethod, std_degree_of_freedom=0.):
 		if dnormmethod == 'stddev':
-			return {'method': dnormmethod, 'mean': np.mean(dataarray), 'std': np.std(dataarray)}
+			return {'method': dnormmethod, 'mean': np.mean(dataarray), 'std': np.std(dataarray, ddof=std_degree_of_freedom)}
 		elif dnormmethod == 'minmax':
 			m = np.min(dataarray)
 			return {'method': dnormmethod, 'min': m, 'range': np.max(dataarray)-m}
@@ -112,38 +122,40 @@ class descriptor_manager:
 		elif coeffDict['method'] == 'minmax':
 			return (dataarray-coeffDict['min'])/coeffDict['range']
 	########################################
-	def normalize_descriptor(self, dname, dnormmethod, dnorm):
-		dparams = self.descriptor_string_digest(dname)
-		if dparams['isseg']:
-			column = np.array([o.get(dname) for o in self.norm_objs])
-			if dnorm == 1: # normalize all data together
-				for tag in self.norm_tags: self.norm_segmented_tag_dict[tag][dname] = self._normalize_coeffs(column, dnormmethod)
-			elif dnorm == 2: # normalize data separately
-				columnmasked = np.ma.masked_array(column, mask=self.tagmasks[self.norm_tags[0]]['seg'])
-				for tag in self.norm_tags:
-					columnmasked.mask = self.tagmasks[tag]['seg']
-					self.norm_segmented_tag_dict[tag][dname] = self._normalize_coeffs(columnmasked, dnormmethod)
-		else:
+	def normalize_descriptors(self, dobj_list):
+		seg_list = [dobj for dobj in dobj_list if dobj.seg]
+		# get seg data coeffs
+		for didx, dobj in enumerate(seg_list):
+			column = np.array([o.get(dobj.name) for o in self.desc_objs])
+			# get norm coeffs
+			if dobj.norm == 1: # normalize all data together
+				coeffs = self._normalize_coeffs(dobj.name, column, dobj.normmethod)
+				for tag in self.norm_tags: self.norm_coeff_tag_dict[tag][dobj.name] = coeffs
+			elif dobj.norm == 2: # normalize data separately
+				for tag in self.norm_tags: self.norm_coeff_tag_dict[tag][dobj.name] = self._normalize_coeffs(dobj.name, column[self.norm_segtag_to_slice[tag]], dobj.normmethod)
+		# get tv data coeffs and make a matrix
+		tv_list = [dobj for dobj in dobj_list if not dobj.seg]
+		for didx, dobj in enumerate(tv_list):
+			dparams = self.descriptor_string_digest(dobj.name)
+			# build column
 			column = np.empty(self.tv_length)
 			cnt = 0
-			for o in self.norm_objs:
-				m, s, e = o.get_matrix_location(dname, dparams, 0, None, norm=False)
-				column[cnt:cnt+o.len] = m.get_columns([dname], rowslice=slice(s, e))
+			for o in self.desc_objs:
+				m, s, e = o.get_matrix_location(dobj.name, dparams, 0, o.efflen)
+				column[cnt:cnt+o.efflen] = m.get_columns([dobj.name], rowslice=slice(s, e))
 				o.norm_start = cnt
-				o.norm_end = cnt + o.len
-				cnt += o.len
-			if dnorm == 1: # normalize all data together
-				coeffdict = self._normalize_coeffs(column, dnormmethod)
+				cnt += o.efflen
+				o.norm_end = cnt
+				
+			if dobj.norm == 1: # normalize all data together
+				coeffdict = self._normalize_coeffs(dobj.name, column, dobj.normmethod)
 				column = self.normalize_data(column, coeffdict)
-			elif dnorm == 2: # normalize data separately
-				columnmasked = np.ma.masked_array(column, mask=self.tagmasks[self.norm_tags[0]]['tv'])
-				for t in self.norm_tags:
-					columnmasked.mask = self.tagmasks[t]['tv']
-					coeffdict = self._normalize_coeffs(columnmasked, dnormmethod)
-					columnmasked = self.normalize_data(columnmasked, coeffdict)
-				columnmasked.mask = None
-				column = columnmasked
-			self.norm_timevarying_matrix.add_columns(column, [dname])
+				for tag in self.norm_tags: self.norm_coeff_tag_dict[tag][dobj.name] = coeffdict
+			elif dobj.norm == 2: # normalize data separately
+				for tag in self.norm_tags:
+					self.norm_coeff_tag_dict[tag][dobj.name] = self._normalize_coeffs(dobj.name, column[self.norm_tvtag_to_slice[tag]], dobj.normmethod)
+					column[self.norm_tvtag_to_slice[tag]] = self.normalize_data(column[self.norm_tvtag_to_slice[tag]], self.norm_coeff_tag_dict[tag][dobj.name])
+			self.norm_timevarying_matrix.add_columns(column, [dobj.name])
 	########################################
 	def create_sf_descriptor_obj(self, sfseghandle, rawmatrix, startframe_in_matrix, length_in_matrix, tag=None, envelope=None):
 		'''this function gets a new class sf_segment_descriptors and links it to the overlord'''
@@ -182,6 +194,7 @@ class descriptor_manager:
 				st = "norm matrix"
 				mat = self.overlord.norm_timevarying_matrix
 				idx = self.norm_start
+				length = min(stop, self.efflen)
 			elif mixture:
 				st = "mixture matrix"
 				mat = self.private_mixture_descriptors
@@ -221,13 +234,21 @@ class descriptor_manager:
 				else: 
 					if dname not in self.segmented_norm_dataspace: self.segmented_norm_dataspace[dname] = {}
 					if k not in self.segmented_norm_dataspace[dname]:
-						self.segmented_norm_dataspace[dname][k] = self.overlord.normalize_data(self.segmented_dataspace[dname][k], self.overlord.norm_segmented_tag_dict[self.tag][dname])			
+						self.segmented_norm_dataspace[dname][k] = self.overlord.normalize_data(self.segmented_dataspace[dname][k], self.overlord.norm_coeff_tag_dict[self.tag][dname])			
 					return self.segmented_norm_dataspace[dname][k]
 			# otherwise this is time varying
 			matrix_pointer, start_array, stop_array = self.get_matrix_location(dname, dparams, start, stop, norm=norm, mixture=mixture)
 			output = matrix_pointer.get_columns([dname], rowslice=slice(start_array, stop_array))
 			if copy: output = np.array(output, copy=True)
 			return output
+		#####################################	
+		def on_the_fly_data_norm(self, dname, dataValueOrArray):
+			return self.overlord.normalize_data(dataValueOrArray, self.overlord.norm_coeff_tag_dict[self.tag][dname])
+		#####################################	
+		def _edit_tv_data(self, dname, dataarray, minLen, start=0, norm=False, mixture=False):
+			dparams = self.overlord.descriptor_string_digest(dname)
+			mat, st, ed = self.get_matrix_location(dname, dparams, start, start+minLen, norm=norm, mixture=mixture)
+			mat.matrix[st:ed,mat.column_dnames.index(dname)] = dataarray
 		#####################################	
 		def init_mixture(self, descriptorList):
 			'''initalize a mixture space for this segment'''
@@ -238,11 +259,6 @@ class descriptor_manager:
 				if dparams['isseg']: continue
 				tv_list.append(d.name)
 			self.private_mixture_descriptors.add_columns(np.zeros((self.len, len(tv_list))), tv_list)
-		#####################################	
-		def _edit_tv_data(self, dname, dataarray, minLen, start=0, norm=False, mixture=False):
-			dparams = self.overlord.descriptor_string_digest(dname)
-			mat, st, ed = self.get_matrix_location(dname, dparams, start, start+minLen, norm=norm, mixture=mixture)
-			mat.matrix[st:ed,mat.column_dnames.index(dname)] = dataarray
 		#####################################	
 		def mixture_subtract(self, cpsseg, ampscale, minLen, verbose=True):
 			tgtseg = self.sfseghandle
@@ -255,12 +271,17 @@ class descriptor_manager:
 			for d in self.private_energy_descriptors.column_dnames:
 				if d == 'power': continue
 				dparams = self.overlord.descriptor_string_digest(d)
+#				print()
+#				print(self.get('power-odf-7'))
 				self.private_energy_descriptors.recalculate_column(d, dparams['type'], dparams['parent'])
+#				print("POST", self.get('power-odf-7'))
+#				print()
+#				print()
 			# clear segmentation dicts
 			self.segmented_dataspace.clear()
 			self.segmented_norm_dataspace.clear()
 		#####################################	
-		def mixutre_mix(self, cpsseg, ampscale, minLen, descriptors, verbose=True):
+		def mixture_mix(self, cpsseg, ampscale, minLen, descriptors, verbose=True):
 			mix_dur = min(self.len-self.sfseghandle.seek, cpsseg.lengthInFrames)
 			tgtseek = self.sfseghandle.seek
 			for d in descriptors:
@@ -275,7 +296,7 @@ class descriptor_manager:
 					tgtpowers = self.get('power', mixture=True)[tgtseek:tgtseek+mix_dur]
 					cpspowers = cpsseg.desc.get('power')[:mix_dur]
 					mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	# weighted average
-				mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	
+					mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	
 				#if dparams['describes_energy']:
 				#	print("ENERGY", self.sfseghandle.seek)
 				self._edit_tv_data(d.name, mixture, mix_dur, start=self.sfseghandle.seek, mixture=True)
