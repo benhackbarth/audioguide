@@ -197,13 +197,22 @@ class corpus:
 
 		self.data['numberVoices'] = len(corpusFromUserOptions)
 		for cidx, cobj in enumerate(corpusFromUserOptions):
+			
+			if isinstance(cobj.name, list) or isinstance(cobj.name, tuple):
+				fileType = 'pythonlist'
+			elif os.path.isdir(cobj.name):
+				fileType = 'dir'
+				cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
+			elif os.path.isfile(cobj.name):
+				fileType = 'file'
+				cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
+				
+
+
 			# add this voice
 			vcCnt = 0
-			cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
 			cobj.voiceID = cidx
 			self.simSelectRuleByCorpusId.append(cobj.superimposeRule)
-			self.data['vcToCorpusName'].append(cobj.name)
-	
 
 			for name, val in corpusGlobalAttributesFromOptions.items():
 				if name == 'limit': continue
@@ -218,17 +227,16 @@ class corpus:
 			# add global limits
 			totalLimitList.extend(self.globalLimits) # from CORPUS_GLOBAL_ATTRIBUTES
 
-			# get segments/files list
-			timeList = []
-			if os.path.isdir(cobj.name): fileType = 'dir'
-			if os.path.isfile(cobj.name): fileType = 'file'
-			if os.path.islink(cobj.name): fileType = 'link'
-			
+
+
+
 			# list of segmentation files?				
 			if type(cobj.segmentationFile) in [tuple, list]: # a list of seg files
 				cobj.segmentationFile = [path.test(string, ops.SEARCH_PATHS)[1] for string in cobj.segmentationFile]
 
 			
+			# get segments/files list
+			timeList = []
 			if fileType == 'file': # an audio file
 				##################
 				## input a FILE ## -- look for audacity-style txt label file
@@ -262,6 +270,20 @@ class corpus:
 					for timeSeg in times:
 						timeList.append( [file] + timeSeg )
 				cobj.numbSfFiles = len(files)
+			elif fileType == 'pythonlist': # a directory
+				#########################
+				## input a PYTHON LIST ##
+				#########################
+				for i in range(len(cobj.name)):
+					print(cobj.name[i])
+					cobj.name[i][0] = util.verifyPath(cobj.name[i][0], AnalInterface.searchPaths)
+				timeList.extend(cobj.name)
+				cobj.numbSfFiles = len(cobj.name)
+				cobj.name = timeList[0][0]
+
+
+			self.data['vcToCorpusName'].append(cobj.name)
+
 			# reset counters...
 			segCount = 0
 			windowDist = descriptordata.hannWin(len(timeList)*2)
