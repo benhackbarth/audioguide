@@ -153,9 +153,14 @@ for sidx, s in enumerate(ops.SEARCH):
 
 
 
-for segidx, tgtseg in enumerate(tgt.segs):
-	print(segidx, tgtseg.desc.get('mfcc1', stop=3), tgtseg.desc.get('mfcc1', stop=3, norm=True), tgtseg.desc.overlord.norm_timevarying_matrix.matrix.shape)
-sys.exit()
+#dumpdata = {}
+#for segidx, tgtseg in enumerate(tgt.segs):
+#	dumpdata[segidx] = tgtseg.desc.get('power-seg'), list(tgtseg.desc.get('power')), list(tgtseg.desc.get('power-odf-7'))
+#fh = open("/Users/ben/Desktop/benchmark/newversion.json", 'w')
+#json.dump(dumpdata, fh)
+#fh.close()
+#sys.exit()
+
 
 while False in [t.selectiondone for t in tgt.segs]:
 	p.percentageBarNext()
@@ -199,6 +204,7 @@ while False in [t.selectiondone for t in tgt.segs]:
 		##############################################################
 		if 'force' not in [onsett, overt, segidxt]: # test for amplitude threshold
 			if not trig:
+				print('target too soft', segidx, trigVal, timeInSec)
 				superimp.skip('target too soft', trigVal, timeInSec)
 				tgtseg.seek += ops.SUPERIMPOSE.incr
 				continue # not loud enough, next frame

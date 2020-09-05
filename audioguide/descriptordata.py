@@ -90,7 +90,7 @@ class descriptor_manager:
 		self.desc_obj_tags = [o.tag for o in self.desc_objs]
 		self.norm_tags = list(set(self.desc_obj_tags))
 		self.norm_coeff_tag_dict = {t: {} for t in self.norm_tags}
-		self.tv_length = sum([o.len for o in self.desc_objs])
+		self.tv_length = sum([o.get('effDurFrames-seg') for o in self.desc_objs])
 		self.seg_length = len(self.desc_objs)
 		# find tag change idxes
 		tag_change_seg_indxs = list(np.where(np.roll(self.desc_obj_tags, 1) != self.desc_obj_tags)[0])
@@ -176,25 +176,26 @@ class descriptor_manager:
 			self.tag = tag
 			self.envelope = envelope
 			self.has_envelope = self.envelope is not None
-			# data containers
-			self.private_energy_descriptors = expandable_matrix()
 			self.segmented_dataspace = {} # averaged descriptors unique to this segment
+			self.rewind()
+		#####################################	
+		def rewind(self):
+			# resets internal data spaces for a new concatenation
+			self.private_energy_descriptors = expandable_matrix()
 			self.segmented_norm_dataspace = {} # averaged descriptors unique to this segment
-			self.norm_location = None # set in setup_normalization
 		#####################################	
 		def get_matrix_location(self, dname, dparams, start, stop, norm=False, mixture=False):
 			# there are three possible arrays that we may need to access to get timevarying descriptor values
 			#		1. the main, raw descriptor array loaded from disk. these descriptors are unnormalized, and the array is shared between multiple instances of sf_segment_descriptors()
 			#		2. the main normalized descriptor array. self.overlord.norm_timevarying_matrix, also shared among objects. this is one long array regardless of obj file origins
-			#		3. this obj's private_energy_descriptors, which are not shared. this is for things like envelopped descriptors which describe energy
-			#print("HERE", self.tag, dname, start, stop)
+			#		3. this obj's private_energy_descriptors, which are not shared. this is for things like envelopped descriptors which describe energy and may differ for sf segments sharing the same frames
 			if stop == None: length = self.len
 			else: length = stop-start
 			if norm:
 				st = "norm matrix"
 				mat = self.overlord.norm_timevarying_matrix
 				idx = self.norm_start
-				length = min(stop, self.efflen)
+				length = min(length, self.efflen)
 			elif mixture:
 				st = "mixture matrix"
 				mat = self.private_mixture_descriptors
@@ -202,13 +203,20 @@ class descriptor_manager:
 			elif dparams['describes_energy'] and self.has_envelope:
 				st = "private matrix"
 				mat = self.private_energy_descriptors
-				if not mat.has_column(dname):
-					pmat = self.overlord.sffile2matrix[self.sfseghandle.filename]
-					if not pmat.has_column(dname):
-						pmat.calculate_new_column(dname, dparams['type'], dparams['parent'])
-					energydesc = pmat.get_columns([dname], rowslice=slice(self.start, self.end))
-					mat.add_columns(np.array(energydesc, copy=True) * self.envelope, [dname])
 				idx = 0
+				if not mat.has_column(dname):
+					# check to see if mat has the parent column...
+					# if so, the envelope is already applied
+					if mat.has_column(dparams['parent']):
+						mat.calculate_new_column(dname, dparams['type'], dparams['parent'])
+					else:
+						# otherwise we need to read from the raw matrix and apply the envelope
+						pmat = self.overlord.sffile2matrix[self.sfseghandle.filename]
+						if not pmat.has_column(dname):
+							pmat.calculate_new_column(dname, dparams['type'], dparams['parent'])
+						energydesc = pmat.get_columns([dname], rowslice=slice(self.start, self.end))
+						#if self.tag == 'tgt': print("TGT NEW COLUMN get_matrix_location", self.sfseghandle.idx, dname, energydesc)
+						mat.add_columns(np.array(energydesc, copy=True) * self.envelope, [dname])
 			else:
 				st = "raw matrix"
 				mat = self.overlord.sffile2matrix[self.sfseghandle.filename]
@@ -216,7 +224,6 @@ class descriptor_manager:
 					# on demand calculation of new columns - delta, deltadelta, odf
 					mat.calculate_new_column(dname, dparams['type'], dparams['parent'])
 				idx = self.start
-
 			#print(self.tag, st, idx, length, dname, start, stop)
 			return mat, idx, idx+length
 		#####################################	
@@ -266,7 +273,9 @@ class descriptor_manager:
 			rawSubtraction = tgtseg.desc.get('power', start=tgtseg.seek, stop=tgtseg.seek+minLen)-(cpsseg.desc.get('power', stop=minLen)*ampscale)
 			rawSubtraction = np.clip(rawSubtraction, 0, None)
 			postSubtractPeak = util.ampToDb(np.max(rawSubtraction))
-			self._edit_tv_data('power', rawSubtraction, minLen, start=tgtseg.seek, norm=False, mixture=False)
+			
+			#self._edit_tv_data('power', rawSubtraction, minLen, start=tgtseg.seek, norm=False, mixture=False)
+			
 			#print("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
 			for d in self.private_energy_descriptors.column_dnames:
 				if d == 'power': continue
@@ -326,59 +335,6 @@ def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAm
 		print("\tcorpus:", cps_vals[0:maxxy])
 		print("\tnewmix:", mixture[0:maxxy])
 	return mixture
-
-
-
-
-#	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
-#			if not d.seg: # is time-varying
-#				self.mixdesc[d.name][tgtsegSeek:tgtsegSeek+mix_dur] = timeVaryingDescriptorMixture(self, tgtsegSeek, cpsh, 0, d, cpsAmpScale)
-#			else: # is segmented
-#				self.mixdesc[d.name].clear()
-#		self.has_been_mixed = True
-#
-
-
-if __name__ == '__main__':
-	descriptor_manager = descriptor_manager()
-	class fakecsf:
-		def __init__(self):
-			self.filename = 'cage/path/aiff'
-	this_fake_csf = fakecsf()
-
-	fakedata = np.load('/Users/ben/Documents/audioguide/audioguide/data/cage-69f74bc6b9bf-ircamd.npy')
-	tgtwhole = descriptor_manager.create_sf_descriptor_obj(this_fake_csf, fakedata, 0, 1110, tag='tgtwhole')
-	print(tgtwhole.get('power-odf-7'))
-
-
-
-	desc2 = descriptor_manager.create_sf_descriptor_obj(this_fake_csf, fakedata, 50, 300, tag='tgt')
-	desc3 = descriptor_manager.create_sf_descriptor_obj(this_fake_csf, fakedata, 50, 200, tag='tgt')
-	desc4 = descriptor_manager.create_sf_descriptor_obj(this_fake_csf, fakedata, 100, 50, tag='cps', envelope=np.linspace(0, 1, num=50))
-	desc = descriptor_manager.create_sf_descriptor_obj(this_fake_csf, fakedata, 20, 5, tag='cps', envelope=0.)
-	print(desc.get('centroid'))
-	print(desc.get('noisiness-delta'))
-	print(desc.get('mfcc2'))
-	print(desc.get('power'))
-	print(desc4.get('power'))
-	descriptor_manager.normalize_setup([desc, desc2, desc3, desc4])
-
-	from audioguide.userclasses import SingleDescriptor as d
-	d_list = [d('power-seg', norm=1), d('centroid'), d('kurtosis-seg'), d('noisiness-delta'), d('mfcc1', norm=1)]
-	for dobj in d_list:
-		descriptor_manager.normalize_descriptor(dobj.name, dobj.normmethod, dobj.norm)
-
-
-	print(desc3.get('power-seg', norm=True))
-	print(desc.get('kurtosis-seg', norm=True))
-	print(desc2.get('kurtosis-seg', norm=True))
-	print(desc3.get('kurtosis-seg', norm=True))
-	print(desc4.get('kurtosis-seg', norm=True))
-	print(desc.get('centroid', norm=True))
-	#print(desc.get('mfcc1-delta', start=9, stop=10))
-	#print(desc.get('power-seg'))
-
-
 
 
 

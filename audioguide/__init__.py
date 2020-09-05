@@ -28,3 +28,59 @@ def optionsfiletest(argv):
 		sys.exit(1)
 	return opspath
 
+
+
+
+
+
+
+
+class concatenate:
+
+	def __init__(self, ):
+		defaultpath, libpath = setup(os.path.dirname(__file__))
+		opspath = optionsfiletest(sys.argv)
+		sys.path.append(libpath)
+		# import audioguide's submodules
+		from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, util, descriptordata, anallinkage, musicalwriting
+		# import other modules
+		import numpy as np
+		import json
+		
+		###########################################
+		## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
+		###########################################
+		ops = concatenativeclasses.parseOptions(opsfile=opspath, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
+		if 'concateMethod' in ops.EXPERIMENTAL and ops.EXPERIMENTAL['concateMethod'] == 'framebyframe':
+			util.error("CONFIG", "Frame by frame concatenation is only possible with the agConcatenateFrames.py script.")
+
+
+		p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), ops.HTML_LOG_FILEPATH)
+		p.printProgramInfo(audioguide.__version__)
+		AnalInterface = ops.createAnalInterface(p)
+		p.middleprint('SOUNDFILE CONCATENATION')
+
+
+
+
+	def initalize_target(self, ):
+		pass
+
+
+	def initalize_corpus(self, ):
+		pass
+
+
+	def normalize(self, ):
+		pass
+
+	def initalize_concatenate(self, ):
+		pass
+
+
+	def concatenate(self, ):
+		pass
+
+
+	def render(self, ):
+		pass
