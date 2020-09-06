@@ -179,7 +179,8 @@ class corpusSegment(sfsegment):
 			else:
 				tgtrawpowers = tgtseg.desc.get('power', start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
 				cpsrawpowers = self.desc.get('power', stop=array_len)
-				mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / (tgtrawpowers + cpsrawpowers)
+				mixedpowers = (tgtrawpowers + cpsrawpowers)
+				mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / mixedpowers
 
 			if dobj.seg: # segmented
 				if dobj.describes_energy:

@@ -83,7 +83,7 @@ class descriptor_manager:
 			self.descriptor_string_to_params[dname] = {'type': type, 'isseg': seg, 'seg_method': seg_method, 'parent': parent, 'describes_energy': dname in self.descriptIsAmp or parent in self.descriptIsAmp, 'is_mixable': dname not in self.descriptNotMixable}
 		return self.descriptor_string_to_params[dname]
 	########################################
-	def normalize_setup(self, segment_objs):
+	def normalize(self, segment_objs, dobj_list):
 		# make a list of all desc objects in order by tag...
 		self.desc_objs = [o.desc for o in segment_objs]
 		self.desc_objs.sort(key=lambda x: x.tag)
@@ -108,21 +108,6 @@ class descriptor_manager:
 		for idx, tag in enumerate(self.norm_tags):	
 			self.norm_segtag_to_slice[tag] = slice(tag_change_seg_indxs[idx], tag_change_seg_indxs[idx+1])
 			self.norm_tvtag_to_slice[tag] = slice(tag_change_tv_indxs[idx], tag_change_tv_indxs[idx+1])
-	########################################
-	def _normalize_coeffs(self, dname, dataarray, dnormmethod, std_degree_of_freedom=0.):
-		if dnormmethod == 'stddev':
-			return {'method': dnormmethod, 'mean': np.mean(dataarray), 'std': np.std(dataarray, ddof=std_degree_of_freedom)}
-		elif dnormmethod == 'minmax':
-			m = np.min(dataarray)
-			return {'method': dnormmethod, 'min': m, 'range': np.max(dataarray)-m}
-	########################################
-	def normalize_data(self, dataarray, coeffDict):
-		if coeffDict['method'] == 'stddev':
-			return (dataarray-coeffDict['mean'])/coeffDict['std']
-		elif coeffDict['method'] == 'minmax':
-			return (dataarray-coeffDict['min'])/coeffDict['range']
-	########################################
-	def normalize_descriptors(self, dobj_list):
 		seg_list = [dobj for dobj in dobj_list if dobj.seg]
 		# get seg data coeffs
 		for didx, dobj in enumerate(seg_list):
@@ -146,7 +131,6 @@ class descriptor_manager:
 				o.norm_start = cnt
 				cnt += o.efflen
 				o.norm_end = cnt
-				
 			if dobj.norm == 1: # normalize all data together
 				coeffdict = self._normalize_coeffs(dobj.name, column, dobj.normmethod)
 				column = self.normalize_data(column, coeffdict)
@@ -156,6 +140,19 @@ class descriptor_manager:
 					self.norm_coeff_tag_dict[tag][dobj.name] = self._normalize_coeffs(dobj.name, column[self.norm_tvtag_to_slice[tag]], dobj.normmethod)
 					column[self.norm_tvtag_to_slice[tag]] = self.normalize_data(column[self.norm_tvtag_to_slice[tag]], self.norm_coeff_tag_dict[tag][dobj.name])
 			self.norm_timevarying_matrix.add_columns(column, [dobj.name])
+	########################################
+	def _normalize_coeffs(self, dname, dataarray, dnormmethod, std_degree_of_freedom=0.):
+		if dnormmethod == 'stddev':
+			return {'method': dnormmethod, 'mean': np.mean(dataarray), 'std': np.std(dataarray, ddof=std_degree_of_freedom)}
+		elif dnormmethod == 'minmax':
+			m = np.min(dataarray)
+			return {'method': dnormmethod, 'min': m, 'range': np.max(dataarray)-m}
+	########################################
+	def normalize_data(self, dataarray, coeffDict):
+		if coeffDict['method'] == 'stddev':
+			return (dataarray-coeffDict['mean'])/coeffDict['std']
+		elif coeffDict['method'] == 'minmax':
+			return (dataarray-coeffDict['min'])/coeffDict['range']
 	########################################
 	def create_sf_descriptor_obj(self, sfseghandle, rawmatrix, startframe_in_matrix, length_in_matrix, tag=None, envelope=None):
 		'''this function gets a new class sf_segment_descriptors and links it to the overlord'''
@@ -199,11 +196,11 @@ class descriptor_manager:
 			elif mixture:
 				st = "mixture matrix"
 				mat = self.private_mixture_descriptors
-				idx = 0
+				idx = start
 			elif dparams['describes_energy'] and self.has_envelope:
 				st = "private matrix"
 				mat = self.private_energy_descriptors
-				idx = 0
+				idx = start
 				if not mat.has_column(dname):
 					# check to see if mat has the parent column...
 					# if so, the envelope is already applied
@@ -274,18 +271,12 @@ class descriptor_manager:
 			rawSubtraction = np.clip(rawSubtraction, 0, None)
 			postSubtractPeak = util.ampToDb(np.max(rawSubtraction))
 			
-			#self._edit_tv_data('power', rawSubtraction, minLen, start=tgtseg.seek, norm=False, mixture=False)
-			
-			#print("\tsubtracted %i corpus frames from target's amplitude -- original peak %.1fdB, new peak %.1fdB"%(minLen, preSubtractPeak, postSubtractPeak))
+			self._edit_tv_data('power', rawSubtraction, minLen, start=tgtseg.seek, norm=False, mixture=False)
 			for d in self.private_energy_descriptors.column_dnames:
 				if d == 'power': continue
 				dparams = self.overlord.descriptor_string_digest(d)
-#				print()
-#				print(self.get('power-odf-7'))
 				self.private_energy_descriptors.recalculate_column(d, dparams['type'], dparams['parent'])
-#				print("POST", self.get('power-odf-7'))
-#				print()
-#				print()
+
 			# clear segmentation dicts
 			self.segmented_dataspace.clear()
 			self.segmented_norm_dataspace.clear()
