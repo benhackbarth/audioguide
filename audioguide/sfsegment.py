@@ -163,40 +163,6 @@ class corpusSegment(sfsegment):
 		self.clipDurationToTarget = clipDurationToTarget
 		self.instrTag = instrTag
 		self.instrParams = instrParams
-	###################################################
-	def getValuesForSimCalc(self, tgtseg, tgtSeek, array_len, dobj, superimposeObj):
-		tgtvals = tgtseg.desc.get(dobj.name, start=tgtSeek, stop=tgtSeek+array_len, norm=True)	
-		if superimposeObj.calcMethod == "mixture" and dobj.is_mixable and tgtseg.has_been_mixed:
-			if dobj.seg: d = dobj.parents[0]
-			else:  d = dobj.name
-			#############################
-			## USE DESCRIPTOR MIXTURES ##
-			#############################
-			tgtrawvals = tgtseg.desc.get(d, start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
-			cpsrawvals = self.desc.get(d, stop=array_len)
-			if dobj.describes_energy:
-				mixedvals = tgtrawvals + cpsrawvals
-			else:
-				tgtrawpowers = tgtseg.desc.get('power', start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
-				cpsrawpowers = self.desc.get('power', stop=array_len)
-				mixedpowers = (tgtrawpowers + cpsrawpowers)
-				mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / mixedpowers
-
-			if dobj.seg: # segmented
-				if dobj.describes_energy:
-					averagedVal = np.average(mixedvals)
-				else:
-					try: averagedVal = np.average(mixedvals, weights=mixedpowers)
-					except ZeroDivisionError: averagedVal = 0
-				normedVal = self.desc.on_the_fly_data_norm(dobj.name, averagedVal)
-				return tgtvals, normedVal
-			else: # time-varying
-				normedvals = self.desc.on_the_fly_data_norm(dobj.name, mixedvals)
-				return tgtvals, normedvals
-		else: # not mixed
-			return tgtvals, self.desc.get(dobj.name, norm=True)	
-	
-
 
 
 
@@ -214,11 +180,6 @@ class targetSegment(sfsegment):
 		self.classification = 0
 		self.numberSelectedUnits = 0
 		self.idx = segmentidx
-	###################################################
-	def initMixture(self, AnalInterface):
-		self.desc.init_mixture(AnalInterface.mixtureDescriptors)
-		self.has_been_mixed = False
-		self.originalPeak = self.desc.get('peakTime-seg') # keep original, unsubtacted peak
 	#################################
 #	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
 #		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
@@ -231,28 +192,28 @@ class targetSegment(sfsegment):
 
 
 
-def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAmpScale, v=False):
-	mix_dur = min(tgtsegh.lengthInFrames-tgtseek, cpssegh.lengthInFrames-cpsseek)
-	tgt_vals = tgtsegh.mixdesc[dobj.name][tgtseek:tgtseek+mix_dur]
-	cps_vals = cpssegh.desc[dobj.name][cpsseek:cpsseek+mix_dur]
-	if dobj.describes_energy: # powers are summed
-		mixture = tgt_vals + (cps_vals*cpsAmpScale)
-	elif dobj.name == 'zeroCross': 
-		mixture = np.maximum(tgt_vals, cps_vals)	
-	else: # power averaged
-		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
-		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale
-		mixture = ((tgt_vals*tgt_amps)+(cps_vals*cps_amps))/(tgt_amps + cps_amps)	
-	if v: # verbose printing
-		maxxy = min(5, len(mixture))
-		if dobj.describes_energy: # powers are summed
-			print("SUM", dobj.name, tgtseek, mix_dur)
-		else:
-			print("MIXTURE", dobj.name, tgtseek, mix_dur)
-		print("\tpastmix:", tgt_vals[0:maxxy])
-		print("\tcorpus:", cps_vals[0:maxxy])
-		print("\tnewmix:", mixture[0:maxxy])
-	return mixture
+#def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAmpScale, v=False):
+#	mix_dur = min(tgtsegh.lengthInFrames-tgtseek, cpssegh.lengthInFrames-cpsseek)
+#	tgt_vals = tgtsegh.mixdesc[dobj.name][tgtseek:tgtseek+mix_dur]
+#	cps_vals = cpssegh.desc[dobj.name][cpsseek:cpsseek+mix_dur]
+#	if dobj.describes_energy: # powers are summed
+#		mixture = tgt_vals + (cps_vals*cpsAmpScale)
+#	elif dobj.name == 'zeroCross': 
+#		mixture = np.maximum(tgt_vals, cps_vals)	
+#	else: # power averaged
+#		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
+#		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale
+#		mixture = ((tgt_vals*tgt_amps)+(cps_vals*cps_amps))/(tgt_amps + cps_amps)	
+#	if v: # verbose printing
+#		maxxy = min(5, len(mixture))
+#		if dobj.describes_energy: # powers are summed
+#			print("SUM", dobj.name, tgtseek, mix_dur)
+#		else:
+#			print("MIXTURE", dobj.name, tgtseek, mix_dur)
+#		print("\tpastmix:", tgt_vals[0:maxxy])
+#		print("\tcorpus:", cps_vals[0:maxxy])
+#		print("\tnewmix:", mixture[0:maxxy])
+#	return mixture
 
 
 
@@ -419,7 +380,9 @@ class target: # the target
 		for seg in self.segs:
 			seg.seek = 0
 			seg.selectiondone = False
-			seg.initMixture(AnalInterface)
+			seg.desc.init_mixture(AnalInterface.mixtureDescriptors)
+			seg.has_been_mixed = False
+			seg.originalPeak = seg.desc.get('peakTime-seg') # keep original, unsubtacted peak
 	########################################
 	def plotMetrics(self, outputpath, AnalInterface, p, normalise=True):
 		import matplotlib.pyplot as plt
@@ -538,7 +501,6 @@ def segmentationAlgoV2(threshold_onset, threshold_offset, riseratio, powers, odf
 	return segments, logic
 
 
-
 def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True, stdDeltaDegreesOfFreedom=0):
 	if descriptorObj.seg:
 		allDescs = np.array([sfsObj.desc.get(descriptorObj.name) for sfsObj in listOfSegmentObjs])
@@ -554,14 +516,14 @@ def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=Tru
 	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }
 
 
-
-
-def applyDescriptorNormalisation(listOfSegmentObjs, dobj, descStatistics):
-	# this function must be unique for the corpus and target as they will have different normalization coefs
-	normdatadict = {'method': dobj.normmethod}
-	normdatadict.update(descStatistics)
-	normdatadict['range'] = normdatadict['max']-normdatadict['min']
-
-	for sfseg in listOfSegmentObjs:
-		sfseg.desc[dobj.name].setNorm(normdatadict)
-
+#
+#
+#def applyDescriptorNormalisation(listOfSegmentObjs, dobj, descStatistics):
+#	# this function must be unique for the corpus and target as they will have different normalization coefs
+#	normdatadict = {'method': dobj.normmethod}
+#	normdatadict.update(descStatistics)
+#	normdatadict['range'] = normdatadict['max']-normdatadict['min']
+#
+#	for sfseg in listOfSegmentObjs:
+#		sfseg.desc[dobj.name].setNorm(normdatadict)
+#

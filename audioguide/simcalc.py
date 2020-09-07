@@ -160,7 +160,7 @@ class distanceCalculations:
 			tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
 			try:
 				for d in descriptor_list:
-					tgtvals, cpsvals = c.getValuesForSimCalc( tgtseg, tgt_start, array_len, d, superimposeObj )
+					tgtvals, cpsvals = getValuesForSimCalc( tgtseg, tgt_start, array_len, c, d, superimposeObj )
 					if d.seg:
 						# SPECIAL EXCEPTION IF MANIPULATING POWER FOR SIMULTANEOUS LAYERING:
 						if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
@@ -199,6 +199,43 @@ class distanceCalculations:
 			elif method == 'farthest_percent':
 				newList = self.corpusObjs[numb_entries:]
 		return newList
+
+
+
+
+
+def getValuesForSimCalc(tgtseg, tgtSeek, array_len, cpsseg, dobj, superimposeObj):
+	tgtvals = tgtseg.desc.get(dobj.name, start=tgtSeek, stop=tgtSeek+array_len, norm=True)	
+	if superimposeObj.calcMethod == "mixture" and dobj.is_mixable and tgtseg.has_been_mixed:
+		if dobj.seg: d = dobj.parents[0]
+		else:  d = dobj.name
+		#############################
+		## USE DESCRIPTOR MIXTURES ##
+		#############################
+		tgtrawvals = tgtseg.desc.get(d, start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+		cpsrawvals = cpsseg.desc.get(d, stop=array_len)
+		if dobj.describes_energy:
+			mixedvals = tgtrawvals + cpsrawvals
+		else:
+			tgtrawpowers = tgtseg.desc.get('power', start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+			cpsrawpowers = cpsseg.desc.get('power', stop=array_len)
+			mixedpowers = (tgtrawpowers + cpsrawpowers)
+			mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / mixedpowers
+
+		if dobj.seg: # segmented
+			if dobj.describes_energy:
+				averagedVal = np.average(mixedvals)
+			else:
+				try: averagedVal = np.average(mixedvals, weights=mixedpowers)
+				except ZeroDivisionError: averagedVal = 0
+			normedVal = cpsseg.desc.on_the_fly_data_norm(dobj.name, averagedVal)
+			return tgtvals, normedVal
+		else: # time-varying
+			normedvals = cpsseg.desc.on_the_fly_data_norm(dobj.name, mixedvals)
+			return tgtvals, normedvals
+	else: # not mixed
+		return tgtvals, cpsseg.desc.get(dobj.name, norm=True)	
+
 
 
 

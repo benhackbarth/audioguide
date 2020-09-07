@@ -281,25 +281,31 @@ class descriptor_manager:
 			self.segmented_dataspace.clear()
 			self.segmented_norm_dataspace.clear()
 		#####################################	
-		def mixture_mix(self, cpsseg, ampscale, minLen, descriptors, verbose=True):
+		def mixture_mix(self, cpsseg, ampscale, minLen, descriptors, myfile, verbose=True):
 			mix_dur = min(self.len-self.sfseghandle.seek, cpsseg.lengthInFrames)
 			tgtseek = self.sfseghandle.seek
+			print()
+			print()
+			myfile.write("%i %i %i\n"%(self.sfseghandle.idx, self.sfseghandle.seek, mix_dur))
+			print()
+			print()
 			for d in descriptors:
 				dparams = self.overlord.descriptor_string_digest(d.name)
 				if dparams['isseg']:
 					continue
-				tgtvalues = self.get(d.name, mixture=True)[tgtseek:tgtseek+mix_dur]
-				cpsvalues = cpsseg.desc.get(d.name)[:mix_dur]
+				tgtvalues = self.get(d.name, mixture=True, start=tgtseek, stop=tgtseek+mix_dur)
+				cpsvalues = cpsseg.desc.get(d.name, stop=mix_dur)
 				if dparams['describes_energy']:
 					mixture = tgtvalues + cpsvalues	# simple sum
 				else:	
-					tgtpowers = self.get('power', mixture=True)[tgtseek:tgtseek+mix_dur]
-					cpspowers = cpsseg.desc.get('power')[:mix_dur]
+					tgtpowers = self.get('power', mixture=True, start=tgtseek, stop=tgtseek+mix_dur)
+					cpspowers = cpsseg.desc.get('power', stop=mix_dur)
 					mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	# weighted average
 					mixture = ((tgtvalues*tgtpowers)+(cpsvalues*cpspowers))/(tgtpowers + cpspowers)	
 				#if dparams['describes_energy']:
 				#	print("ENERGY", self.sfseghandle.seek)
-				self._edit_tv_data(d.name, mixture, mix_dur, start=self.sfseghandle.seek, mixture=True)
+				self._edit_tv_data(d.name, mixture, mix_dur, start=tgtseek, mixture=True)
+
 
 
 
