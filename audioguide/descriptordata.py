@@ -89,6 +89,7 @@ class descriptor_manager:
 		self.desc_objs.sort(key=lambda x: x.tag)
 		self.desc_obj_tags = [o.tag for o in self.desc_objs]
 		self.norm_tags = list(set(self.desc_obj_tags))
+		self.norm_tags.sort() # make sure they are ordered!
 		self.norm_coeff_tag_dict = {t: {} for t in self.norm_tags}
 		self.tv_length = sum([o.get('effDurFrames-seg') for o in self.desc_objs])
 		self.seg_length = len(self.desc_objs)
@@ -220,8 +221,7 @@ class descriptor_manager:
 				if not mat.has_column(dname):
 					# on demand calculation of new columns - delta, deltadelta, odf
 					mat.calculate_new_column(dname, dparams['type'], dparams['parent'])
-				idx = self.start
-			#print(self.tag, st, idx, length, dname, start, stop)
+				idx = start + self.start
 			return mat, idx, idx+length
 		#####################################	
 		def get(self, dname, start=0, stop=None, norm=False, mixture=False, copy=False):
@@ -281,14 +281,9 @@ class descriptor_manager:
 			self.segmented_dataspace.clear()
 			self.segmented_norm_dataspace.clear()
 		#####################################	
-		def mixture_mix(self, cpsseg, ampscale, minLen, descriptors, myfile, verbose=True):
+		def mixture_mix(self, cpsseg, ampscale, minLen, descriptors, verbose=True):
 			mix_dur = min(self.len-self.sfseghandle.seek, cpsseg.lengthInFrames)
 			tgtseek = self.sfseghandle.seek
-			print()
-			print()
-			myfile.write("%i %i %i\n"%(self.sfseghandle.idx, self.sfseghandle.seek, mix_dur))
-			print()
-			print()
 			for d in descriptors:
 				dparams = self.overlord.descriptor_string_digest(d.name)
 				if dparams['isseg']:
@@ -309,29 +304,6 @@ class descriptor_manager:
 
 
 
-
-def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAmpScale, v=False):
-	mix_dur = min(tgtsegh.lengthInFrames-tgtseek, cpssegh.lengthInFrames-cpsseek)
-	tgt_vals = tgtsegh.mixdesc[dobj.name][tgtseek:tgtseek+mix_dur]
-	cps_vals = cpssegh.desc[dobj.name][cpsseek:cpsseek+mix_dur]
-	if dobj.describes_energy: # powers are summed
-		mixture = tgt_vals + (cps_vals*cpsAmpScale)
-	elif dobj.name == 'zeroCross': 
-		mixture = np.maximum(tgt_vals, cps_vals)	
-	else: # power averaged
-		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
-		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale
-		mixture = ((tgt_vals*tgt_amps)+(cps_vals*cps_amps))/(tgt_amps + cps_amps)	
-	if v: # verbose printing
-		maxxy = min(5, len(mixture))
-		if dobj.describes_energy: # powers are summed
-			print("SUM", dobj.name, tgtseek, mix_dur)
-		else:
-			print("MIXTURE", dobj.name, tgtseek, mix_dur)
-		print("\tpastmix:", tgt_vals[0:maxxy])
-		print("\tcorpus:", cps_vals[0:maxxy])
-		print("\tnewmix:", mixture[0:maxxy])
-	return mixture
 
 
 
@@ -395,19 +367,6 @@ def TimevaryingDescriptorComputation(origdata, dname, type):
 
 
 
-def odf(powers, numberaverage):
-	# with Norbert Schnell
-	# 	an averaged delta function
-	matrixe = np.zeros((numberaverage, len(powers))) # matrix of length x number average
-	for frame in range(len(powers)):
-		for i in range(1, numberaverage+1):
-			if frame-i >= 0: matrixe[i-1][frame] = powers[frame-i] # fill it
-	medians = np.median(matrixe, axis=0)
-	newdata = powers-medians
-	return newdata
-
-
-
 def soundSegmentClassification(descriptors, segObjs, numbClasses=4):
 	try:
 		from sklearn.cluster import KMeans
@@ -423,6 +382,20 @@ def soundSegmentClassification(descriptors, segObjs, numbClasses=4):
 	kmeans.fit(scaleddata)
 	y_km = kmeans.fit_predict(data)
 	return y_km
+
+
+
+
+def odf(powers, numberaverage):
+	# with Norbert Schnell
+	# 	an averaged delta function
+	matrixe = np.zeros((numberaverage, len(powers))) # matrix of length x number average
+	for frame in range(len(powers)):
+		for i in range(1, numberaverage+1):
+			if frame-i >= 0: matrixe[i-1][frame] = powers[frame-i] # fill it
+	medians = np.median(matrixe, axis=0)
+	newdata = powers-medians
+	return newdata
 
 
 

@@ -15,7 +15,6 @@ from audioguide import sfsegment, concatenativeclasses, simcalc, userinterface, 
 import numpy as np
 import json
 
-myfile = open('/Users/ben/Desktop/benchmark/helpme119.txt', 'w')
 
 
 ###########################################
@@ -257,7 +256,7 @@ while False in [t.selectiondone for t in tgt.segs]:
 		#####################################
 		if ops.SUPERIMPOSE.calcMethod == "mixture":
 			#tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface)
-			tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface.mixtureDescriptors, myfile)
+			tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, AnalInterface.mixtureDescriptors)
 			tgtseg.has_been_mixed = True
 		#################################
 		## append selected corpus unit ##
@@ -467,16 +466,4 @@ if ops.HTML_LOG_FILEPATH != None: p.writehtmllog(ops.HTML_LOG_FILEPATH)
 	
 if ops.CSOUND_CSD_FILEPATH != None and ops.CSOUND_RENDER_FILEPATH != None and ops.CSOUND_PLAY_RENDERED_FILE:
 	csd.playFile( ops.CSOUND_RENDER_FILEPATH )
-		
-	
 
-
-
-
-
-
-
-
-
-
-myfile.close()

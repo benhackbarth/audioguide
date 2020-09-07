@@ -69,7 +69,7 @@ class AnalInterface:
 		# set up mfccs
 		self.numbMfccs = numbMfccs
 		for i in range(self.numbMfccs):
-			descriptToFiles.append(("mfcc%i"%i,                  'ircamd', False, True,  'MFCC', self.numbMfccs, i))
+			descriptToFiles.append(("mfcc%i"%i, 'ircamd', False, True,  'MFCC', self.numbMfccs, i))
 		# other stuff
 		self.forceAnal = forceAnal
 		self.searchPaths = searchPaths

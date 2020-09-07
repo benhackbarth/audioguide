@@ -180,40 +180,9 @@ class targetSegment(sfsegment):
 		self.classification = 0
 		self.numberSelectedUnits = 0
 		self.idx = segmentidx
-	#################################
-#	def mixSelectedSamplesDescriptors(self, cpsh, cpsAmpScale, tgtsegSeek, AnalInterface, v=True):
-#		mix_dur = min(self.lengthInFrames-tgtsegSeek, cpsh.lengthInFrames)
-#		for d in AnalInterface.mixtureDescriptors:
-#			if not d.seg: # is time-varying
-#				self.mixdesc[d.name][tgtsegSeek:tgtsegSeek+mix_dur] = timeVaryingDescriptorMixture(self, tgtsegSeek, cpsh, 0, d, cpsAmpScale)
-#			else: # is segmented
-#				self.mixdesc[d.name].clear()
-#		self.has_been_mixed = True
 
 
 
-#def timeVaryingDescriptorMixture(tgtsegh, tgtseek, cpssegh, cpsseek, dobj, cpsAmpScale, v=False):
-#	mix_dur = min(tgtsegh.lengthInFrames-tgtseek, cpssegh.lengthInFrames-cpsseek)
-#	tgt_vals = tgtsegh.mixdesc[dobj.name][tgtseek:tgtseek+mix_dur]
-#	cps_vals = cpssegh.desc[dobj.name][cpsseek:cpsseek+mix_dur]
-#	if dobj.describes_energy: # powers are summed
-#		mixture = tgt_vals + (cps_vals*cpsAmpScale)
-#	elif dobj.name == 'zeroCross': 
-#		mixture = np.maximum(tgt_vals, cps_vals)	
-#	else: # power averaged
-#		tgt_amps = tgtsegh.mixdesc['power'][tgtseek:tgtseek+mix_dur]
-#		cps_amps = cpssegh.desc['power'][cpsseek:cpsseek+mix_dur]*cpsAmpScale
-#		mixture = ((tgt_vals*tgt_amps)+(cps_vals*cps_amps))/(tgt_amps + cps_amps)	
-#	if v: # verbose printing
-#		maxxy = min(5, len(mixture))
-#		if dobj.describes_energy: # powers are summed
-#			print("SUM", dobj.name, tgtseek, mix_dur)
-#		else:
-#			print("MIXTURE", dobj.name, tgtseek, mix_dur)
-#		print("\tpastmix:", tgt_vals[0:maxxy])
-#		print("\tcorpus:", cps_vals[0:maxxy])
-#		print("\tnewmix:", mixture[0:maxxy])
-#	return mixture
 
 
 
@@ -501,6 +470,8 @@ def segmentationAlgoV2(threshold_onset, threshold_offset, riseratio, powers, odf
 	return segments, logic
 
 
+
+
 def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=True, stdDeltaDegreesOfFreedom=0):
 	if descriptorObj.seg:
 		allDescs = np.array([sfsObj.desc.get(descriptorObj.name) for sfsObj in listOfSegmentObjs])
@@ -516,14 +487,4 @@ def getDescriptorStatistics(listOfSegmentObjs, descriptorObj, takeOnlyEffDur=Tru
 	return { 'min': np.min(allDescs), 'max': np.max(allDescs), 'mean': np.mean(allDescs),'stddev': np.std(allDescs, ddof=stdDeltaDegreesOfFreedom) }
 
 
-#
-#
-#def applyDescriptorNormalisation(listOfSegmentObjs, dobj, descStatistics):
-#	# this function must be unique for the corpus and target as they will have different normalization coefs
-#	normdatadict = {'method': dobj.normmethod}
-#	normdatadict.update(descStatistics)
-#	normdatadict['range'] = normdatadict['max']-normdatadict['min']
-#
-#	for sfseg in listOfSegmentObjs:
-#		sfseg.desc[dobj.name].setNorm(normdatadict)
-#
+
