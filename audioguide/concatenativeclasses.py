@@ -12,7 +12,6 @@ import audioguide.tests as tests
 
 
 
-
 def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFileBool):
 	# ignore directories 
 	if os.path.isdir(cobjname): return 'corpusdirectory'
@@ -41,10 +40,44 @@ def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFile
 
 
 
-	
-
 class parseOptions:
-	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
+	def __init__(self):
+		usrOptions = {}
+		self.opsfileAsString = ''
+		self.opsfilehead = ''
+		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
+		self.ops_file_path = None
+	#############################
+	def parse_dict(self, opsdict):
+		from audioguide.userclasses import TargetOptionsEntry as tsf
+		from audioguide.userclasses import CorpusOptionsEntry as csf
+		from audioguide.userclasses import Instrument as instr
+		from audioguide.userclasses import Score as score
+		from audioguide.userclasses import SearchPassOptionsEntry as spass
+		from audioguide.userclasses import SuperimpositionOptionsEntry as si
+		from audioguide.userclasses import SingleDescriptor as d
+		ops = {}
+		fh = open(self.defaults_file)
+		exec(fh.read(), locals(), ops)
+		fh.close()
+		ops.update(opsdict)	
+		# replace "none" with None
+		for k, v in ops.items():
+			if not isinstance(v, str): continue
+			if v.lower() == 'none': ops[k] = None
+		if self.ops_file_path != None: ops['SEARCH_PATHS'].append( self.ops_file_path )
+		# complete paths for output files...
+		if self.ops_file_path != None:
+			for item, val in ops.items():
+				if item.find('_FILEPATH') == -1: continue
+				if val == None: continue
+				ops[item] = util.verifyOutputPath(val, self.ops_file_path)
+		# assign dict to this classes' attributes so that values may
+		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
+		tests.testOpsDict(ops)
+		for k, v in ops.items(): setattr(self, k, v)
+	#############################
+	def parse_file(self, opsfile):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
 		from audioguide.userclasses import CorpusOptionsEntry as csf
 		from audioguide.userclasses import Instrument as instr
@@ -53,39 +86,12 @@ class parseOptions:
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
 		usrOptions = {}
-		self.opsfileAsString = ''
-		self.opsfilehead = ''
-		if opsfile != None:
-			fh = open(opsfile)
-			self.opsfilehead = os.path.split(opsfile)[1]
-			self.opsfileAsString = fh.read()
-			exec(self.opsfileAsString, locals(), usrOptions)
-			fh.close()
-		if optsDict != None:
-			usrOptions.update(optsDict)
-		ops = {}
-		if defaults != None:
-			fh = open(defaults)
-			exec(fh.read(), locals(), ops)
-			fh.close()
-		ops.update(usrOptions)	
-		# replace "none" with None
-		for k, v in ops.items():
-			if not isinstance(v, str): continue
-			if v.lower() == 'none': ops[k] = None
-		if opsfile != None:
-			ops['SEARCH_PATHS'].append( os.path.split(opsfile)[0] )
-		if scriptpath != None:
-			ops['SEARCH_PATHS'].append( scriptpath )
-		# complete paths for output files...
-		for item, val in ops.items():
-			if item.find('_FILEPATH') == -1: continue
-			if val == None: continue
-			ops[item] = util.verifyOutputPath(val, scriptpath)
-		# assign dict to this classes' attributes so that values may
-		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
-		tests.testOpsDict(ops)
-		for k, v in ops.items(): setattr(self, k, v)
+		fh = open(opsfile)
+		self.opsfileAsString = fh.read()
+		exec(self.opsfileAsString, locals(), usrOptions)
+		fh.close()
+		self.ops_file_path = os.path.dirname(opsfile)
+		self.parse_dict(usrOptions)
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage
@@ -381,7 +387,6 @@ class corpus:
 		for c in self.postLimitSegmentList:
 			#c.pitchfilter = {}
 			#c.pitchfilter = {'pitches': [60, 66, 73], 'tolerance': 3}
-			
 			if c.pitchfilter == {}:
 				tmplist.append(c)
 			else:

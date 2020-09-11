@@ -441,17 +441,17 @@ EnergyEnvelope  = 1
 	########################################################
 	def getDescriptorColumn(self, sffile, dname):
 		return self.rawData[sffile]['ircamd'][:,self.rawData[sffile]['info']['ircamd_columns'][dname]]
-	########################################################
-	########################################################
-	def getDescriptorForsfsegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
-		global descriptIsAmp
-		endf = startf+lengthinframes
-		#print ("getDescriptorForsfsegment", startf, endf)
-		data = self.getDescriptorColumn(sffile, descriptor.name)[startf:endf]
-		# use envelope mask if requested and if this descriptor deals with power
-		if type(envelopeMask) != type(None) and descriptor.name in descriptIsAmp:
-			data *= envelopeMask
-		return data
+#	########################################################
+#	########################################################
+#	def getDescriptorForsfsegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
+#		global descriptIsAmp
+#		endf = startf+lengthinframes
+#		#print ("getDescriptorForsfsegment", startf, endf)
+#		data = self.getDescriptorColumn(sffile, descriptor.name)[startf:endf]
+#		# use envelope mask if requested and if this descriptor deals with power
+#		if type(envelopeMask) != type(None) and descriptor.name in descriptIsAmp:
+#			data *= envelopeMask
+#		return data
 	########################################################
 	########################################################
 	def done(self, dataGbLimit=1, dataDayLimit=7):

@@ -5,6 +5,7 @@
 
 import sys, os
 import audioguide.anallinkage as anallinkage
+import audioguide.descriptordata as descriptordata
 import audioguide.util as util
 import numpy as np
 
@@ -70,7 +71,11 @@ class CorpusOptionsEntry(object):
 		self.clipDurationToTarget = clipDurationToTarget
 		self.instrTag = instrTag
 		self.instrParams = instrParams
-
+		# see if pitch filter has pitch strings that need to be converted into floats...
+		if self.pitchfilter != {}:
+			for pidx in range(len(self.pitchfilter['pitches'])):
+				if isinstance(self.pitchfilter['pitches'][pidx], str):
+					self.pitchfilter['pitches'][pidx] = descriptordata.getMidiPitchFromString(self.pitchfilter['pitches'][pidx])
 
 
 
