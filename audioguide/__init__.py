@@ -64,6 +64,21 @@ class main:
 		if len(self.tgt.segs) == 0:
 			util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(self.tgt.filename))
 		self.p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.tgt.segs), np.average(self.tgt.seglengths)))
+
+		descriptors = []
+		dnames = []
+		for dobj in self.AnalInterface.requiredDescriptors:
+			if dobj.seg or dobj.name in ['power']: continue
+			d = np.array(self.tgt.whole.desc.get(dobj.name, copy=True))
+			d -= np.min(d)
+			d /= np.max(d)
+			d = np.around(d, 2)
+	
+			descriptors.append(d)
+			dnames.append(dobj.name)
+		self.p.html.jschart_timeseries(yarray=np.array([self.AnalInterface.f2s(i) for i in range(self.tgt.whole.lengthInFrames)]), xarrays=descriptors, ylabel='time in seconds', xlabels=dnames)
+
+	def write_target_output_files(self):	
 		#######################
 		## target label file ##
 		#######################
@@ -91,19 +106,6 @@ class main:
 		if self.ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
 			self.tgt.plotSegmentation(self.ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, self.AnalInterface, self.p)
 
-		descriptors = []
-		dnames = []
-		for dobj in self.AnalInterface.requiredDescriptors:
-			if dobj.seg or dobj.name in ['power']: continue
-			d = np.array(self.tgt.whole.desc.get(dobj.name, copy=True))
-			d -= np.min(d)
-			d /= np.max(d)
-			d = np.around(d, 2)
-	
-			descriptors.append(d)
-			dnames.append(dobj.name)
-		self.p.html.jschart_timeseries(yarray=np.array([self.AnalInterface.f2s(i) for i in range(self.tgt.whole.lengthInFrames)]), xarrays=descriptors, ylabel='time in seconds', xlabels=dnames)
-
 
 
 
@@ -129,6 +131,23 @@ class main:
 		## NORMALIZATION ##
 		###################
 		self.p.logsection( "NORMALIZATION" )
+		# find which descriptors to normalize
+#		self.AnalInterface.expandDescriptorPackages(self.ops)
+#		self.normalizeDescriptors = []
+#		# add SEARCH descriptors
+#		for spass in self.ops.SEARCH:
+#			for dobj in spass.descriptor_list:
+#				if dobj not in self.normalizeDescriptors: self.normalizeDescriptors.append(dobj)
+#		from userclasses import SearchPassOptionsEntry as spassObj
+#		for k, v in self.ops.EXPERIMENTAL.items():
+#			if isinstance(v, spassObj):
+#				for dobj in v.descriptor_list:
+#					if dobj not in self.normalizeDescriptors: self.normalizeDescriptors.append(dobj)
+#
+#
+#		print(self.normalizeDescriptors)
+#		sys.exit()
+#		
 		self.AnalInterface.desc_manager.normalize(self.tgt.segs + self.cps.postLimitSegmentNormList, self.AnalInterface.normalizeDescriptors)
 
 		###########################################################################
@@ -314,7 +333,7 @@ class main:
 
 
 
-	def write_output_files(self):
+	def write_concatenate_output_files(self):
 		##########################################
 		## sort self.outputEvents by start time ##
 		##########################################

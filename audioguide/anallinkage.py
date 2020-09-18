@@ -507,7 +507,8 @@ def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 		metricsToWrite = []
 		if dobj.name.find('mfccs') != -1:
 			mfccWeightMask = np.power(np.linspace(1., 0.05, num=numbMfccs-1), 0.5)
-			for i in range(numbMfccs-1): metricsToWrite.append(('mfcc'+str(i+1)+dobj.name[5:], dobj.weight*(mfccWeightMask[i]/sum(mfccWeightMask)) ))
+			for i in range(numbMfccs-1):
+				metricsToWrite.append(('mfcc'+str(i+1)+dobj.name[5:], dobj.weight*(mfccWeightMask[i]/sum(mfccWeightMask)) ))
 		elif dobj.name.find('chromas') != -1:
 			for i in range(12): metricsToWrite.append( ( 'chroma'+str(i)+dobj.name[9:], dobj.weight/12. ) )
 		elif dobj.name.find('autocorrs') != -1:

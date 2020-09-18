@@ -272,6 +272,16 @@ def verifyPath(path, searchPathList):
 	error("FILENAME", "Couldn't find a file called %s"%' or '.join(tried))
 
 
+def verifyPathIsValidSoundfile(file):
+	fileExtension = os.path.splitext(file)[1]
+	isValidSoundfile = False
+	for ext in ['.wav', '.aiff', '.aif', '.au']:
+		if ext.lower() == fileExtension.lower():
+			isValidSoundfile = True
+			break
+	return isValidSoundfile
+
+
 def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
 	supervp_flags = '''-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'''
 	
