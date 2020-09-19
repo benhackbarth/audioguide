@@ -132,23 +132,9 @@ class main:
 		###################
 		self.p.logsection( "NORMALIZATION" )
 		# find which descriptors to normalize
-#		self.AnalInterface.expandDescriptorPackages(self.ops)
-#		self.normalizeDescriptors = []
-#		# add SEARCH descriptors
-#		for spass in self.ops.SEARCH:
-#			for dobj in spass.descriptor_list:
-#				if dobj not in self.normalizeDescriptors: self.normalizeDescriptors.append(dobj)
-#		from userclasses import SearchPassOptionsEntry as spassObj
-#		for k, v in self.ops.EXPERIMENTAL.items():
-#			if isinstance(v, spassObj):
-#				for dobj in v.descriptor_list:
-#					if dobj not in self.normalizeDescriptors: self.normalizeDescriptors.append(dobj)
-#
-#
-#		print(self.normalizeDescriptors)
-#		sys.exit()
-#		
-		self.AnalInterface.desc_manager.normalize(self.tgt.segs + self.cps.postLimitSegmentNormList, self.AnalInterface.normalizeDescriptors)
+		self.ops.setupConcate()
+		print("NORMALIZE", self.ops._normalizeDescriptors)
+		self.AnalInterface.desc_manager.normalize(self.tgt.segs + self.cps.postLimitSegmentNormList, self.ops._normalizeDescriptors)
 
 		###########################################################################
 		## get raw and normalized segemented desciptors for graphing in log.html ##
@@ -164,7 +150,7 @@ class main:
 		## initialise concatenation ##
 		##############################
 		self.p.logsection( "CONCATENATION" )
-		self.tgt.setupConcate(self.AnalInterface)
+		self.tgt.setupConcate(self.ops._mixtureDescriptors)
 		self.AnalInterface.done()
 		distanceCalculations = simcalc.distanceCalculations(self.ops.SUPERIMPOSE, self.ops.RANDOM_SEED, self.AnalInterface, self.tgt.segs, self.p)
 		distanceCalculations.setTarget(self.ops.SEARCH, self.tgt.segs)
@@ -300,7 +286,7 @@ class main:
 				#####################################
 				if self.ops.SUPERIMPOSE.calcMethod == "mixture":
 					#tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, self.AnalInterface)
-					tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, self.AnalInterface.mixtureDescriptors)
+					tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, self.ops._mixtureDescriptors)
 					tgtseg.has_been_mixed = True
 				#################################
 				## append selected corpus unit ##

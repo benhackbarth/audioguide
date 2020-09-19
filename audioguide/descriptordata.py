@@ -54,7 +54,6 @@ class expandable_matrix:
 
 class descriptor_manager:
 	def __init__(self):
-		self.norm_timevarying_matrix = expandable_matrix()
 		self.descriptor_string_to_params = {}
 		self.sffile2matrix = {}
 		self.singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
@@ -84,6 +83,7 @@ class descriptor_manager:
 		return self.descriptor_string_to_params[dname]
 	########################################
 	def normalize(self, segment_objs, dobj_list):
+		self.norm_timevarying_matrix = expandable_matrix()
 		# make a list of all desc objects in order by tag...
 		self.desc_objs = [o.desc for o in segment_objs]
 		self.desc_objs.sort(key=lambda x: x.tag)

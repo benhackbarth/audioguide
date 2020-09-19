@@ -342,14 +342,15 @@ class target: # the target
 			fh.write( "%f\t%f\t%s\n"%(self.segmentationInSec[sidx][0], self.segmentationInSec[sidx][1], self.extraSegmentationData[sidx]) )
 		fh.close()
 	########################################
-	def setupConcate(self, AnalInterface):
+	def setupConcate(self, mixturelist):
 		from userclasses import SingleDescriptor as d
 		self.powerStats = getDescriptorStatistics(self.segs, d('power'))
 		# initalise mixture and add norm coeffs to mixables...
 		for seg in self.segs:
 			seg.seek = 0
 			seg.selectiondone = False
-			seg.desc.init_mixture(AnalInterface.mixtureDescriptors)
+			seg.desc.rewind()
+			seg.desc.init_mixture(mixturelist)
 			seg.has_been_mixed = False
 			seg.originalPeak = seg.desc.get('peakTime-seg') # keep original, unsubtacted peak
 	########################################
