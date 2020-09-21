@@ -193,11 +193,9 @@ class printer:
 	def logsection(self, name):
 		self.html.logsection(name)
 	###############################################
-	def makeHtmlChartDescriptorNorm(self, AnalInterface, tgtsegs, cpssegs):
-		dontGraphThese = ['peakTime-seg', 'power-mean-seg', 'effDurFrames-seg']
-		segmentedDescriptorsToGraph = [dobj for dobj in AnalInterface.requiredDescriptors if dobj.seg and dobj.name not in dontGraphThese]
+	def makeHtmlChartDescriptorNorm(self, unnormDescriptors, normDescriptors, tgtsegs, cpssegs):
+		segmentedDescriptorsToGraph = [dobj for dobj in unnormDescriptors if dobj.seg]
 		if len(segmentedDescriptorsToGraph) < 2: return # not enough to graph xy
-		
 		scatter = {'tgt': {}, 'cps': {}}
 		nonnormalized = []
 		for dobj in segmentedDescriptorsToGraph:
@@ -206,7 +204,7 @@ class printer:
 			scatter['cps'][key] = [cs.desc.get(dobj.name) for cs in cpssegs]
 			nonnormalized.append(key)
 			# see if we have normalized values to add too
-			if dobj in AnalInterface.normalizeDescriptors:
+			if dobj in normDescriptors:
 				key = dobj.name.replace('-seg', ' normalized')
 				scatter['tgt'][key] = [ts.desc.get(dobj.name, norm=True) for ts in tgtsegs]
 				scatter['cps'][key] = [cs.desc.get(dobj.name, norm=True) for cs in cpssegs]

@@ -46,6 +46,7 @@ class parseOptions:
 		self.opsfileAsString = ''
 		self.opsfilehead = ''
 		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
+		self.audioguide_directory = os.path.dirname(os.path.dirname(__file__))
 		self.ops_file_path = None
 	#############################
 	def parse_dict(self, opsdict):
@@ -71,7 +72,7 @@ class parseOptions:
 			for item, val in ops.items():
 				if item.find('_FILEPATH') == -1: continue
 				if val == None: continue
-				ops[item] = util.verifyOutputPath(val, self.ops_file_path)
+				ops[item] = util.verifyOutputPath(val, self.audioguide_directory)
 		# assign dict to this classes' attributes so that values may
 		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
 		tests.testOpsDict(ops)
@@ -100,8 +101,22 @@ class parseOptions:
 		self.analinterface.getDescriptorLists(self)
 		return self.analinterface
 	#############################
-	def setupConcate(self):
+	def parseDescriptors(self):
 		self.analinterface.expandDescriptorPackages(self)
+		self._limitDescriptors = []
+		# add limiting descriptors
+		if 'limit' in self.CORPUS_GLOBAL_ATTRIBUTES:
+			for stringy in self.CORPUS_GLOBAL_ATTRIBUTES['limit']:
+				if d(stringy.split()[0]) not in self._limitDescriptors:
+					self._limitDescriptors.append(d(stringy.split()[0]))
+		if hasattr(self, 'CORPUS'):
+			for csfObj in self.CORPUS:
+				for stringy in csfObj.limit:
+					if d(stringy.split()[0]) not in self._limitDescriptors:
+						self._limitDescriptors.append(d(stringy.split()[0]))
+		print(self._limitDescriptors)
+		
+
 		self._normalizeDescriptors = []
 		# add SEARCH descriptors
 		for spass in self.SEARCH:

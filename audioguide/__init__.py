@@ -132,15 +132,13 @@ class main:
 		###################
 		self.p.logsection( "NORMALIZATION" )
 		# find which descriptors to normalize
-		self.ops.setupConcate()
-		print("NORMALIZE", self.ops._normalizeDescriptors)
+		self.ops.parseDescriptors()
 		self.AnalInterface.desc_manager.normalize(self.tgt.segs + self.cps.postLimitSegmentNormList, self.ops._normalizeDescriptors)
-
 		###########################################################################
 		## get raw and normalized segemented desciptors for graphing in log.html ##
 		###########################################################################
-		self.p.makeHtmlChartDescriptorNorm(self.AnalInterface, self.tgt.segs, self.cps.postLimitSegmentNormList)	
-
+		self.p.makeHtmlChartDescriptorNorm(self.ops._normalizeDescriptors+self.ops._limitDescriptors, self.ops._normalizeDescriptors, self.tgt.segs, self.cps.postLimitSegmentNormList)	
+		
 	
 		
 	
@@ -169,7 +167,6 @@ class main:
 		else:
 			self.tgt.segs = sorted(self.tgt.segs, key=operator.attrgetter("segmentStartSec"))
 
-
 		#################
 		## CONCATENATE ##
 		#################
@@ -177,11 +174,6 @@ class main:
 		htmlSelectionTable = [['time x overlap', ]]
 		for sidx, s in enumerate(self.ops.SEARCH):
 			htmlSelectionTable[0].append('spass #%s: %s'%(sidx+1, s.method))
-
-
-
-
-
 		while False in [t.selectiondone for t in self.tgt.segs]:
 			self.p.percentageBarNext()
 			for segidx, tgtseg in enumerate(self.tgt.segs):
