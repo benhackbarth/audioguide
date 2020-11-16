@@ -48,6 +48,43 @@ class expandable_matrix:
 
 
 
+singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
+descriptIsAmp = ["power", "spectralpower", "noiseenergy", "loudness", "harmonicenergy", "energyenvelope"]
+descriptNotMixable = ["f0", "zeroCross", "effDur-seg"]
+
+
+def descriptor_string_parse(dname):
+	global singleNumberDescriptors, descriptIsAmp, descriptNotMixable
+	if dname.find('-slope-seg') != -1: type, seg = 'slope-regression', True
+	elif dname.find('-minseg') != -1: type, seg = 'min', True
+	elif dname.find('-maxseg') != -1: type, seg = 'max', True
+	elif dname.find('-meanseg') != -1: type, seg = 'mean', True
+	elif dname.find('-stdseg') != -1: type, seg = 'std', True
+	elif dname.find('-skewseg') != -1: type, seg = 'skew', True
+	elif dname.find('-kurtseg') != -1: type, seg = 'kurt', True
+	elif dname.find('-seg') != -1: type, seg = 'segmented', True
+	elif dname.find('-odf-') != -1: type, seg = 'onsetdetection', False
+	elif dname.find('-deltadelta') != -1: type, seg = 'deltadelta', False
+	elif dname.find('-delta') != -1: type, seg = 'delta', False
+	else: type, seg = 'raw', False
+	if seg and type == 'slope-regression': seg_method = 'slope'
+	elif seg and type == 'mean': seg_method = 'mean'
+	elif seg and type == 'min': seg_method = 'min'
+	elif seg and type == 'max': seg_method = 'max'
+	elif seg and type == 'std': seg_method = 'std'
+	elif seg and type == 'skew': seg_method = 'skew'
+	elif seg and type == 'kurt': seg_method = 'kurt'
+	elif seg and dname in ["power-seg", "rms-seg"]: seg_method = 'max'
+	elif seg and dname in singleNumberDescriptors: seg_method = 'single_number'
+	elif seg: seg_method = 'weighted_mean'
+	else: seg_method = None
+	# get the "parent descriptors" which this descriptor depend upon
+	dnamesplit = dname.split('-')
+	parent = None
+	if dname not in singleNumberDescriptors and len(dnamesplit) > 1: parent = dnamesplit[0]
+	return {'type': type, 'isseg': seg, 'seg_method': seg_method, 'parent': parent, 'describes_energy': dname in descriptIsAmp or parent in descriptIsAmp, 'is_mixable': dname not in descriptNotMixable}
+
+
 
 
 
@@ -56,30 +93,9 @@ class descriptor_manager:
 	def __init__(self):
 		self.descriptor_string_to_params = {}
 		self.sffile2matrix = {}
-		self.singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
-		self.descriptIsAmp = ["power", "spectralpower", "noiseenergy", "loudness", "harmonicenergy", "energyenvelope"]
-		self.descriptNotMixable = ["f0", "zeroCross", "effDur-seg"]
 	########################################
 	def descriptor_string_digest(self, dname):
-		if dname not in self.descriptor_string_to_params:
-			if dname.find('-slope-seg') != -1: type, seg = 'slope-regression', True
-			elif dname.find('-mean-seg') != -1: type, seg = 'mean', True
-			elif dname.find('-seg') != -1: type, seg = 'segmented', True
-			elif dname.find('-odf-') != -1: type, seg = 'onsetdetection', False
-			elif dname.find('-deltadelta') != -1: type, seg = 'deltadelta', False
-			elif dname.find('-delta') != -1: type, seg = 'delta', False
-			else: type, seg = 'raw', False
-			if seg and type == 'slope-regression': seg_method = 'slope'
-			elif seg and type == 'mean': seg_method = 'mean'
-			elif seg and dname in ["power-seg", "rms-seg"]: seg_method = 'max'
-			elif seg and dname in self.singleNumberDescriptors: seg_method = 'single_number'
-			elif seg: seg_method = 'weighted_mean'
-			else: seg_method = None
-			# get the "parent descriptors" which this descriptor depend upon
-			dnamesplit = dname.split('-')
-			parent = None
-			if dname not in self.singleNumberDescriptors and len(dnamesplit) > 1: parent = dnamesplit[0]
-			self.descriptor_string_to_params[dname] = {'type': type, 'isseg': seg, 'seg_method': seg_method, 'parent': parent, 'describes_energy': dname in self.descriptIsAmp or parent in self.descriptIsAmp, 'is_mixable': dname not in self.descriptNotMixable}
+		if dname not in self.descriptor_string_to_params: self.descriptor_string_to_params[dname] = descriptor_string_parse(dname)
 		return self.descriptor_string_to_params[dname]
 	########################################
 	def normalize(self, segment_objs, dobj_list):
@@ -329,17 +345,32 @@ def SegmentedDescriptorComputation(sfdescobj, dname, dparams, handle, start, end
 		output = percentInFile(handle, start, end)
 	elif dname == "f0-seg":
 		output = f0Seg(handle.desc.get('f0', start=start, stop=end), sfdescobj.get('power', start=start, stop=end))
-	# DESCRIPTOR SLOPE
-	elif dparams['type'] == 'slope-regression':
-		output = descriptorSlope(handle, dparams['parent'], start)
 	# FLAT MEAN - NOT ENERGY WEIGHTED
 	elif dparams['type']  == 'mean':
 		output = np.average(sfdescobj.get(dparams['parent'], start=start, stop=end))
 	# SEGMENT-AVERAGE METHODS
+	elif dparams['type']  == 'min':
+		output = np.min(sfdescobj.get(dparams['parent'], start=start, stop=end))
 	elif dparams['seg_method']  == 'max':
 		output = np.max(sfdescobj.get(dparams['parent'], start=start, stop=end))
-	elif dparams['seg_method']  == 'median': 
-		output = sfdescobj.get(dparams['parent'], start=start, stop=end)
+	elif dparams['seg_method']  == 'std': 
+		output = np.std(sfdescobj.get(dparams['parent'], start=start, stop=end))
+	# STATISTICS
+	elif dparams['type'] == 'slope-regression':
+		output = descriptorSlope(handle, dparams['parent'], start)
+	elif dparams['type'] == 'skew':
+		try:
+			from scipy.stats import skew
+		except ImportError:
+			print(ImportError, "scipy package needs to be installed to compute skewness.")
+		output = skew(sfdescobj.get(dparams['parent'], start=start, stop=end))
+	elif dparams['type'] == 'kurt':
+		try:
+			from scipy.stats import kurtosis
+		except ImportError:
+			print(ImportError, "scipy package needs to be installed to compute kurtosis.")
+		output = kurtosis(sfdescobj.get(dparams['parent'], start=start, stop=end))
+		
 	else: # 'weighted_mean'
 		try:
 			#if dname == 'mfcc1-seg':

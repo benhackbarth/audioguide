@@ -98,7 +98,7 @@ class parseOptions:
 		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
 		self.analinterface = anallinkage.AnalInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
-		self.analinterface.getDescriptorLists(self)
+		self.analinterface.expandDescriptorPackages(self)
 		return self.analinterface
 	#############################
 	def parseDescriptors(self):
@@ -113,9 +113,7 @@ class parseOptions:
 			for csfObj in self.CORPUS:
 				for stringy in csfObj.limit:
 					if d(stringy.split()[0]) not in self._limitDescriptors:
-						self._limitDescriptors.append(d(stringy.split()[0]))
-		print(self._limitDescriptors)
-		
+						self._limitDescriptors.append(d(stringy.split()[0]))		
 
 		self._normalizeDescriptors = []
 		# add SEARCH descriptors
@@ -129,8 +127,7 @@ class parseOptions:
 					if dobj not in self._normalizeDescriptors: self._normalizeDescriptors.append(dobj)
 		# mixture stuff
 		from audioguide.userclasses import SingleDescriptor as d
-		self._mixtureDescriptors = []
-		tmpmix = [d('power')]
+		self._mixtureDescriptors = [d('power')]
 		# add SEARCH descriptors
 		for spass in self.SEARCH:
 			for dobj in spass.descriptor_list:

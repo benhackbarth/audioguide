@@ -1,4 +1,16 @@
 ##################
+## Version 1.5 ##
+##################
+• Total rewrite of the code for internally handling descriptor data. audioguide now runs about 40% faster with large corpi.
+
+• Added new segmented data methods to calculate statistics on time vary descriptor data, including -minseg, -maxseg, -stdseg, -kurtseg, -skewseg. E.g. centroid-stdseg gives a sound segment's standard deviation of centroids. centroid-stats yields a combination of these statistics. See "Appendix 1 - Descriptors" in the docs for more info.
+
+• New ways for interacting with the audioguide module and integrating it into your own project. See apiExample.py.
+ 
+• For creating musical scores with Bach, added new methods for handling pitch as well as handling time -- instr(interval_limit_breakpoints) and instr(interval_limit_range_per_sec). See the Creating Notated Scores section of the documentation for details. This section of the documentation has also been rewritten.
+
+
+##################
 ## Version 1.42 ##
 ##################
 • Fixed a bug in the descriptors chromas and chromas-seg

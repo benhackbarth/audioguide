@@ -211,53 +211,14 @@ class SingleDescriptor(object):
 		self.energyWeight = energyWeight
 		self.tgt_modify = []
 		self.packagename = packagename
-		if name.find('-slope-seg') != -1:
-			self.type = 'slope-regression'
-			self.seg = True
-		elif name.find('-mean-seg') != -1:
-			self.type = 'mean'
-			self.seg = True
-		elif name.find('-seg') != -1:
-			self.type = 'segmented'
-			self.seg = True
-		elif name.find('-odf-') != -1:
-			self.type = 'onsetdetection'
-			self.seg = False
-		elif name.find('-delta') != -1:
-			self.type = 'delta'
-			self.seg = False
-		elif name.find('-deltadelta') != -1:
-			self.type = 'deltadelta'
-			self.seg = False
-		else:
-			self.type = 'rawsdif'
-			self.seg = False
-		if self.seg:
-			if self.type == 'slope-regression': self.seg_method = 'slope'
-			elif self.type == 'mean': self.seg_method = 'mean'
-			elif self.name in ["power-seg", "rms-seg"]: self.seg_method = 'max'
-			elif self.name in singleNumberDescriptors: self.seg_method = 'single_number'
-			else: self.seg_method = 'weighted_mean'
-		# get the "parent descriptors" which this descriptor depend upon
-		namesplit = self.name.split('-')
-		self.parents = []
-		if self.name in singleNumberDescriptors: pass
-		elif self.type in ['slope-regression', 'onsetdetection', 'delta', 'deltadelta', 'mean']:
-			self.parents = [namesplit[0]]
-		elif self.type == 'segmented':
-			self.parents = []
-			cnt = 1
-			while True:
-				if cnt > len(namesplit)-1: break
-				self.parents.append( '-'.join(namesplit[:cnt]) )
-				cnt += 1
-		self.describes_energy = False
-		self.is_mixable = False
-		if name in anallinkage.descriptIsAmp: self.describes_energy = True
-		if name not in anallinkage.descriptNotMixable: self.is_mixable = True
-		for pname in self.parents:
-			if pname in anallinkage.descriptIsAmp: self.describes_energy = True
-			if pname not in anallinkage.descriptNotMixable: self.is_mixable = True
+		namedict = descriptordata.descriptor_string_parse(name)
+		self.type = namedict['type']
+		self.seg = namedict['isseg']
+		self.seg_method = namedict['seg_method']
+		if namedict['parent'] == None: self.parents = []
+		else: self.parents = [namedict['parent']]
+		self.describes_energy = namedict['describes_energy']
+		self.is_mixable = namedict['is_mixable']
 	########################################
 	def __repr__(self):
 		return self.name

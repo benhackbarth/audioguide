@@ -5,7 +5,7 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.41"
+__version__ = "1.5"
 
 
 
@@ -21,6 +21,7 @@ import audioguide.descriptordata as descriptordata
 import audioguide.util as util
 import audioguide.musicalwriting as musicalwriting
 import audioguide.simcalc as simcalc
+import audioguide.dimscaling as dimscaling
 
 
 
@@ -67,7 +68,8 @@ class main:
 
 		descriptors = []
 		dnames = []
-		for dobj in self.AnalInterface.requiredDescriptors:
+		self.ops.parseDescriptors()
+		for dobj in self.ops._normalizeDescriptors + self.ops._limitDescriptors:
 			if dobj.seg or dobj.name in ['power']: continue
 			d = np.array(self.tgt.whole.desc.get(dobj.name, copy=True))
 			d -= np.min(d)
@@ -312,6 +314,7 @@ class main:
 
 
 	def write_concatenate_output_files(self):
+		list_of_files_written = []
 		##########################################
 		## sort self.outputEvents by start time ##
 		##########################################
@@ -352,8 +355,6 @@ class main:
 		#########################
 		self.p.logsection( "OUTPUT FILES" )
 		allusedcpsfiles = list(set([oe.filename for oe in self.outputEvents]))
-
-
 		self.instruments.write(self.outputEvents)
 
 
@@ -381,6 +382,7 @@ class main:
 			fh = open(self.ops.DICT_OUTPUT_FILEPATH, 'w')
 			json.dump(output, fh)
 			fh.close()
+			list_of_files_written.append(self.ops.DICT_OUTPUT_FILEPATH)
 			self.p.log( "Wrote JSON dict file %s\n"%self.ops.DICT_OUTPUT_FILEPATH )
 
 		#####################################
@@ -394,6 +396,7 @@ class main:
 			fh = open(self.ops.MAXMSP_OUTPUT_FILEPATH, 'w')
 			json.dump(output, fh)
 			fh.close()
+			list_of_files_written.append(self.ops.MAXMSP_OUTPUT_FILEPATH)
 			self.p.log( "Wrote MAX/MSP JSON lists to file %s\n"%self.ops.MAXMSP_OUTPUT_FILEPATH )
 	
 		######################
@@ -410,6 +413,7 @@ class main:
 			binfile = open(self.ops.MIDI_FILEPATH, 'wb')
 			MyMIDI.writeFile(binfile)
 			binfile.close()
+			list_of_files_written.append(self.ops.MIDI_FILEPATH)
 			self.p.log( "Wrote MIDIfile %s\n"%self.ops.MIDI_FILEPATH )
 
 		###################################
@@ -419,6 +423,7 @@ class main:
 			fh = open(self.ops.OUTPUT_LABEL_FILEPATH, 'w')
 			fh.write( ''.join([ oe.makeLabelText() for oe in self.outputEvents ]) )
 			fh.close()
+			list_of_files_written.append(self.ops.OUTPUT_LABEL_FILEPATH)
 			self.p.log( "Wrote superimposition label file %s\n"%self.ops.OUTPUT_LABEL_FILEPATH )
 
 		#######################################
@@ -435,6 +440,7 @@ class main:
 				alldata[(c.filename+'@'+str(c.segmentStartSec))] = descs
 			json.dump(alldata, fh)
 			fh.close()
+			list_of_files_written.append(self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH)
 			self.p.log( "Wrote corpus segmented features file %s\n"%self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
 
 
@@ -445,6 +451,7 @@ class main:
 			fh = open(self.ops.LISP_OUTPUT_FILEPATH, 'w')
 			fh.write('(' + ''.join([ oe.makeLispText() for oe in self.outputEvents ]) +')')
 			fh.close()
+			list_of_files_written.append(self.ops.LISP_OUTPUT_FILEPATH)
 			self.p.log( "Wrote lisp output file %s\n"%self.ops.LISP_OUTPUT_FILEPATH )
 
 		########################################
@@ -455,6 +462,7 @@ class main:
 			for line in [oe.makeSegmentationDataText() for oe in self.outputEvents]:
 				fh.write(line)
 			fh.close()
+			list_of_files_written.append(self.ops.DATA_FROM_SEGMENTATION_FILEPATH)
 			self.p.log( "Wrote data from segmentation file to textfile %s\n"%self.ops.DATA_FROM_SEGMENTATION_FILEPATH )
 
 		########################
@@ -476,6 +484,7 @@ class main:
 			if self.ops.CSOUND_RENDER_FILEPATH != None:
 				csd.render(self.ops.CSOUND_CSD_FILEPATH, len(self.outputEvents), printerobj=self.p)
 				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.CSOUND_RENDER_FILEPATH )
+				list_of_files_written.append(self.ops.CSOUND_RENDER_FILEPATH)
 	
 			if self.ops.CSOUND_NORMALIZE:
 				csd.normalize(self.ops.CSOUND_RENDER_FILEPATH, db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
@@ -484,8 +493,11 @@ class main:
 		####################
 		## close log file ##
 		####################
-		if self.ops.HTML_LOG_FILEPATH != None: self.p.writehtmllog(self.ops.HTML_LOG_FILEPATH)
+		if self.ops.HTML_LOG_FILEPATH != None:
+			self.p.writehtmllog(self.ops.HTML_LOG_FILEPATH)
+			list_of_files_written.append(self.ops.HTML_LOG_FILEPATH)
 	
 		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:
 			csd.playFile( self.ops.CSOUND_RENDER_FILEPATH )
 
+		return list_of_files_written

@@ -164,14 +164,14 @@ $('body').scrollspy({
 	<div class="row">
 <!--Main Content -->
 <div class="col-xs-9 bs-docs-mainbar">
-<p align="center"><h1>AudioGuide1.41 Manual</h1>
+<p align="center"><h1>AudioGuide1.5 Manual</h1>
 By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno.<br>
 Copyright Ben Hackbarth, 2011-2020.</p><br>
 
 
 
 <section id="Installation" class="group"><h2>Installation</h2>
-For the moment AudioGuide1.41 only works on OS X. On more current versions of OS X it should run out of the box with python2 or python3. Here is a complete list of the resources that AudioGuide1.41 requires on your computer:
+For the moment AudioGuide1.5 only works on OS X. On more current versions of OS X it should run out of the box with python2 or python3. Here is a complete list of the resources that AudioGuide1.5 requires on your computer:
 <ul>
 <li><b>csound6</b> - Needed if you would like AudioGuide to automatically render concatenations (which you probably do). Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python. Upgrading to the latest python2.7 should automatically install numpy. If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Or run "python -m pip install numpy"<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation. Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
 </section>
@@ -199,7 +199,7 @@ The reason that segmentation and concatenation are separated into discrete steps
 
 
 <section id="CorpusSegmentation" class="group"><h2>Corpus Segmentation</h2>
-There are several tools in AudioGuide1.41 to segment long soundfiles into smaller chucks for use in concatenation. The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py. agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis. Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
+There are several tools in AudioGuide1.5 to segment long soundfiles into smaller chucks for use in concatenation. The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py. agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis. Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
 <ul>
 <li> Use whole soundfiles as corpus segments. If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip this section and proceed to the <a href="#Concatenating">concatenation</a> section (However make sure tell AudioGuide not to search for segmentation textfiles by setting the corpus attribute wholeFile=True. See <a href="#ManipulatingHowDirectoriesAreRead">Manipulating How Directories Are Read</a> for more info.).
 <li> Create segmentation files by hand. You can do this in Audacity with its 'Labels' feature. Create a label track and indicate the start and end times of desired sound segments. Then "Export Labels..." and give the outputfile the same name as the soundfile + '.txt'. So, 'examples/lachenmann.aiff' would need a label file named 'examples/lachenmann.aiff.txt'.
@@ -213,7 +213,7 @@ There are several tools in AudioGuide1.41 to segment long soundfiles into smalle
 The script you use to segment your corpus files according to it's acoustic features is called &lsquo;agSegmentSf.py&rsquo;. AgSegmentSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.41 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.5 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agSegmentSf.py examples/lachenmann.aiff
 </code></pre>
@@ -223,7 +223,7 @@ AudioGuide will think for a second, and then output the following data detailing
 
 <pre class="language-none"><code class="language-none">---------------------- AUDIOGUIDE SEGMENT SOUNDFILE ----------------------
 
-Evaluating /Users/ben/Documents/AudioGuide1.41/examples/lachenmann.aiff from 0.00-64.65
+Evaluating /Users/ben/Documents/AudioGuide1.5/examples/lachenmann.aiff from 0.00-64.65
 
 AN ONSET HAPPENS when
 The amplitude crosses the Relative Onset Trigger Threshold: -40.00 (-t option)
@@ -236,10 +236,10 @@ AN OFFSET HAPPENS when
 
 
 Found 144 segments
-Wrote file /Users/ben/Documents/AudioGuide1.41/examples/lachenmann.aiff.txt
+Wrote file /Users/ben/Documents/AudioGuide1.5/examples/lachenmann.aiff.txt
 </code></pre>
 
-As a result of running this python script, AudioGuide1.41 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.5 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 
 
@@ -282,7 +282,7 @@ The textfiles created by agSegmentSf.py use a segmentation labeling format ident
 A script you can use to segment your corpus files for use with granular synthesis is called &lsquo;agGranulateSf.py&rsquo;. Like agSegmentSf.py, agGranulateSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile. Unlike agSegmentSf.py, this script chops up a soundfile into evenly size grains and provides a mechanism for adjusting grain overlap.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.41 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.5 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agGranuateSf.py examples/lachenmann.aiff
 </code></pre>
@@ -290,7 +290,7 @@ To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.41 folder and ru
 There are similar flags to the agSegment script, as we only want to use grains where there is audio present. Thus the -t, -a, and -d remain. Grain length in second is specified with the -g flag and grain overlap is specified with -o.
 <ul> <li id="flag--g"><b>-g &#60;value&#62;</b> (<span style="color:green">greater than zero</span>; the default is <span style="color:green">0.1</span>) - This flag sets the length of generated grains in seconds. All segments generated with agGranulate will be this length.</li><li id="flag--o"><b>-o &#60;value&#62;</b> (<span style="color:green">greater than zero, less than -g</span>; the default is <span style="color:green">0.05</span>) - This flag sets the distance between sucessive grain overlaps in seconds. If this value is 0.05 a new grain will begin every 0.05 seconds. If -g is 0.3, the overlap of grains will be 6.</li><li id="flag--t"><b>-t &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-40</span>) - This flag gives the onset trigger threshold value in dB. When the soundfile's amplitude rises above the threshold, grains start being generated. Higher values closer to 0 will lead to fewer grains.</li><li id="flag--d"><b>-d &#60;value&#62;</b> (<span style="color:green">between 0 and 100</span>; the default is <span style="color:green">+12</span>) - This flag sets the relative offset trigger threshold. This value is added to the soundfile’s minimum amplitude. During segmentation, if a frame’s amplitude is below this threshold, it causes grains to stop being generated. For instance, if the lowest amplitude in the soundfile is -82 and -d is set to +12, a dB value of -70 dB will cause grains to cease. Also see -a.</li><li id="flag--a"><b>-a &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-80</span>) - This flag changes the segmentation offset absolute threshold. When segmenting the target, if a frame's amplitude is below this value it will cause grains to stop being generated. This variable is an absolute value whereas -d specifies a value relative to the soundfile’s minimum amplitude. Effectively, whichever of these two variables is higher will be the offset threshold. Also see -d.</li></ul>
 
-As a result of running this python script, AudioGuide1.41 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.5 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 <figure class="figure">
  <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationGranulate.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
@@ -310,15 +310,15 @@ See examples/06-granular.py for usage and details.
 
 
 <section id="ConcatenatingwithagConcatenatepy" class="group"><h2>Concatenating with agConcatenate.py</h2>
-Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.41 options file as the first (and only) argument. 
+Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.5 options file as the first (and only) argument. 
 <br><br>
-To run one of the examples in the examples directory, run the following command inside the AudioGuide1.41 directory:
+To run one of the examples in the examples directory, run the following command inside the AudioGuide1.5 directory:
 <pre><code>python agConcatenate.py examples/01-simplest.py
 </code></pre>
 
 ...which will use the options contained in &lsquo;examples/01-simplest.py&rsquo; to parameterize the concatenative algorithm. In this options file you specify a target sound, the corpus sounds, and (if you like) lots of other options that parameterize the concatenative process. When run, the &lsquo;agConcatenate.py&rsquo; script will perform the following operations:
 <ul>
-<li> Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk. Analysis files are stored in a directory called &lsquo;AudioGuide1.41/audioguide/data/&rsquo; in the AudioGuide1.41 folder. This directory can become quite large since these files are quite substantial in size. Removing this folder will cause all analysis files to be recomputed). 
+<li> Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk. Analysis files are stored in a directory called &lsquo;AudioGuide1.5/audioguide/data/&rsquo; in the AudioGuide1.5 folder. This directory can become quite large since these files are quite substantial in size. Removing this folder will cause all analysis files to be recomputed). 
 <li> Segment the target sound according to your options file. An Audacity-style label file is created in a file called &lsquo;output/tgtlabels.txt&rsquo; in the output directory.
 <li> Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
 <li> (If you&rsquo;ve specified them) Remove corpus segments according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
@@ -349,7 +349,7 @@ The TARGET variable is written as a tsf() object which requires a path to a soun
 
 
 <ul>
-<li><b>start</b> - The time in seconds to start reading the soundfile.<li><b>end</b> - The time in seconds to stop reading the soundfile. <li><b>thresh</b> - Segmentation onset threshold: a value from -100 to 0. This is equilavent to the function of the <a href="#flag--t">-t flag</a>. <li><b>offsetRise</b> - Segmentation offset ratio: a number greater than 1. This is equilavent to the function of the <a href="#flag--r">-r flag</a>.<li><b>offsetThreshAdd</b> - Segmentation offset relative threshold: a positive value in dB. This is equilavent to the function of the <a href="#flag--a">-a flag</a>.<li><b>offsetThreshAbs</b> - Segmentation offset absolute threshold: a negative value in dB. This is equilavent to the function of the <a href="#flag--d">-d flag</a>.<li><b>minSegLen</b> - Segmentation: the minimum duration in seconds of a target segment.<li><b>maxSegLen</b> - Segmentation: the maximum duration in seconds of a target segment.<li><b>scaleDb</b> - Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft. The target&rsquo;s amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it&rsquo;s energy profile.<li><b>midiPitchMethod</b> - same as corpus method documented <a href="#midiPitchMethod">here</a>.<li><b>stretch</b> - Uses SuperVp to time stretch/compress the target sound before analysis and concatenation. Stretched sound files are saved and reused in the audioguide/data_stretched_sfs directory. A value of 1, the default, will cause no time stretching to be applied. 2 will double the duration of the soundfile. Note that, in order to use this option, you must set the SUPERVP_BIN variable in the AudioGuide1.41/audioguide/defaults.py file.<li><b>segmentationFilepath</b> - by default the Target sound is segmented at runtime. However, if you&rsquo;d like to specify a user-defined segmentation, you may give a file path to this variable. Note that this file must be a textfile with the same format as corpus segmentation files.</ul>
+<li><b>start</b> - The time in seconds to start reading the soundfile.<li><b>end</b> - The time in seconds to stop reading the soundfile. <li><b>thresh</b> - Segmentation onset threshold: a value from -100 to 0. This is equilavent to the function of the <a href="#flag--t">-t flag</a>. <li><b>offsetRise</b> - Segmentation offset ratio: a number greater than 1. This is equilavent to the function of the <a href="#flag--r">-r flag</a>.<li><b>offsetThreshAdd</b> - Segmentation offset relative threshold: a positive value in dB. This is equilavent to the function of the <a href="#flag--a">-a flag</a>.<li><b>offsetThreshAbs</b> - Segmentation offset absolute threshold: a negative value in dB. This is equilavent to the function of the <a href="#flag--d">-d flag</a>.<li><b>minSegLen</b> - Segmentation: the minimum duration in seconds of a target segment.<li><b>maxSegLen</b> - Segmentation: the maximum duration in seconds of a target segment.<li><b>scaleDb</b> - Applies an amplitude change to the whole target sound. By default, it is 0, yielding no change. -6 = twice as soft. The target&rsquo;s amplitude will usually affect concatenation: the louder the target, the more corpus sounds can be composited to approximate it&rsquo;s energy profile.<li><b>midiPitchMethod</b> - same as corpus method documented <a href="#midiPitchMethod">here</a>.<li><b>stretch</b> - Uses SuperVp to time stretch/compress the target sound before analysis and concatenation. Stretched sound files are saved and reused in the audioguide/data_stretched_sfs directory. A value of 1, the default, will cause no time stretching to be applied. 2 will double the duration of the soundfile. Note that, in order to use this option, you must set the SUPERVP_BIN variable in the AudioGuide1.5/audioguide/defaults.py file.<li><b>segmentationFilepath</b> - by default the Target sound is segmented at runtime. However, if you&rsquo;d like to specify a user-defined segmentation, you may give a file path to this variable. Note that this file must be a textfile with the same format as corpus segmentation files.</ul>
 
 
 <pre class="language-python"><code class="language-python">TARGET = tsf('cage.aiff') # uses the whole soundfile at its given amplitude
@@ -422,6 +422,8 @@ csf('lachenmann.aiff', limit=['power-seg < 50%', 'power-seg > 10%']) # only use 
 <li><b><a id="pitchfilter"></a>pitchfilter</b> - removes segments from a csf() entry based on whether or not each segment matches midipitches specified by the user. The user supplies a dictionary with a list of pitches. pitches less than 12 will be treated as pitch classes, i.e. if 0 is given, all pitches modulo 12 which equal 0 will be included. Corpus segments' pitches may be transposed to fit the given pitches -- the 'tolerance' key specifies a semitone tranposition tolerance. For instance, pitchfilter={'pitches': [60], 'tolerance': 3} will include all segments whose pitch is +-3 semitones from 60, and audioguide will transpose these pitches to be played back at the neaest pitch found in pitches, in this case 60. Note that this feature will override any other transposition given in csf(transMethod=). Also note that a corpus segment's pitch is determined with the segment's MIDIPitch-seg, which can be controled according to csf(midiPitchMethod=)<pre class="language-python"><code class="language-python">csf('pianosamples', pitchfilter={'pitches': [60, 68, 73]}), # discard any segments that do not match any of the given midipitches
 
 csf('pianosamples', pitchfilter={'pitches': [60, 68, 73], 'tolerance': 3}), # discard any segments that do not match any of the given pitches +=3 semitones
+
+csf('pianosamples', pitchfilter={'pitches': ['C4', 'Gs4', 'Db5'], 'tolerance': 3}), # you can also use strings with pitchnames!
 
 csf('pianosamples', pitchfilter={'pitches': [1, 64], 'tolerance': 3}), # C sharp in any octave and E4 will make it through!</code></pre>
 <li><b>segmentationFile</b> - Manually specify the segmentation text file. By default, AudioGuide automatically looks for a file with the same name as the soundfile plus the extension &lsquo;.txt&rsquo;. You may specify a path file (as a string), or a list of strings to include multiple segmentation files which all use the same soundfile.<li><b>segmentationExtension</b> - Manually specify the segmentation text file extension. See above.</ul>
@@ -682,8 +684,7 @@ spass('closest', d('mfccs')), # now find the best matching segment according to 
 <div id="TheSUPERIMPOSEvariabls" class="group"><h3>The SUPERIMPOSE variable and si() object</h3>
 Use the si() object for specifying how corpus segments may be superimposed during concatenation.
 
-<pre class="language-python"><code class="language-python">SUPERIMPOSE = si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, minOverlap=None, maxOverlap=None, searchOrder='power', calcMethod='mixture')
-</code></pre>
+<script src="https://gist.github.com/benhackbarth/55094b21330b6cb11e8203a8bb152a95.js"></script>
 
  
 <ul>
@@ -748,20 +749,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 <p>However, for unpitched sounds, or databases without pitches written into the filenames, the INSTRUMENTS interface permits you to override the pitch data from csf(midiPitchMethod). You do this in individual csf entries with csf(instrParams={'pitchoverride'}).</p>
 
 
-<pre class="language-python"><code class="language-python">CORPUS = [
-# Pitches from this first csf will be uniformly overwritten as 71
-csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': 71}, wholeFile=True)
-
-# Written as a dictionary, 'type'='clip' lets you speicify a low and/or high limit for clipping csf() pitches
-csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'clip', 'low': 60, 'high': 72}}, wholeFile=True),
-
-# Written as a dictionary, 'type'='remap' reshapes the csf() pitches so that they are in between low and high values.
-csf("fingerboardSlap/", instrTag='violin', instrParams={'pitchoverride': {'type': 'remap', 'low': 60, 'high': 72}}, wholeFile=True),
-
-# Written as a dictionary, 'type'='file_match' let's you override the pitch of certain filenames in this csf() if they match a string. Only the filename of the sf is used for string matching, not its full path. Partial string matching is supported. If any of the files in csf don't match a string in the dict, the original MIDIPitch value is used.
-csf("scratchtone/", instrTag='violin', instrParams={'pitchoverride': {'type': 'file_match', 'I-': 76, 'II-': 69, 'III-': 62, 'IV-': 55}}, wholeFile=True),
-]
-</code></pre>
+<script src="https://gist.github.com/benhackbarth/ef3ce9cc10ac4ccba655117b491006a8.js"></script>
 </div>
 
 
@@ -779,12 +767,7 @@ csf("scratchtone/", instrTag='violin', instrParams={'pitchoverride': {'type': 'f
 <p>The second set of information is found in the written dynamic values (e.g. f, mp), put into bach's dynamic slot (ag uses the default slot, 20). These strings are obtained, by default, through any dynamics found in the filenames of the samples that are used. For instance, if audioguide picks the sound 'HA_ES_mu_mf_C4.wav', it will automatically be assigned a written dynamic of mf in slot 20. However, if you're using soundfiles in a csf() that do not have dynamics written into the filenames, audioguide will automatically assign each sf in a csf() a dynamic according to the relative loudness of each sf. These loudnesses get mapped onto a list of dynamics which, by default, are ['pp', 'p', 'mp', 'mf', 'f', 'ff']. However this can be changed for individual csf()s:</p>
 
 
-<pre class="language-python"><code class="language-python"># this directory doesn't have dynamics written into the filenames, so written dynamics will be automattically chosen from ['pp', 'p', 'mp', 'mf', 'f', 'ff']:
-csf('/Users/ben/Documents/sfdb/pno/short', instrTag='oboe', instrParams={}, wholeFile=True),
-
-# this directory doesn't have dynamics written into the filenames, and dynamics will be extrapolated from the list supplied:
-csf('/Users/ben/Documents/sfdb/pno/short', instrTag='oboe', instrParams={'dynamics': ['mf', 'ff']}, wholeFile=True),
-</code></pre>
+<script src="https://gist.github.com/benhackbarth/fa65c40f1a4867f271dfd058ea473868.js"></script>
 
 
 
@@ -802,13 +785,7 @@ csf('/Users/ben/Documents/sfdb/pno/short', instrTag='oboe', instrParams={'dynami
 
 <p>There are several more nuanced controls for how pitch may move over time. Consider, first, the unrestricted pitch selection of a solo violin concatenation:</p>
 
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
-]
-
-INSTRUMENTS = score(
-instr('violin'),
-)</code></pre>
+<script src="https://gist.github.com/benhackbarth/8f96600914a35a8967114a29d2a2e144.js"></script>
 
 <figure class="figure">
  <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_1.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
@@ -820,13 +797,7 @@ instr('violin'),
 
 <p>interval_limit_breakpoints lets the user specify a list of breakpoints for how intervals are restricted over time. In the example below, the breakpoints are given as [(0,7), (1, 24)], which translates to: if the distance between this selection and the end of the last note is 0 second, restrict this intervals choice to 7 semitones. if the distance is 1 second, restrict it to 24 semitones. The algorithm interpolates these breakpoints, so if the distance in seconds is 0.5, the restriction interval will be 15.5 semitones. You must have at least 2 breakpoints, and the first time difference must be zero, but you have have additional breakpoints if you want. Any note distances greater than the biggest time difference found in interval_limit_breakpoints (in this example, 1 second), any interval is possible. This also works for polyphony.</p>
 
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
-]
-
-INSTRUMENTS = score(
-instr('violin', interval_limit_breakpoints=[(0,7), (1, 24)]),
-)</code></pre>
+<script src="https://gist.github.com/benhackbarth/b868f9394330923eeee38c11d31003b6.js"></script>
 
 <figure class="figure">
  <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_2.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
@@ -836,14 +807,7 @@ instr('violin', interval_limit_breakpoints=[(0,7), (1, 24)]),
 
 <p>interval_limit_range_per_sec restricts what pitches may be selected for an instrument by limiting the total range of pitch for any given second to a number of semitones. Below, the violin is restricted to a 3 semitones total range for any one second slice of it's part. This also works for polyphony.</p>
 
-<pre class="language-python"><code class="language-python">CORPUS = [
-csf('/Users/ben/Documents/sfdb/violin/staccato/', instrTag='violin', scaleDb='filenamedyn', wholeFile=True),
-]
-
-INSTRUMENTS = score(
-instr('violin', interval_limit_range_per_sec=3),
-)</code></pre>
-
+<script src="https://gist.github.com/benhackbarth/309dd5fec357a8949ae0f103674298c7.js"></script>
 <figure class="figure">
  <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_3.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
  <figcaption class="figure-caption"></figcaption>
@@ -1082,16 +1046,21 @@ Also note that any time varying descriptor can take a few different text string 
 <tr><td>-deltadelta</td><td>Second order difference of the time varying series</td><td>power-deltadelta = the second order difference of time varying powers</td></tr>
 <tr><td>-deltadelta-seg</td><td>Average of the second order difference of the time varying series</td><td>zeroCross-deltadelta-seg = a power-weighted average of the second order difference of time varying zero crossings</td></tr>
 <tr><td>-slope-seg</td><td>Slope regression of the timevarying series</td><td>power-slope-seg = a linear regression descripbing the slope of the time varying series of powers</td></tr>
+
+<tr><td>-minseg</td><td>Minimum of the timevarying series</td><td>centroid-minseg = minimum of the time varying series of centroids</td></tr>
+<tr><td>-maxseg</td><td>Maximum of the timevarying series</td><td>centroid-maxseg = maximum of the time varying series of centroids</td></tr>
+<tr><td>-stdseg</td><td>Standard deviation of the timevarying series</td><td>centroid-stdseg = standard deviation of the time varying series of centroids</td></tr>
+<tr><td>-kurtseg</td><td>Kurtosis of the timevarying series</td><td>centroid-kurtseg = kurtosis of the time varying series of centroids. Uses scipy.stats.kurtosis</td></tr>
+<tr><td>-skewseg</td><td>Skewness of the timevarying series</td><td>centroid-skewseg = skewness of the time varying series of centroids. Uses scipy.stats.skew</td></tr>
+
+<tr><td>-stats</td><td>Statistics on the timevarying series</td><td>centroid-stats = a equally-weighted combination of centroid-seg, centroid-minseg, centroid-maxseg, centroid-stdseg, centroid-kurtseg, centroid-skewseg</td></tr>
+
+
 </table>
 
 <br><br>
 The SEARCH from the exampe below first takes the best 20% of corpus matches according to a linear regression of each segments amplitude. Of the remaining 20% a segment is chosen based on a combination of the averaged first order different of f0 and the second order time varying centroids.
-<pre class="language-python"><code class="language-python">SEARCH = [
-spass('closest_percent', d('power-slope-seg'), percent=20), # take the best 20% of matches from the corpus
-spass('closest', d('f0-delta-seg'), d('centroid-deltadelta')), # now find the best matching segment from the 20 percent that remains.
-]
-</code></pre>
-
+<script src="https://gist.github.com/benhackbarth/00512ca3990c66a48fc0977710cdda99.js"></script>
 
 </section>  
 
