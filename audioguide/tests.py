@@ -21,7 +21,6 @@ def testOpsDict(dicty):
 			util.error("user variable", "variable %s must be %s (%s given as %s)"%(name, ' or '.join(UserVar_types[name]), str(value), type(value)))
 
 
-
 def testInstance(obj1, obj2):
 	str1 = str(obj1).replace('<','').split()[0].split('.')[-1]
 	str2 = str(obj2).replace('<class \'', '').replace("'>", '').split('.')[-1]

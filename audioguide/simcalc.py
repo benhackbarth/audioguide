@@ -37,7 +37,7 @@ class distanceCalculations:
 			if spassobj.needMinMax:
 				assert spassobj.parsedescriptor.seg
 				# loop through target handles again, but only happens once per unique limit string
-				tmp_data = [ts.desc[spassobj.parsedescriptor.name].get(0, None) for ts in tgtsegs]
+				tmp_data = [ts.desc.get(spassobj.parsedescriptor.name) for ts in tgtsegs]
 				tmp_data.sort()
 				# overwrite value with correct descriptor value
 				spassobj.parsevalue = tmp_data[ int((spassobj.parsevalue/100.)*(len(tmp_data)-1)) ]
@@ -66,7 +66,7 @@ class distanceCalculations:
 			####################
 			if spassobj.method == 'parser':
 				newList = []
-				parseTest = eval("%f %s %f"%(tgtseg.desc[spassobj.parsedescriptor.name].get(0, None), spassobj.parseSymbol, float(spassobj.parsevalue)))						
+				parseTest = eval("%f %s %f"%(tgtseg.desc.get(spassobj.parsedescriptor.name), spassobj.parseSymbol, float(spassobj.parsevalue)))						
 				#############################################
 				## select corpus ids based on feature test ##
 				#############################################
@@ -123,9 +123,9 @@ class distanceCalculations:
 				ratioDobj = spassobj.descriptor_list[0]
 				newList = []
 				for c in self.corpusObjs:
-					denominator = float(tgtseg.desc[ratioDobj.name].get(0, None))
+					denominator = float(tgtseg.desc.get(ratioDobj.name))
 					if denominator == 0: denominator = 0.0001 # avoid divide by zero
-					ratio = c.desc[ratioDobj.name].get(0, None)/denominator
+					ratio = c.desc.get(ratioDobj.name)/denominator
 					# so ratio=1.1 of corpus is 110% of target
 					if ratio > maxd: maxd = ratio
 					if ratio < mind: mind = ratio
@@ -176,13 +176,13 @@ class distanceCalculations:
 	##############################
 	def getSimCalcStartAndLength(self, cpsseg, tgtseg, tgtstart, superimposeObj):
 		if superimposeObj.peakAlign: # align peaks
-			tgtstart += int(tgtseg.desc['peakTime-seg'].get(0, None)-cpsseg.desc['peakTime-seg'].get(0, None)) 
+			tgtstart += int(tgtseg.desc.get('peakTime-seg')-cpsseg.desc.get('peakTime-seg')) 
 		#print("after", tgtstart, tgtseg.lengthInFrames, cpsseg.lengthInFrames, tgtseg.desc['peakTime-seg'].get(0, None), cpsseg.desc['peakTime-seg'].get(0, None))
 		tgt_len = tgtseg.lengthInFrames-tgtstart
 		if superimposeObj.simCalcDur == "corpusDur":	
 			cps_len = cpsseg.lengthInFrames
 		else:
-			cps_len = cpsseg.desc['effDurFrames-seg'].get(0, None)
+			cps_len = cpsseg.desc.get('effDurFrames-seg')
 		array_len = min(tgt_len, cps_len)
 		return tgtstart, array_len
 	##############################
@@ -194,7 +194,7 @@ class distanceCalculations:
 			tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
 			try:
 				for d in descriptor_list:
-					tgtvals, cpsvals = c.getValuesForSimCalc( tgtseg, tgt_start, array_len, d, superimposeObj )
+					tgtvals, cpsvals = getValuesForSimCalc( tgtseg, tgt_start, array_len, c, d, superimposeObj )
 					if d.seg:
 						# SPECIAL EXCEPTION IF MANIPULATING POWER FOR SIMULTANEOUS LAYERING:
 						if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
@@ -204,8 +204,8 @@ class distanceCalculations:
 						c.sim_accum += dist
 						if c.sim_accum > min_accum and not complete_results: raise BreakIt
 					else:
-						peaks = tgtseg.desc['peakTime-seg'].get(0, None), c.desc['peakTime-seg'].get(0, None)
-						dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc['power'], peaks=peaks)
+						peaks = tgtseg.desc.get('peakTime-seg'), c.desc.get('peakTime-seg')
+						dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc.get('power'), peaks=peaks)
 						c.sim_accum += dist*d.weight*c.scaleDistance
 						if c.sim_accum > min_accum and not complete_results and spassMethod == 'closest': raise BreakIt
 				if c.sim_accum < min_accum: min_accum = c.sim_accum
@@ -233,6 +233,43 @@ class distanceCalculations:
 			elif method == 'farthest_percent':
 				newList = self.corpusObjs[numb_entries:]
 		return newList
+
+
+
+
+
+def getValuesForSimCalc(tgtseg, tgtSeek, array_len, cpsseg, dobj, superimposeObj):
+	tgtvals = tgtseg.desc.get(dobj.name, start=tgtSeek, stop=tgtSeek+array_len, norm=True)	
+	if superimposeObj.calcMethod == "mixture" and dobj.is_mixable and tgtseg.has_been_mixed:
+		if dobj.seg: d = dobj.parents[0]
+		else:  d = dobj.name
+		#############################
+		## USE DESCRIPTOR MIXTURES ##
+		#############################
+		tgtrawvals = tgtseg.desc.get(d, start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+		cpsrawvals = cpsseg.desc.get(d, stop=array_len)
+		if dobj.describes_energy:
+			mixedvals = tgtrawvals + cpsrawvals
+		else:
+			tgtrawpowers = tgtseg.desc.get('power', start=tgtSeek, stop=tgtSeek+array_len, mixture=True)
+			cpsrawpowers = cpsseg.desc.get('power', stop=array_len)
+			mixedpowers = (tgtrawpowers + cpsrawpowers)
+			mixedvals = ((tgtrawvals*tgtrawpowers) + (cpsrawvals*cpsrawpowers)) / mixedpowers
+
+		if dobj.seg: # segmented
+			if dobj.describes_energy:
+				averagedVal = np.average(mixedvals)
+			else:
+				try: averagedVal = np.average(mixedvals, weights=mixedpowers)
+				except ZeroDivisionError: averagedVal = 0
+			normedVal = cpsseg.desc.on_the_fly_data_norm(dobj.name, averagedVal)
+			return tgtvals, normedVal
+		else: # time-varying
+			normedvals = cpsseg.desc.on_the_fly_data_norm(dobj.name, mixedvals)
+			return tgtvals, normedvals
+	else: # not mixed
+		return tgtvals, cpsseg.desc.get(dobj.name, norm=True)	
+
 
 
 

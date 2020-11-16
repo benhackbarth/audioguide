@@ -272,6 +272,16 @@ def verifyPath(path, searchPathList):
 	error("FILENAME", "Couldn't find a file called %s"%' or '.join(tried))
 
 
+def verifyPathIsValidSoundfile(file):
+	fileExtension = os.path.splitext(file)[1]
+	isValidSoundfile = False
+	for ext in ['.wav', '.aiff', '.aif', '.au']:
+		if ext.lower() == fileExtension.lower():
+			isValidSoundfile = True
+			break
+	return isValidSoundfile
+
+
 def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
 	supervp_flags = '''-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'''
 	
@@ -339,7 +349,7 @@ def getTransposition(tgtseg, cpsseg):
 	# FORCE A SINGLE CHROMA
 	elif cpsseg.transMethod.startswith('single-pitch'):
 		pitch = int(cpsseg.transMethod.split()[1])
-		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
+		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
 		print("single-pitch", pitch, srcPitch, pitch-srcPitch)
 		print("single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch)
 		return pitch-srcPitch
@@ -347,7 +357,7 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('pitch-range'):
 		pitchLow = int(cpsseg.transMethod.split()[1])
 		pitchHigh = int(cpsseg.transMethod.split()[2])
-		srcPitch = cpsseg.desc['MIDIPitch-seg'].get(0, None) 
+		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
 		if srcPitch < pitchLow:
 			return pitchLow-srcPitch
 		elif srcPitch > pitchHigh:
@@ -361,8 +371,8 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0']:
-		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
-		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
+		tgtPitch = tgtseg.desc.get('f0-seg') 
+		srcPitch = cpsseg.desc.get('f0-seg') 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
 		else:
@@ -370,8 +380,8 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 	# 
 	elif cpsseg.transMethod in ['f0-chroma']:
-		tgtPitch = tgtseg.desc['f0-seg'].get(0, None) 
-		srcPitch = cpsseg.desc['f0-seg'].get(0, None) 
+		tgtPitch = tgtseg.desc.get('f0-seg') 
+		srcPitch = cpsseg.desc.get('f0-seg') 
 		if tgtPitch <= 0 or srcPitch <= 0:
 			output = 0.
 		else:

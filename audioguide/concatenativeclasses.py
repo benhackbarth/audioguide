@@ -12,7 +12,6 @@ import audioguide.tests as tests
 
 
 
-
 def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFileBool):
 	# ignore directories 
 	if os.path.isdir(cobjname): return 'corpusdirectory'
@@ -41,10 +40,45 @@ def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFile
 
 
 
-	
-
 class parseOptions:
-	def __init__(self, opsfile=None, optsDict=None, defaults=None, scriptpath=None):
+	def __init__(self):
+		usrOptions = {}
+		self.opsfileAsString = ''
+		self.opsfilehead = ''
+		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
+		self.audioguide_directory = os.path.dirname(os.path.dirname(__file__))
+		self.ops_file_path = None
+	#############################
+	def parse_dict(self, opsdict):
+		from audioguide.userclasses import TargetOptionsEntry as tsf
+		from audioguide.userclasses import CorpusOptionsEntry as csf
+		from audioguide.userclasses import Instrument as instr
+		from audioguide.userclasses import Score as score
+		from audioguide.userclasses import SearchPassOptionsEntry as spass
+		from audioguide.userclasses import SuperimpositionOptionsEntry as si
+		from audioguide.userclasses import SingleDescriptor as d
+		ops = {}
+		fh = open(self.defaults_file)
+		exec(fh.read(), locals(), ops)
+		fh.close()
+		ops.update(opsdict)	
+		# replace "none" with None
+		for k, v in ops.items():
+			if not isinstance(v, str): continue
+			if v.lower() == 'none': ops[k] = None
+		if self.ops_file_path != None: ops['SEARCH_PATHS'].append( self.ops_file_path )
+		# complete paths for output files...
+		if self.ops_file_path != None:
+			for item, val in ops.items():
+				if item.find('_FILEPATH') == -1: continue
+				if val == None: continue
+				ops[item] = util.verifyOutputPath(val, self.audioguide_directory)
+		# assign dict to this classes' attributes so that values may
+		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
+		tests.testOpsDict(ops)
+		for k, v in ops.items(): setattr(self, k, v)
+	#############################
+	def parse_file(self, opsfile):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
 		from audioguide.userclasses import CorpusOptionsEntry as csf
 		from audioguide.userclasses import Instrument as instr
@@ -53,46 +87,55 @@ class parseOptions:
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
 		usrOptions = {}
-		self.opsfileAsString = ''
-		self.opsfilehead = ''
-		if opsfile != None:
-			fh = open(opsfile)
-			self.opsfilehead = os.path.split(opsfile)[1]
-			self.opsfileAsString = fh.read()
-			exec(self.opsfileAsString, locals(), usrOptions)
-			fh.close()
-		if optsDict != None:
-			usrOptions.update(optsDict)
-		ops = {}
-		if defaults != None:
-			fh = open(defaults)
-			exec(fh.read(), locals(), ops)
-			fh.close()
-		ops.update(usrOptions)	
-		# replace "none" with None
-		for k, v in ops.items():
-			if not isinstance(v, str): continue
-			if v.lower() == 'none': ops[k] = None
-		if opsfile != None:
-			ops['SEARCH_PATHS'].append( os.path.split(opsfile)[0] )
-		if scriptpath != None:
-			ops['SEARCH_PATHS'].append( scriptpath )
-		# complete paths for output files...
-		for item, val in ops.items():
-			if item.find('_FILEPATH') == -1: continue
-			if val == None: continue
-			ops[item] = util.verifyOutputPath(val, scriptpath)
-		# assign dict to this classes' attributes so that values may
-		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
-		tests.testOpsDict(ops)
-		for k, v in ops.items(): setattr(self, k, v)
+		fh = open(opsfile)
+		self.opsfileAsString = fh.read()
+		exec(self.opsfileAsString, locals(), usrOptions)
+		fh.close()
+		self.ops_file_path = os.path.dirname(opsfile)
+		self.parse_dict(usrOptions)
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
-		linkage = anallinkage.AnalInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
-		linkage.getDescriptorLists(self)
-		return linkage
+		self.analinterface = anallinkage.AnalInterface(pm2_bin=self.PM2_BIN, supervp_bin=self.SUPERVP_BIN, userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
+		self.analinterface.expandDescriptorPackages(self)
+		return self.analinterface
+	#############################
+	def parseDescriptors(self):
+		self.analinterface.expandDescriptorPackages(self)
+		self._limitDescriptors = []
+		# add limiting descriptors
+		if 'limit' in self.CORPUS_GLOBAL_ATTRIBUTES:
+			for stringy in self.CORPUS_GLOBAL_ATTRIBUTES['limit']:
+				if d(stringy.split()[0]) not in self._limitDescriptors:
+					self._limitDescriptors.append(d(stringy.split()[0]))
+		if hasattr(self, 'CORPUS'):
+			for csfObj in self.CORPUS:
+				for stringy in csfObj.limit:
+					if d(stringy.split()[0]) not in self._limitDescriptors:
+						self._limitDescriptors.append(d(stringy.split()[0]))		
+
+		self._normalizeDescriptors = []
+		# add SEARCH descriptors
+		for spass in self.SEARCH:
+			for dobj in spass.descriptor_list:
+				if dobj not in self._normalizeDescriptors: self._normalizeDescriptors.append(dobj)
+		from userclasses import SearchPassOptionsEntry as spassObj
+		for k, v in self.EXPERIMENTAL.items():
+			if isinstance(v, spassObj):
+				for dobj in v.descriptor_list:
+					if dobj not in self._normalizeDescriptors: self._normalizeDescriptors.append(dobj)
+		# mixture stuff
+		from audioguide.userclasses import SingleDescriptor as d
+		self._mixtureDescriptors = [d('power')]
+		# add SEARCH descriptors
+		for spass in self.SEARCH:
+			for dobj in spass.descriptor_list:
+				if dobj not in self._mixtureDescriptors and dobj.is_mixable:
+					self._mixtureDescriptors.append(dobj)
+					for dname in dobj.parents: self._mixtureDescriptors.insert(0, d(dname))
+		# sort to make segmented descriptors last
+		self._mixtureDescriptors.sort(key=lambda x: x.seg, reverse=False)
 ##########################################################
 
 
@@ -124,12 +167,12 @@ class cpsLimit:
 		# loop through corpus handles again, but only happens once per unique limit string
 		tmp_data = []
 		for ch in allcpshandles:
-			#print self.origString, self.d.name, ch.desc[self.d.name].get(0, None)
+			#print self.origString, self.d.name, ch.desc.get(self.d.name)
 			if ch.voiceID not in self.cpsScope: continue # skip if outside scope
 			if self.d.seg:
-				tmp_data.append( ch.desc[self.d.name].get(0, None)  )
+				tmp_data.append( ch.desc.get(self.d.name)  )
 			else:
-				tmp_data.extend( ch.desc[self.d.name].get(0, None)  )
+				tmp_data.extend( ch.desc.get(self.d.name)  )
 		tmp_data.sort()
 		self.value = tmp_data[ int((self.percent/100.)*(len(tmp_data)-1)) ]
 		del tmp_data
@@ -137,9 +180,9 @@ class cpsLimit:
 	########################################
 	def test(self, sfobj):
 		if self.d.seg:
-			test = eval("%s %s %s"%(sfobj.desc[self.d.name].get(0, None), self.symb, self.value))
+			test = eval("%s %s %s"%(sfobj.desc.get(self.d.name), self.symb, self.value))
 		else:
-			test = eval("%s %s %s"%(np.max(sfobj.desc[self.d.name]), self.symb, self.value))
+			test = eval("%s %s %s"%(np.max(sfobj.desc.get(self.d.name), self.symb, self.value)))
 		if not test:
 			self.cnt_reject.append(sfobj)
 		return test
@@ -403,11 +446,10 @@ class corpus:
 		for c in self.postLimitSegmentList:
 			#c.pitchfilter = {}
 			#c.pitchfilter = {'pitches': [60, 66, 73], 'tolerance': 3}
-			
 			if c.pitchfilter == {}:
 				tmplist.append(c)
 			else:
-				midipitch = c.desc['MIDIPitch-seg'].get(None, None)
+				midipitch = c.desc.get('MIDIPitch-seg')
 				differences = []
 				for p in c.pitchfilter['pitches']:
 					if p < 12: # it's a pitch class
@@ -686,7 +728,7 @@ class SuperimposeTracker():
 	def increment(self, start, dur, segidx, selectCpsseg, logtext, corpusname):
 		
 		cps_voiceid = selectCpsseg.voiceID
-		powers = selectCpsseg.desc['power']
+		powers = selectCpsseg.desc.get('power')
 		cpsfilename = selectCpsseg.filename
 		
 		self.p.log( logtext )
@@ -741,9 +783,9 @@ class outputEvent:
 		self.printName = sfseghandle.printName
 		self.sfSkip = sfseghandle.segmentStartSec
 		self.cpsduration = sfseghandle.segmentDurationSec
-		self.effDurSec = sfseghandle.desc['effDur-seg'].get(0, None)
-		self.peaktimeSec = sfseghandle.desc['peakTime-seg'].get(0, None) * f2s
-		self.powerSeg = sfseghandle.desc['power-seg'].get(0, None)
+		self.effDurSec = sfseghandle.desc.get('effDur-seg')
+		self.peaktimeSec = sfseghandle.desc.get('peakTime-seg') * f2s
+		self.powerSeg = sfseghandle.desc.get('power-seg')
 		self.rmsSeg = util.ampToDb(self.powerSeg)
 		self.dynamicFromFilename = sfseghandle.dynamicFromFilename
 		self.midiVelocity = self.rmsSeg+127
@@ -762,7 +804,7 @@ class outputEvent:
 		self.transratio = 2 ** (transposition/12.)
 		self.voiceID = sfseghandle.voiceID
 		self.extraDataFromSegmentationFile = sfseghandle.segfileData
-		self.midi = sfseghandle.desc['MIDIPitch-seg'].get(0, None) + self.transposition
+		self.midi = sfseghandle.desc.get('MIDIPitch-seg') + self.transposition
 		if self.midi < minOutputMidi: self.midi = minOutputMidi
 		self.metadata = sfseghandle.metadata
 		# amplitude envelope

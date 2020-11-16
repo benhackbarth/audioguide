@@ -4,7 +4,7 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys, os, random
+import sys, os, audioguide
 
 from optparse import OptionParser
 parser = OptionParser(usage="usage: %prog [options] soundfile")
@@ -32,88 +32,43 @@ parser.add_option("-i", "--info", action="store", dest="SEGMENTATION_INFO", defa
 
 
 
-
-###########################################
-## LOAD OPTIONS AND SETUP SDIF-INTERFACE ##
-###########################################
-import audioguide
-defaultpath, libpath = audioguide.setup(os.path.dirname(__file__))
-sys.path.append(libpath)
-# import the rest of audioguide's submodules
-from audioguide import sfsegment, concatenativeclasses, userinterface, util, userclasses
-# import all other modules
-import numpy as np
-import json
 from audioguide.userclasses import TargetOptionsEntry as tsf
 from audioguide.userclasses import SingleDescriptor as d
 
+
 createdSegFiles = 0
+
 for file in args:
 	# test if its an audio file
 	file = os.path.abspath(file)
-	fileExtension = os.path.splitext(file)[1]
-	isValidSoundfile = False
-	for ext in ['.wav', '.aiff', '.aif', '.au']:
-		if ext.lower() == fileExtension.lower():
-			isValidSoundfile = True
-			break
-	if not isValidSoundfile:
-		continue
-
-	if options.PLOT_OUTPUT:
-		plotMe = file+'.jpg'
-	else:
-		plotMe = None
+	if not audioguide.util.verifyPathIsValidSoundfile(file): continue
+	if options.PLOT_OUTPUT: plotMe = file+'.jpg'
+	else: plotMe = None
 		
-	agopts = {
+	segopsdict = {
 	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, offsetThreshAbs=%f, minSegLen=%f, maxSegLen=%f, multiriseBool=%s)"%(file, options.TRIGGER_THRESHOLD, options.RISERATIO, options.MINIMUM_DB_OFFSET_BOOST, options.DB_OFFSET_ABSOLUTE, options.MINIMUM_SEG, options.MAXIMUM_SEG, options.MULTIRISE)),
 	'VERBOSITY': 1,
-	'HTML_LOG_FILEPATH': None,
-	'CSOUND_CSD_FILEPATH': None,
-	'CSOUND_RENDER_FILEPATH': None,
-	'MIDI_FILEPATH': None,
-	'LISP_OUTPUT_FILEPATH': None,
-	'DICT_OUTPUT_FILEPATH': None,
-	'DICT_OUTPUT_FILEPATH': None,
-	'TARGET_SEGMENT_LABELS_FILEPATH': None,
-	'OUTPUT_LABEL_FILEPATH': None,
-	'TARGET_DESCRIPTORS_FILEPATH': None,
-	'TARGET_PLOT_DESCRIPTORS_FILEPATH': None,
-	'TARGET_SEGMENTATION_GRAPH_FILEPATH': plotMe,
 	'SEGMENTATION_FILE_INFO': options.SEGMENTATION_INFO,
-
-	#'DESCRIPTOR_WIN_SIZE_SEC': 0.02048,
-	#'DESCRIPTOR_HOP_SIZE_SEC': 0.01024,
 	}
-	
-	ops = concatenativeclasses.parseOptions(optsDict=agopts, defaults=defaultpath, scriptpath=os.path.dirname(__file__))
-	p = userinterface.printer(ops.VERBOSITY, os.path.dirname(__file__), "/tmp/agsegmentationlog.txt")
-	p.printProgramInfo(audioguide.__version__, force=True)
-	AnalInterface = ops.createAnalInterface(p)
-	############
-	## TARGET ##
-	############
-	p.middleprint('AUDIOGUIDE SEGMENT SOUNDFILE', force=True)
-	
-	
-	filetosegment = sfsegment.target(ops.TARGET, AnalInterface)
-	filetosegment.initAnal(AnalInterface, ops, p)
-	filetosegment.stageSegments(AnalInterface, ops, p)
 
-	minamp = util.ampToDb(min(filetosegment.whole.desc['power']))
-	p.pprint("Evaluating %s from %.2f-%.2f"%(filetosegment.filename, filetosegment.whole.segmentStartSec, filetosegment.whole.segmentEndSec), colour="BOLD")
-	p.pprint("\nAN ONSET HAPPENS when", colour="BOLD")
-	p.pprint("The amplitude crosses the Relative Onset Trigger Threshold: ${YELLOW}"+"%.2f"%options.TRIGGER_THRESHOLD+" ${NORMAL}(-t option)\n", colour="NORMAL")
-	p.pprint("\nAN OFFSET HAPPENS when", colour="BOLD")
-	p.pprint("1. Offset Rise Ratio: when next-frame's-amplitude/this-frame's-amplitude >= ${YELLOW}"+"%.2f"%options.RISERATIO+" ${NORMAL}(-r option)", colour="NORMAL")
-	p.pprint("\t...or...", colour="BOLD")
-	p.pprint("2. Offset dB above minimum: when this frame's absolute amplitude <= "+"%.2f"%util.ampToDb(filetosegment.powerOffsetValue)+" (minimum found amplitude of "+"%.2f"%minamp+" plus the offset dB boost of ${YELLOW}"+"%.2f"%options.MINIMUM_DB_OFFSET_BOOST+"${NORMAL} (-d option))\n", colour="NORMAL")
+	ag = audioguide.main()
+	ag.parse_options_dict(segopsdict)
+	ag.load_target()
+	minamp = audioguide.util.ampToDb(min(ag.tgt.whole.desc.get('power')))
+	#ag.p.pprint("Evaluating %s from %.2f-%.2f"%(ag.tgt.filename, ag.tgt.whole.segmentStartSec, ag.tgt.whole.segmentEndSec), colour="BOLD")
+	ag.p.pprint("\nAN ONSET HAPPENS when", colour="BOLD")
+	ag.p.pprint("The amplitude crosses the Relative Onset Trigger Threshold: ${YELLOW}"+"%.2f"%options.TRIGGER_THRESHOLD+" ${NORMAL}(-t option)\n", colour="NORMAL")
+	ag.p.pprint("\nAN OFFSET HAPPENS when", colour="BOLD")
+	ag.p.pprint("1. Offset Rise Ratio: when next-frame's-amplitude/this-frame's-amplitude >= ${YELLOW}"+"%.2f"%options.RISERATIO+" ${NORMAL}(-r option)", colour="NORMAL")
+	ag.p.pprint("\t...or...", colour="BOLD")
+	ag.p.pprint("2. Offset dB above minimum: when this frame's absolute amplitude <= "+"%.2f"%audioguide.util.ampToDb(ag.tgt.powerOffsetValue)+" (minimum found amplitude of "+"%.2f"%minamp+" plus the offset dB boost of ${YELLOW}"+"%.2f"%options.MINIMUM_DB_OFFSET_BOOST+"${NORMAL} (-d option))\n", colour="NORMAL")
 	if options.OUTPUT_FILE == '': segFile = file+'.txt'
 	else: segFile = os.path.abspath(options.OUTPUT_FILE)
-	filetosegment.writeSegmentationFile(segFile)
-	p.pprint("\nFound ${RED}"+str(len(filetosegment.segs))+"${NORMAL} segments", colour="NORMAL")
+	ag.tgt.writeSegmentationFile(segFile)
+	ag.p.pprint("\nFound ${RED}"+str(len(ag.tgt.segs))+"${NORMAL} segments", colour="NORMAL")
 	print( "Wrote file %s\n"%(segFile) )
 	createdSegFiles += 1
 	
 if (createdSegFiles == 0):
 	print("\n\nError: I didn't create any segmentation textfiles because you didn't give me any soundfiles in your input arguments!  You wrote: %s\n\n"%(' '.join(sys.argv)))
+

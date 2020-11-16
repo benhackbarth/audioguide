@@ -31,7 +31,7 @@ csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'min
 
 
 # piano
-csf('pno/short/', instrTag='piano', instrParams={'temporal_mode': 'artic', 'technique': 'ord'}, scaleDb=-10, transMethod='random -1 1', transQuantize=1),
+csf('pno/long/', instrTag='piano', instrParams={'temporal_mode': 'sus', 'technique': 'ord'}, scaleDb=-10, transMethod='random -1 1', transQuantize=1, clipDurationToTarget=True),
 ]
 
 

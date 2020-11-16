@@ -20,7 +20,7 @@ import audioguide.util as util
 
 
 def pitchoverride(cobjlist, config):
-	pitchlist = [c.desc['MIDIPitch-seg'].get(None, None) for c in cobjlist]
+	pitchlist = [c.desc.get('MIDIPitch-seg') for c in cobjlist]
 	minpitch, maxpitch = min(pitchlist), max(pitchlist)
 	output_dict = {}
 	
@@ -250,7 +250,7 @@ class instruments:
 				# do pitch
 				self.instruments[k]['cps'][voiceID]['cobj_to_pitch'] = pitchoverride(thiscps, self.instruments[k]['cps'][voiceID]['pitchoverride'])
 				# do equally spaced dynamics
-				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc['power-seg'].get(None, None))
+				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc.get('power-seg'))
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {}
 				if len(self.instruments[k]['cps'][voiceID]['dynamics']) == 1:
 					self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][0] for c in thiscps}
@@ -348,11 +348,11 @@ class instruments:
 		if len(self.valid_instruments_per_voice[cobj.voiceID]) == 0: return False
 		cobj.instrument_candidates = []
 
-		PITCH = cobj.desc['MIDIPitch-seg'].get(None, None)
+		PITCH = cobj.desc.get('MIDIPitch-seg')
 		if cobj.transMethod != None and cobj.transMethod.startswith("semitone"):
 			# exception for midipitch to incorporate transposition
 			PITCH += float(cobj.transMethod.split()[1])
-		DB = util.ampToDb(cobj.desc['power-seg'].get(None, None)) + cobj.envDb
+		DB = util.ampToDb(cobj.desc.get('power-seg')) + cobj.envDb
 		
 		for i in self.valid_instruments_per_voice[cobj.voiceID]:
 			add_this_instr = True

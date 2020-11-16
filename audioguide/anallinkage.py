@@ -7,6 +7,10 @@ import sys, os, subprocess, time, json
 sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import numpy as np
 import audioguide.util as util
+import audioguide.descriptordata as descriptors
+
+
+
 
 
 def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.join(os.getenv("HOME"), 'Applications')]):
@@ -21,6 +25,8 @@ def findbin(userstring, filehead, searchdirectories=['/Applications', os.path.jo
 
 
 
+
+
 class AnalInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
@@ -29,7 +35,7 @@ class AnalInterface:
 
 	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
 		global descriptToFiles
-
+		self.desc_manager = descriptors.descriptor_manager()
 		# establish data directory
 		if dataDirectoryLocation == None:
 			self.dataDirectory = os.path.dirname(__file__)
@@ -68,7 +74,7 @@ class AnalInterface:
 		# set up mfccs
 		self.numbMfccs = numbMfccs
 		for i in range(self.numbMfccs):
-			descriptToFiles.append(("mfcc%i"%i,                  'ircamd', False, True,  'MFCC', self.numbMfccs, i))
+			descriptToFiles.append(("mfcc%i"%i, 'ircamd', False, True,  'MFCC', self.numbMfccs, i))
 		# other stuff
 		self.forceAnal = forceAnal
 		self.searchPaths = searchPaths
@@ -191,14 +197,6 @@ EnergyEnvelope  = 1
 			self.p.log("ANALYSIS CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
 			self.p.log("ANALYSIS CONFIG: using analysis overlap of %.3f (%i samples)"%(self.hopLengthSec, closestHopSize))
 	#############################
-	def addDescriptorIfNeeded(self, dobjToCheck, ops, addParents=False):
-		from userclasses import SingleDescriptor as d
-		if dobjToCheck.name not in [dn.name for dn in self.requiredDescriptors]:
-			self.requiredDescriptors.append(dobjToCheck)
-		if addParents:
-			for pname in dobjToCheck.parents:
-				self.addDescriptorIfNeeded(d(pname, origin=dobjToCheck.origin+'_PARENT'), ops)
-	#############################
 	def expandDescriptorPackages(self, ops):
 		for spass in ops.SEARCH:
 			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, self.numbMfccs)
@@ -210,75 +208,6 @@ EnergyEnvelope  = 1
 		for k, v in ops.EXPERIMENTAL.items():
 			if isinstance(v, spassObj):
 				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list, self.numbMfccs)
-	#############################
-	def getDescriptorLists(self, ops):
-		self.expandDescriptorPackages(ops)
-		from userclasses import SingleDescriptor as d
-		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
-		self.requiredDescriptors = []
-		# add SEARCH descriptors
-		for spass in ops.SEARCH:
-			for dobj in spass.descriptor_list:
-				#dobj.origin = 'SEARCH'
-				self.addDescriptorIfNeeded(dobj, ops, addParents=True)
-		# add target onset descriptors
-		for dname, weight in self.tgtOnsetDescriptors.items():
-			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
-		# add limiting descriptors
-		if 'limit' in ops.CORPUS_GLOBAL_ATTRIBUTES:
-			for stringy in ops.CORPUS_GLOBAL_ATTRIBUTES['limit']:
-				print(stringy.split()[0], 'GLOBAL_LIMIT')
-				self.addDescriptorIfNeeded(d(stringy.split()[0], origin='GLOBAL_LIMIT'), ops, addParents=True)
-		if hasattr(ops, 'CORPUS'):
-			for csfObj in ops.CORPUS:
-				for stringy in csfObj.limit:
-					self.addDescriptorIfNeeded(d(stringy.split()[0], origin='LOCAL_LIMIT'), ops, addParents=True)
-
-		# add EXPERIMENTAL spass entries 
-		for k, v in ops.EXPERIMENTAL.items():
-			if isinstance(v, spassObj):
-				for dobj in v.descriptor_list:
-					dobj.origin = 'EXPERIMENTAL'
-					self.addDescriptorIfNeeded(dobj, ops, addParents=True)
-
-		# add CLUSTER descriptors
-		if 'descriptors' in ops.CLUSTER_MAPPING:
-			for s in ops.CLUSTER_MAPPING['descriptors']:
-				self.addDescriptorIfNeeded(d(s+'-seg', origin='CLUSTER_MAPPING'), ops, addParents=True)
-		# add classification descriptors
-		if 'descriptors' in ops.OUTPUTEVENT_CLASSIFY:
-			for s in ops.OUTPUTEVENT_CLASSIFY['descriptors']:
-				self.addDescriptorIfNeeded(d(s, origin='CLASSIFICATION'), ops, addParents=True)
-		# add segmentation data descriptor
-		if ops.SEGMENTATION_FILE_INFO != 'logic':
-			self.addDescriptorIfNeeded(d(ops.SEGMENTATION_FILE_INFO, weight=0, origin='SEGMENTATION_DATA'), ops, addParents=True)
-		# add ordering by descriptor
-		if None not in [ops.ORDER_CORPUS_BY_DESCRIPTOR]:
-			self.addDescriptorIfNeeded(d(ops.ORDER_CORPUS_BY_DESCRIPTOR, weight=0, origin='ORDER_CORPUS_BY_DESCRIPTOR'), ops, addParents=True)
-		for dname, weight in self.tgtOnsetDescriptors.items():
-			self.addDescriptorIfNeeded(d(dname, weight=weight, origin='TARGET_ONSET'), ops)
-		# add internal mectrics if not already used
-		for dname in self.internalDescriptorNames:
-			self.addDescriptorIfNeeded(d(dname, origin='INTERNAL'), ops, addParents=True)
-		#
-		#
-		# make normalisation list!
-		self.normalizeDescriptors = []
-		for dobj in self.requiredDescriptors:
-			if dobj.origin in ['SEARCH', 'EXPERIMENTAL']: self.normalizeDescriptors.append(dobj)
-		# make mixture list!
-		self.mixtureDescriptors = []
-		tmpmix = ['power']
-		for dobj in self.requiredDescriptors:
-			if dobj.origin == 'SEARCH' and dobj.is_mixable:
-				if dobj.seg: tmpmix.append(dobj.name) # make sure segs are at the end
-				else: tmpmix.insert(0, dobj.name)
-				for pobjname in dobj.parents: tmpmix.insert(0, pobjname)
-		for dname in tmpmix:
-			for dobj in self.requiredDescriptors:
-				if dobj.name == dname:
-					self.mixtureDescriptors.append(dobj)
-					break
 	########################################################
 	########################################################
 	def logcommand(self, command):
@@ -433,19 +362,12 @@ EnergyEnvelope  = 1
 		self.dataRegistry[filehead] = time.time(), os.stat(sffile).st_size
 	########################################################
 	########################################################
+	def getDescriptorMatrix(self, sffile):
+		return self.rawData[sffile]['ircamd']
+	########################################################
+	########################################################
 	def getDescriptorColumn(self, sffile, dname):
 		return self.rawData[sffile]['ircamd'][:,self.rawData[sffile]['info']['ircamd_columns'][dname]]
-	########################################################
-	########################################################
-	def getDescriptorForsfsegment(self, sffile, startf, lengthinframes, descriptor, envelopeMask):
-		global descriptIsAmp
-		endf = startf+lengthinframes
-		#print ("getDescriptorForsfsegment", startf, endf)
-		data = self.getDescriptorColumn(sffile, descriptor.name)[startf:endf]
-		# use envelope mask if requested and if this descriptor deals with power
-		if type(envelopeMask) != type(None) and descriptor.name in descriptIsAmp:
-			data *= envelopeMask
-		return data
 	########################################################
 	########################################################
 	def analize_spectralPeaks(self, filepath, minamp=0.001, fftsize=2048, hop_length=2048, min_midi=20, max_midi=108):
@@ -529,14 +451,6 @@ EnergyEnvelope  = 1
 
 
 
-
-
-
-
-
-
-
-
 #############################
 ## PACKAGES OF DESCRIPTORS ##
 #############################
@@ -548,9 +462,10 @@ def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 		metricsToWrite = []
 		if dobj.name.find('mfccs') != -1:
 			mfccWeightMask = np.power(np.linspace(1., 0.05, num=numbMfccs-1), 0.5)
-			for i in range(numbMfccs-1): metricsToWrite.append(('mfcc'+str(i+1)+dobj.name[5:], dobj.weight*(mfccWeightMask[i]/sum(mfccWeightMask)) ))
+			for i in range(numbMfccs-1):
+				metricsToWrite.append(('mfcc'+str(i+1)+dobj.name[5:], dobj.weight*(mfccWeightMask[i]/sum(mfccWeightMask)) ))
 		elif dobj.name.find('chromas') != -1:
-			for i in range(12): metricsToWrite.append( ( 'chroma'+str(i)+dobj.name[9:], dobj.weight/12. ) )
+			for i in range(12): metricsToWrite.append( ( 'chroma'+str(i)+dobj.name[7:], dobj.weight/12. ) )
 		elif dobj.name.find('autocorrs') != -1:
 			for i in range(12): metricsToWrite.append( ( 'autocorr'+str(i)+dobj.name[9:], dobj.weight/12. ) )
 		elif dobj.name.find('crests') != -1:
@@ -565,7 +480,10 @@ def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 		elif dobj.name.find('perceptualtristimuluses') != -1:
 			for i in range(3):
 				metricsToWrite.append( [ 'perceptualtristimulus'+str(i)+dobj.name[23:], dobj.weight/3. ] )
-		
+		elif dobj.name.find('stats') != -1:
+			stats = ['-seg', '-minseg', '-maxseg', '-stdseg', '-kurtseg', '-skewseg']
+			for i, stat in enumerate(stats):
+				metricsToWrite.append( [ dobj.name[:-6]+stat, dobj.weight/float(len(stats))] )
 		# add original if not a package, add package elements otherwise
 		if len(metricsToWrite) == 0:
 			newListOfDescriptorObjs.append(dobj)
