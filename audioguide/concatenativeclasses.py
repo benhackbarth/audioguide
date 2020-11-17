@@ -102,6 +102,7 @@ class parseOptions:
 		return self.analinterface
 	#############################
 	def parseDescriptors(self):
+		from audioguide.userclasses import SingleDescriptor as d
 		self.analinterface.expandDescriptorPackages(self)
 		self._limitDescriptors = []
 		# add limiting descriptors
@@ -126,7 +127,6 @@ class parseOptions:
 				for dobj in v.descriptor_list:
 					if dobj not in self._normalizeDescriptors: self._normalizeDescriptors.append(dobj)
 		# mixture stuff
-		from audioguide.userclasses import SingleDescriptor as d
 		self._mixtureDescriptors = [d('power')]
 		# add SEARCH descriptors
 		for spass in self.SEARCH:
@@ -144,13 +144,10 @@ class parseOptions:
 
 class cpsLimit:
 	def __init__(self, origString, cpsScope, AnalInterface):
+		from audioguide.userclasses import SingleDescriptor as d
 		self.origString = origString
 		limit_pieces = util.parseEquationString(origString, ['==', '!=', '<', '<=', '>', '>='])
-		assert limit_pieces[0] in [dobj.name for dobj in AnalInterface.requiredDescriptors]
-		for dobj in AnalInterface.requiredDescriptors:
-		#	print dobj, dobj.name, limit_pieces[0]
-			if dobj.name == limit_pieces[0]: break
-		self.d = dobj
+		self.d = d(limit_pieces[0])
 		self.symb = limit_pieces[1]
 		# test to see if it is a percentage
 		if limit_pieces[2].find('%') == -1:
@@ -240,15 +237,14 @@ class corpus:
 
 		self.data['numberVoices'] = len(corpusFromUserOptions)
 		for cidx, cobj in enumerate(corpusFromUserOptions):
-			
 			if isinstance(cobj.name, list) or isinstance(cobj.name, tuple):
 				fileType = 'pythonlist'
-			elif os.path.isdir(cobj.name):
-				fileType = 'dir'
+			else:
 				cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
-			elif os.path.isfile(cobj.name):
-				fileType = 'file'
-				cobj.name = util.verifyPath(cobj.name, AnalInterface.searchPaths)
+				if os.path.isdir(cobj.name):
+					fileType = 'dir'
+				elif os.path.isfile(cobj.name):
+					fileType = 'file'
 				
 
 
@@ -792,6 +788,7 @@ class outputEvent:
 		if self.midiVelocity > 127: self.midiVelocity = 127
 		if self.midiVelocity < 10: self.midiVelocity = 10
 		# tgt stuff
+		self.tgtsfseghandle = tgtseg
 		self.tgtsegstart = tgtseg.segmentStartSec
 		self.tgtsegpeak = tgtseg.originalPeak*f2s
 		self.tgtsegdur = tgtsegdur

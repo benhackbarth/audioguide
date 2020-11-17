@@ -164,12 +164,17 @@ class descriptor_manager:
 		elif dnormmethod == 'minmax':
 			m = np.min(dataarray)
 			return {'method': dnormmethod, 'min': m, 'range': np.max(dataarray)-m}
+		elif dnormmethod == 'sigmoid':
+			m = np.max(dataarray)
+			return {'method': dnormmethod, 'max': m}
 	########################################
 	def normalize_data(self, dataarray, coeffDict):
 		if coeffDict['method'] == 'stddev':
 			return (dataarray-coeffDict['mean'])/coeffDict['std']
 		elif coeffDict['method'] == 'minmax':
 			return (dataarray-coeffDict['min'])/coeffDict['range']
+		elif coeffDict['method'] == 'sigmoid':
+			return 1/(1+np.exp(-dataarray/coeffDict['max']))
 	########################################
 	def create_sf_descriptor_obj(self, sfseghandle, rawmatrix, startframe_in_matrix, length_in_matrix, tag=None, envelope=None):
 		'''this function gets a new class sf_segment_descriptors and links it to the overlord'''
@@ -316,7 +321,9 @@ class descriptor_manager:
 				#if dparams['describes_energy']:
 				#	print("ENERGY", self.sfseghandle.seek)
 				self._edit_tv_data(d.name, mixture, mix_dur, start=tgtseek, mixture=True)
-
+		#####################################	
+		def getdict(self, dobjlist):
+			return {d.name: list(self.get(d.name)) if not d.seg else self.get(d.name) for d in dobjlist}
 
 
 
@@ -414,6 +421,16 @@ def soundSegmentClassification(descriptors, segObjs, numbClasses=4):
 	y_km = kmeans.fit_predict(data)
 	return y_km
 
+
+
+
+
+def buildFeatureArray(segmentObjList, featureList):
+	data = np.empty( (len(segmentObjList), len(featureList)) )
+	for sidx, seg in enumerate(segmentObjList):
+		for didx, d in enumerate(featureList):
+			data[sidx][didx] = seg.desc.get(d)
+	return data
 
 
 

@@ -15,17 +15,21 @@ from audioguide.userclasses import SearchPassOptionsEntry as spass
 from audioguide.userclasses import SingleDescriptor as d
 
 
-# same as example 1..
+################################################################################
+## below are the same options as example 1, except written as a python        ##
+## dictionary instead of as a textfile. note the classes imported from        ##
+## audioguide.userclasses.                                                    ##
+################################################################################
 optionsDictionary = {
 'TARGET': tsf('examples/cage.aiff', thresh=-25, offsetRise=1.5),
 'CORPUS': [csf('examples/lachenmann.aiff')],
 'SEARCH': [
-spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=25),
-spass('closest', d('mfccs'))],
-'SUPERIMPOSE': si(maxSegment=6),
+spass('closest', d('centroid-seg', norm=1))],
+'SUPERIMPOSE': si(maxSegment=1),
 'VERBOSITY': 0, # <- turn off printing to the console!
 'CSOUND_PLAY_RENDERED_FILE': False, # don't play the rendered file at the commandline
 }
+
 
 ag = audioguide.main()
 ag.parse_options_dict(optionsDictionary)
@@ -37,10 +41,14 @@ ag.standard_concatenate()
 
 print("selected events")
 for eobj in ag.outputEvents:
-	# ['classification', 'cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'extraDataFromSegmentationFile', 'filename', 'instrParams', 'instrTag', 'makeCsoundOutputText', 'makeDictOutput', 'makeLabelText', 'makeLispText', 'makeMaxMspListOutput', 'makeSegmentationDataText', 'metadata', 'midi', 'midiVelocity', 'peaktimeSec', 'powerSeg', 'printName', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'sfseghandle', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'timeInScore', 'transposition', 'transratio', 'voiceID']
-	print(eobj.timeInScore, eobj.filename)
+	print('\nOUTPUT EVENT', eobj.timeInScore, eobj.filename)
+	for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'timeInScore', 'transposition', 'voiceID']:
+		print('\t', attr, ':', getattr(eobj, attr))
+	# get descriptor data this way
+	print('\tAverage centroid for this segment vs average centroid for target segment: %.3f %.3f'%(eobj.sfseghandle.desc.get('centroid-seg'), eobj.tgtsfseghandle.desc.get('centroid-seg')))
+
 
 files = ag.write_concatenate_output_files()
 
-print("wrote output files:", files)
+print("\n\nwrote output files:", files)
 

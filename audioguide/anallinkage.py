@@ -180,7 +180,7 @@ TextureWindowsHopFrames = -1
 ;~~~~~~~~~~~~~~~~energy descriptors~~~~~~~~~~~~~~~~
 EnergyEnvelope  = 1
 '''%(self.resampleRate, self.IOBufferSize, self.windowType, self.F0MaxAnalysisFreq, self.F0MinFrequency, self.F0MaxFrequency, self.F0AmpThreshold, self.numbMfccs, self.winLengthSec, self.hopLengthSec, self.userEnergyWinLengthSec, self.userEnergyHopLengthSec)
-		# make a list of all possible descriptor objects
+		# make a list of all possible descriptor objects, needed by agGetDescriptors.py
 		self.allDescriptors = []
 		from userclasses import SingleDescriptor as d
 		for desc in descriptToFiles:

@@ -314,7 +314,7 @@ class main:
 
 
 	def write_concatenate_output_files(self):
-		list_of_files_written = []
+		dict_of_files_written = {}
 		##########################################
 		## sort self.outputEvents by start time ##
 		##########################################
@@ -382,7 +382,7 @@ class main:
 			fh = open(self.ops.DICT_OUTPUT_FILEPATH, 'w')
 			json.dump(output, fh)
 			fh.close()
-			list_of_files_written.append(self.ops.DICT_OUTPUT_FILEPATH)
+			dict_of_files_written['DICT_OUTPUT_FILEPATH'] = self.ops.DICT_OUTPUT_FILEPATH
 			self.p.log( "Wrote JSON dict file %s\n"%self.ops.DICT_OUTPUT_FILEPATH )
 
 		#####################################
@@ -396,7 +396,7 @@ class main:
 			fh = open(self.ops.MAXMSP_OUTPUT_FILEPATH, 'w')
 			json.dump(output, fh)
 			fh.close()
-			list_of_files_written.append(self.ops.MAXMSP_OUTPUT_FILEPATH)
+			dict_of_files_written['MAXMSP_OUTPUT_FILEPATH'] = self.ops.MAXMSP_OUTPUT_FILEPATH
 			self.p.log( "Wrote MAX/MSP JSON lists to file %s\n"%self.ops.MAXMSP_OUTPUT_FILEPATH )
 	
 		######################
@@ -413,7 +413,7 @@ class main:
 			binfile = open(self.ops.MIDI_FILEPATH, 'wb')
 			MyMIDI.writeFile(binfile)
 			binfile.close()
-			list_of_files_written.append(self.ops.MIDI_FILEPATH)
+			dict_of_files_written['MIDI_FILEPATH'] = self.ops.MIDI_FILEPATH
 			self.p.log( "Wrote MIDIfile %s\n"%self.ops.MIDI_FILEPATH )
 
 		###################################
@@ -423,7 +423,7 @@ class main:
 			fh = open(self.ops.OUTPUT_LABEL_FILEPATH, 'w')
 			fh.write( ''.join([ oe.makeLabelText() for oe in self.outputEvents ]) )
 			fh.close()
-			list_of_files_written.append(self.ops.OUTPUT_LABEL_FILEPATH)
+			dict_of_files_written['OUTPUT_LABEL_FILEPATH'] = self.ops.OUTPUT_LABEL_FILEPATH
 			self.p.log( "Wrote superimposition label file %s\n"%self.ops.OUTPUT_LABEL_FILEPATH )
 
 		#######################################
@@ -440,7 +440,7 @@ class main:
 				alldata[(c.filename+'@'+str(c.segmentStartSec))] = descs
 			json.dump(alldata, fh)
 			fh.close()
-			list_of_files_written.append(self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH)
+			dict_of_files_written['CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH'] = self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH
 			self.p.log( "Wrote corpus segmented features file %s\n"%self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
 
 
@@ -451,7 +451,7 @@ class main:
 			fh = open(self.ops.LISP_OUTPUT_FILEPATH, 'w')
 			fh.write('(' + ''.join([ oe.makeLispText() for oe in self.outputEvents ]) +')')
 			fh.close()
-			list_of_files_written.append(self.ops.LISP_OUTPUT_FILEPATH)
+			dict_of_files_written['LISP_OUTPUT_FILEPATH'] = self.ops.LISP_OUTPUT_FILEPATH
 			self.p.log( "Wrote lisp output file %s\n"%self.ops.LISP_OUTPUT_FILEPATH )
 
 		########################################
@@ -462,7 +462,7 @@ class main:
 			for line in [oe.makeSegmentationDataText() for oe in self.outputEvents]:
 				fh.write(line)
 			fh.close()
-			list_of_files_written.append(self.ops.DATA_FROM_SEGMENTATION_FILEPATH)
+			dict_of_files_written['DATA_FROM_SEGMENTATION_FILEPATH'] = self.ops.DATA_FROM_SEGMENTATION_FILEPATH
 			self.p.log( "Wrote data from segmentation file to textfile %s\n"%self.ops.DATA_FROM_SEGMENTATION_FILEPATH )
 
 		########################
@@ -480,11 +480,12 @@ class main:
 					oe.timeInScore -= minTime
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
 			csd.makeConcatenationCsdFile(self.ops.CSOUND_CSD_FILEPATH, self.ops.CSOUND_RENDER_FILEPATH, self.ops.CSOUND_CHANNEL_RENDER_METHOD, self.ops.CSOUND_SR, self.ops.CSOUND_KSMPS, csSco, self.cps.len, set([oe.sfchnls for oe in self.outputEvents]), maxOverlaps, self.instruments, self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=self.ops.CSOUND_BITS)
+			dict_of_files_written['CSOUND_CSD_FILEPATH'] = self.ops.CSOUND_CSD_FILEPATH
 			self.p.log( "Wrote csound csd file %s\n"%self.ops.CSOUND_CSD_FILEPATH )
 			if self.ops.CSOUND_RENDER_FILEPATH != None:
 				csd.render(self.ops.CSOUND_CSD_FILEPATH, len(self.outputEvents), printerobj=self.p)
 				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.CSOUND_RENDER_FILEPATH )
-				list_of_files_written.append(self.ops.CSOUND_RENDER_FILEPATH)
+				dict_of_files_written['CSOUND_RENDER_FILEPATH'] = self.ops.CSOUND_RENDER_FILEPATH
 	
 			if self.ops.CSOUND_NORMALIZE:
 				csd.normalize(self.ops.CSOUND_RENDER_FILEPATH, db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
@@ -495,9 +496,9 @@ class main:
 		####################
 		if self.ops.HTML_LOG_FILEPATH != None:
 			self.p.writehtmllog(self.ops.HTML_LOG_FILEPATH)
-			list_of_files_written.append(self.ops.HTML_LOG_FILEPATH)
+			dict_of_files_written['HTML_LOG_FILEPATH'] = self.ops.HTML_LOG_FILEPATH
 	
 		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:
 			csd.playFile( self.ops.CSOUND_RENDER_FILEPATH )
 
-		return list_of_files_written
+		return dict_of_files_written

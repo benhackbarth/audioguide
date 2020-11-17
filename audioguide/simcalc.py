@@ -212,8 +212,8 @@ class distanceCalculations:
 			except BreakIt: pass
 		# sort by accum distance
 		self.corpusObjs.sort(key=operator.attrgetter('sim_accum'))
-		#for cidx, c in enumerate(self.corpusObjs):
-		#	print cidx, c.filename, c.sim_accum
+		#for cidx, c in enumerate(self.corpusObjs[:1]):
+		#	print(cidx, c.desc.get('centroid-seg'), tgtseg.desc.get('centroid-seg'), c.sim_accum)
 		
 		mind = self.corpusObjs[0].sim_accum
 		maxd = self.corpusObjs[-1].sim_accum
