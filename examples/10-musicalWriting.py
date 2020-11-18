@@ -29,9 +29,6 @@ csf('cello/sul-tasto/', instrTag='cello', instrParams={'technique': 'arco', 'ann
 csf('cello/artificial-harmonic/', instrTag='cello', instrParams={'polyphony_max_voices': 1, 'technique': 'arco', 'annotation': 'harmonic'}, scaleDb='filenamedyn', clipDurationToTarget=True),
 csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'minspeed': 0.12, 'technique': 'pizz','annotation': 'pizz'}, scaleDb='filenamedyn'),
 
-
-# piano
-csf('pno/long/', instrTag='piano', instrParams={'temporal_mode': 'sus', 'technique': 'ord'}, scaleDb=-10, transMethod='random -1 1', transQuantize=1, clipDurationToTarget=True),
 ]
 
 
@@ -46,13 +43,12 @@ instr('violin', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, p
 instr('viola', clef='Alto', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
 instr('cello', clef='F', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]),
 
-instr('piano', clef='FG', temporal_mode='artic', polyphony_max_voices=8, polyphony_min_range=6, polyphony_max_range=18),
 
 )
 
 
 SEARCH = [
-spass('closest_percent', d('power-seg', norm=1), percent=10),
+spass('closest_percent', d('power-seg', norm=1), percent=30),
 spass('closest', d('mfccs-seg', norm=1)),
 ]
 

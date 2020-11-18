@@ -401,6 +401,9 @@ def TimevaryingDescriptorComputation(origdata, dname, type):
 	elif type == 'onsetdetection':
 		numberAvg = int(dname.split('-')[2])
 		newdata = odf(origdata, numberAvg)
+	else:
+		print("ERROR TimevaryingDescriptorComputation: No known type", type, dname, origdata)
+		sys.exit(1)
 	return newdata
 
 

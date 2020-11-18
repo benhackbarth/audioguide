@@ -23,8 +23,7 @@ from audioguide.userclasses import SingleDescriptor as d
 optionsDictionary = {
 'TARGET': tsf('examples/cage.aiff', thresh=-25, offsetRise=1.5),
 'CORPUS': [csf('examples/lachenmann.aiff')],
-'SEARCH': [
-spass('closest', d('centroid-seg', norm=1))],
+'SEARCH': [spass('closest', d('centroid-seg', norm=1))],
 'SUPERIMPOSE': si(maxSegment=1),
 'VERBOSITY': 0, # <- turn off printing to the console!
 'CSOUND_PLAY_RENDERED_FILE': False, # don't play the rendered file at the commandline
@@ -33,6 +32,7 @@ spass('closest', d('centroid-seg', norm=1))],
 
 ag = audioguide.main()
 ag.parse_options_dict(optionsDictionary)
+ag.ops.SUPERIMPOSE = si(maxSegment=2) # <- change options this way
 ag.load_target()
 ag.write_target_output_files()
 ag.load_corpus()
@@ -42,7 +42,7 @@ ag.standard_concatenate()
 print("selected events")
 for eobj in ag.outputEvents:
 	print('\nOUTPUT EVENT', eobj.timeInScore, eobj.filename)
-	for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'timeInScore', 'transposition', 'voiceID']:
+	for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'transposition', 'voiceID']:
 		print('\t', attr, ':', getattr(eobj, attr))
 	# get descriptor data this way
 	print('\tAverage centroid for this segment vs average centroid for target segment: %.3f %.3f'%(eobj.sfseghandle.desc.get('centroid-seg'), eobj.tgtsfseghandle.desc.get('centroid-seg')))
