@@ -80,7 +80,7 @@ spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 ## segment is a sort of inverse of the target's values.                       ##
 ################################################################################
 #SEARCH = [
-#spass('farthest', d('centroid-seg')) # picks the segment with the most distance centroid when compared to target segments.
+#spass('farthest', d('centroid-seg')) # picks worst matching segment compared to target segment.
 #]
 
 

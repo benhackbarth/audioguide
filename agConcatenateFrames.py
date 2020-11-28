@@ -47,11 +47,7 @@ p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f sec
 ## target descriptors file ##
 #############################
 if ops.TARGET_DESCRIPTORS_FILEPATH != None:
-	outputdict = tgt.whole.desc.getdict()
-	outputdict['frame2second'] = AnalInterface.f2s(1)
-	fh = open(ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
-	json.dump(outputdict, fh)
-	fh.close()
+	tgt.whole.desc.writedict(ops.TARGET_DESCRIPTORS_FILEPATH, ag.AnalInterface)
 	p.log("TARGET: wrote descriptors to %s"%(ops.TARGET_DESCRIPTORS_FILEPATH))
 ##############################
 ## target descriptor graphs ##

@@ -1,6 +1,36 @@
 import numpy as np
 import util
 
+
+
+
+def buildarray_all_timevarying_descriptors(sfobjlist, descriptorlist, AnalInterface, n_dimensions=2):
+	all_sfs = list(set([s.filename for s in sfobjlist]))
+	tv_descriptors = [d for d in descriptorlist if not d.seg]
+	
+	matrix = np.empty((sum([AnalInterface.rawData[sf]['arraylen'] for sf in all_sfs]), len(tv_descriptors)))
+	cnt = 0
+	for sf in all_sfs:
+		for didx, d in enumerate(tv_descriptors):
+			dvalues = AnalInterface.rawData[sf]['ircamd'][:,AnalInterface.rawData[sf]['info']['ircamd_columns'][d.name]]
+			matrix[cnt:cnt+len(dvalues),didx] = dvalues
+		cnt += AnalInterface.rawData[sf]['arraylen']
+	
+	print("dimensional scaling")
+	import umap
+	mapper = umap.UMAP(n_neighbors=20, min_dist=0., n_components=n_dimensions, metric='euclidean')
+	reduceddata = mapper.fit_transform(matrix)
+	print(reduceddata)
+
+	print("adding new columns to ircamd arrays")
+	cnt = 0
+	for sf in all_sfs:
+		AnalInterface.desc_manager.sffile2matrix[sf].add_columns(reduceddata[cnt:cnt+AnalInterface.rawData[sf]['arraylen']], ['X','Y'])
+		cnt += AnalInterface.rawData[sf]['arraylen']
+
+
+
+
 ########################
 ## make array for MDS ##
 ########################

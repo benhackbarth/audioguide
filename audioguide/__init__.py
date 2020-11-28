@@ -91,11 +91,7 @@ class main:
 		## target descriptors file ##
 		#############################
 		if self.ops.TARGET_DESCRIPTORS_FILEPATH != None:
-			outputdict = self.tgt.whole.desc.getdict()
-			outputdict['frame2second'] = self.AnalInterface.f2s(1)
-			fh = open(self.ops.TARGET_DESCRIPTORS_FILEPATH, 'w')
-			json.dump(outputdict, fh)
-			fh.close()
+			self.tgt.whole.desc.writedict(self.ops.TARGET_DESCRIPTORS_FILEPATH, ag.AnalInterface)
 			self.p.log("TARGET: wrote descriptors to %s"%(self.ops.TARGET_DESCRIPTORS_FILEPATH))
 		##############################
 		## target descriptor graphs ##
@@ -127,13 +123,22 @@ class main:
 
 
 
+	def dimensional_scale_data(self):
+		self.ops.parseDescriptors()
+		dimscaling.buildarray_all_timevarying_descriptors(self.tgt.segs + self.cps.postLimitSegmentNormList, self.ops._normalizeDescriptors, self.AnalInterface)
+		from userclasses import SearchPassOptionsEntry as spass
+		from userclasses import SingleDescriptor as d
+		self.ops.SEARCH = [
+spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=25),
+spass('closest', d('X', norm=1), d('Y', norm=1))
+]
+
 
 	def normalize(self):
 		###################
 		## NORMALIZATION ##
 		###################
 		self.p.logsection( "NORMALIZATION" )
-		# find which descriptors to normalize
 		self.ops.parseDescriptors()
 		self.AnalInterface.desc_manager.normalize(self.tgt.segs + self.cps.postLimitSegmentNormList, self.ops._normalizeDescriptors)
 		###########################################################################
@@ -198,7 +203,7 @@ class main:
 				tgtsegdur =  tgtseg.segmentDurationSec - self.AnalInterface.f2s(tgtseg.seek)
 				segidxt = superimp.test('segidx', segidx, self.ops.SUPERIMPOSE.minSegment, self.ops.SUPERIMPOSE.maxSegment)
 				overt = superimp.test('overlap', tif, self.ops.SUPERIMPOSE.minOverlap, self.ops.SUPERIMPOSE.maxOverlap)
-				onsett = superimp.test('onset', tif, self.ops.SUPERIMPOSE.minOnset, self.ops.SUPERIMPOSE.maxOnset)
+				onsett = superimp.test('onset', tif, self.ops.SUPERIMPOSE.minFrame, self.ops.SUPERIMPOSE.maxFrame)
 				trigVal = tgtseg.thresholdTest(tgtseg.seek, self.AnalInterface.tgtOnsetDescriptors)
 				trig = trigVal >= self.tgt.segmentationThresh
 				####################################################
@@ -243,32 +248,12 @@ class main:
 				###################################################
 				superimp.pick(trig, trigVal, onsett, overt, segidxt, timeInSec)
 				selectCpsseg = distanceCalculations.returnSearch()
-				######################################
-				## MODIFY CHOSEN SAMPLES AMPLITUDE? ##
-				######################################
+				#####################################
+				## MODIFY CHOSEN SAMPLES AMPLITUDE ##
+				#####################################
 				minLen = min(tgtseg.lengthInFrames-tgtseg.seek, selectCpsseg.lengthInFrames)	
-				if selectCpsseg.postSelectAmpBool:
-					if selectCpsseg.postSelectAmpMethod == "lstsqr":
-						try:
-							leastSqrWholeLine = (np.linalg.lstsq(np.vstack([selectCpsseg.desc.get('power', stop=minLen)]).T, np.vstack([tgtseg.desc.get('power', stop=minLen)]).T)[0][0][0])
-						except np.linalg.linalg.LinAlgError: # in case of incompatible dimensions
-							leastSqrWholeLine = 0
-							pass
-					elif selectCpsseg.postSelectAmpMethod in ["power-seg", "power-mean-seg"]:
-						tgtPower = tgtseg.desc.get(selectCpsseg.postSelectAmpMethod, start=tgtseg.seek)
-						cpsPower = selectCpsseg.desc.get(selectCpsseg.postSelectAmpMethod)
-						sourceAmpScale = tgtPower/cpsPower			
-					###################
-					## fit to limits ##
-					###################
-					if sourceAmpScale < util.dbToAmp(selectCpsseg.postSelectAmpMin):
-						sourceAmpScale = util.dbToAmp(selectCpsseg.postSelectAmpMin)
-					elif sourceAmpScale > util.dbToAmp(selectCpsseg.postSelectAmpMax):
-						sourceAmpScale = util.dbToAmp(selectCpsseg.postSelectAmpMax)
-				else: # nothing
-					sourceAmpScale = 1
 				# apply amp scaling
-				sourceAmpScale *= util.dbToAmp(self.ops.OUTPUT_GAIN_DB)
+				sourceAmpScale = util.dbToAmp(self.ops.OUTPUT_GAIN_DB)
 				sourceAmpScale *= util.dbToAmp(selectCpsseg.envDb)
 				###################$###########################
 				## subtract power and update onset detection ##
@@ -471,7 +456,7 @@ class main:
 		if self.ops.CSOUND_CSD_FILEPATH != None:
 			from audioguide import csoundinterface as csd
 			maxOverlaps = np.max([oe.simSelects for oe in self.outputEvents])
-			csSco = 'i2  0.  %f  %f  "%s"  %f\n\n'%(self.tgt.endSec-self.tgt.startSec, self.tgt.whole.envDb, self.tgt.filename, self.tgt.startSec)
+			csSco = 'i2  0.  %f  %f  "%s"  %f  %i\n\n'%(self.tgt.endSec-self.tgt.startSec, self.tgt.whole.envDb, self.tgt.filename, self.tgt.startSec, int(self.ops.CSOUND_CHANNEL_RENDER_METHOD == 'targetoutputmix'))
 	
 			# just in case that there are negative p2 times!
 			minTime = min([ oe.timeInScore for oe in self.outputEvents ])

@@ -324,6 +324,13 @@ class descriptor_manager:
 		#####################################	
 		def getdict(self, dobjlist):
 			return {d.name: list(self.get(d.name)) if not d.seg else self.get(d.name) for d in dobjlist}
+		#####################################	
+		def writedict(self, outputfile, AnalInterface):
+			dicty = self.getdict(AnalInterface.allDescriptors)
+			descriptorData['f2s'] = AnalInterface.f2s(1)
+			fh = open(outputfile, 'w')
+			json.dump(descriptorData, fh)
+			fh.close()
 
 
 

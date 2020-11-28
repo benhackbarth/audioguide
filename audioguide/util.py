@@ -350,8 +350,6 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('single-pitch'):
 		pitch = int(cpsseg.transMethod.split()[1])
 		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
-		print("single-pitch", pitch, srcPitch, pitch-srcPitch)
-		print("single-pitch", cpsseg.filename, pitch, srcPitch, pitch-srcPitch)
 		return pitch-srcPitch
 	# FORCE A PITCH RANGE!   KINDA HACKY, GOTTA FIND A BETTER WAY TO CODE THIS UI
 	elif cpsseg.transMethod.startswith('pitch-range'):

@@ -22,12 +22,12 @@ class distanceCalculations:
 		self.searchResults = []
 		self.paramScore = []
 		self.segmentDensityAmpScalers = [None, None]
-		if superimposeObj.minOnset != None:
-			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.minOnset)
+		if superimposeObj.minFrame != None:
+			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.minFrame)
 		else:
 			self.segmentDensityAmpScalers[0] = 1/1.
-		if superimposeObj.maxOnset != None:
-			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.maxOnset)
+		if superimposeObj.maxFrame != None:
+			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.maxFrame)
 		else:
 			self.segmentDensityAmpScalers[0] = 1/8.
 	##############################

@@ -54,7 +54,7 @@ OUTPUTEVENT_CLASSIFY = {'numberClasses': 0, 'descriptors': ['mfcc1-seg', 'mfcc2-
 CSOUND_SR = 48000
 CSOUND_KSMPS = 128
 CSOUND_BITS = 16
-CSOUND_CHANNEL_RENDER_METHOD = "corpusmax" # corpusmax | stereo | oneChannelPerVoice | oneChannelPerOverlap
+CSOUND_CHANNEL_RENDER_METHOD = "corpusmax" # corpusmax | stereo | targetoutputmix | oneChannelPerVoice | oneChannelPerOverlap
 CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 CSOUND_PLAY_RENDERED_FILE = True
 CSOUND_NORMALIZE = False
@@ -81,5 +81,5 @@ PM2_BIN = None
 ###############  USER INTERACTION / PRINTING  ##############
 SEARCH_PATHS = []
 VERBOSITY = 2
-SEGMENTATION_FILE_INFO = 'logic'
+TARGET_SEGMENT_LABELS_INFO = 'logic'
 EXPERIMENTAL = {}

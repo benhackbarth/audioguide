@@ -46,7 +46,7 @@ for file in args:
 	segopsdict = {
 	'TARGET': eval("tsf('%s', thresh=%f, offsetRise=%f, offsetThreshAdd=%f, offsetThreshAbs=%f, minSegLen=%f, maxSegLen=%f)"%(file, options.TRIGGER_THRESHOLD, sys.maxsize, options.MINIMUM_DB_OFFSET_BOOST, options.DB_OFFSET_ABSOLUTE, options.GRAINLENGTH, sys.maxsize)),
 	'VERBOSITY': 1,
-	'SEGMENTATION_FILE_INFO': options.SEGMENTATION_INFO,
+	'TARGET_SEGMENT_LABELS_INFO': options.SEGMENTATION_INFO,
 	}
 
 	ag = audioguide.main()

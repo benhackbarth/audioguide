@@ -33,7 +33,7 @@ class TargetOptionsEntry(object):
 
 
 class CorpusOptionsEntry(object):
-	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  postSelectAmpBool=False, postSelectAmpMin=-12, postSelectAmpMax=+12, postSelectAmpMethod='power-mean-seg', segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None, instrTag=None, instrParams={}, clipDurationToTarget=False):
+	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None, instrTag=None, instrParams={}, clipDurationToTarget=False):
 		self.name = name
 		self.start = start
 		self.end = end
@@ -55,10 +55,6 @@ class CorpusOptionsEntry(object):
 		self.scaleDb = scaleDb
 		self.onsetLen = onsetLen
 		self.offsetLen = offsetLen
-		self.postSelectAmpBool = postSelectAmpBool
-		self.postSelectAmpMin = postSelectAmpMin
-		self.postSelectAmpMax = postSelectAmpMax
-		self.postSelectAmpMethod = postSelectAmpMethod
 		self.scaleDistance = scaleDistance
 		self.segmentationExtension = segmentationExtension
 		self.segmentationFile = segmentationFile
@@ -71,6 +67,8 @@ class CorpusOptionsEntry(object):
 		self.clipDurationToTarget = clipDurationToTarget
 		self.instrTag = instrTag
 		self.instrParams = instrParams
+		# test if limit is a string make it a list
+		if type(self.limit) == type(""): self.limit = [self.limit]
 		# see if pitch filter has pitch strings that need to be converted into floats...
 		if self.pitchfilter != {}:
 			for pidx in range(len(self.pitchfilter['pitches'])):
@@ -169,11 +167,11 @@ class SearchPassOptionsEntry(object):
 
 
 class SuperimpositionOptionsEntry(object):
-	def __init__(self, minSegment=None, maxSegment=None, minOnset=None, maxOnset=None, minOverlap=None, maxOverlap=None, overlapAmpThresh=-70, searchOrder='power', subtractScale=1, subtractDur='corpusDur', ampDur='corpusDur', overlapDur='corpusEffDur', calcMethod='mixture', simCalcDur='corpusEffDur', peakAlign=False, peakAlignEnvelope='subtracted', incr=1):
+	def __init__(self, minSegment=None, maxSegment=None, minFrame=None, maxFrame=None, minOverlap=None, maxOverlap=None, overlapAmpThresh=-70, searchOrder='power', subtractScale=1, subtractDur='corpusDur', ampDur='corpusDur', overlapDur='corpusEffDur', calcMethod='mixture', simCalcDur='corpusEffDur', peakAlign=False, peakAlignEnvelope='subtracted', incr=1):
 		self.minSegment = minSegment
 		self.maxSegment = maxSegment
-		self.minOnset = minOnset
-		self.maxOnset = maxOnset
+		self.minFrame = minFrame
+		self.maxFrame = maxFrame
 		self.minOverlap = minOverlap
 		self.maxOverlap = maxOverlap
 		self.searchOrder = searchOrder

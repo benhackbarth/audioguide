@@ -90,7 +90,7 @@ UserVar_types = {
 'MIDI_FILEPATH': ['None', 'a string'],
 'MIDIFILE_TEMPO': ['a number greater than zero'],
 'TARGET_SEGMENT_LABELS_FILEPATH': ['None', 'a string'],
-'SEGMENTATION_FILE_INFO': ['a string'],
+'TARGET_SEGMENT_LABELS_INFO': ['a string'],
 'TARGET_SEGMENTATION_GRAPH_FILEPATH': ['None', 'a string'],
 'OUTPUT_LABEL_FILEPATH': ['None', 'a string'],
 'LISP_OUTPUT_FILEPATH':  ['None', 'a string'],
@@ -136,7 +136,7 @@ UserVar_types = {
 'CSOUND_SR': ['an integer greater than zero'],
 'CSOUND_KSMPS': ['an integer greater than zero'],
 'CSOUND_BITS': ['an integer greater than zero'],
-'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix', 'oneChannelPerClassification', 'oneChannelPerInstrument'], # mix is deprecated 
+'CSOUND_CHANNEL_RENDER_METHOD': ['stereo', 'targetoutputmix', 'corpusmax', 'oneChannelPerVoice', 'oneChannelPerOverlap', 'mix', 'oneChannelPerClassification', 'oneChannelPerInstrument'], # mix is deprecated 
 'CSOUND_STRETCH_CORPUS_TO_TARGET_DUR': ['None', 'pv', 'transpose'],
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_NORMALIZE': ['True or False'],

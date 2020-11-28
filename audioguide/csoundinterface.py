@@ -11,7 +11,7 @@ import audioguide.util as util
 def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, instruments, numberClasses, bits=32, useTargetAmplitude=0):	
 	if channelRenderMethod == "corpusmax":
 		nchnls = max(listOfSfchannelsInScore) # use maximum number of channels for a corpus item
-	elif channelRenderMethod in ["mix", "stereo"]:
+	elif channelRenderMethod in ["mix", "stereo", "targetoutputmix"]:
 		nchnls = 2 # mono of stereo depending on corpus sf
 	elif channelRenderMethod == "oneChannelPerVoice":
 		nchnls = cpsLength
@@ -272,6 +272,18 @@ instr 1
 			outch     int(p15+1), asnd1+asnd2+asnd3+asnd4
 		endif 
 	endif
+
+	iStrCmpResult  strcmp   SchannelRenderType, "targetoutputmix"
+	if (iStrCmpResult == 0) then
+		atmp init 0
+		if (iFileChannels == 1) then ; a MONO file
+			outs   atmp, asnd1
+		elseif (iFileChannels == 2) then
+			outs   atmp, asnd1+asnd2
+		elseif (iFileChannels == 4) then
+			outs   atmp, asnd1+asnd2+asnd3+asnd4 ; hmmmmm..
+		endif 
+	endif
 	
 	giNoteCounter = giNoteCounter+1 ; increment note counter
 endin
@@ -293,6 +305,7 @@ instr 2 ; target sound
 	iScaleDb = p4
 	StgtFile   strget   p5
 	iStartRead = p6
+	iPlaySoundChn1Bool = p7
 	
 	iFileChannels   filenchnls   StgtFile
 
@@ -303,6 +316,10 @@ instr 2 ; target sound
 		asnd2 = asnd1 ; equal balance between L and R
 	endif 
 	gkTargetRms  rms  asnd1+asnd2
+	if (iPlaySoundChn1Bool == 1) then
+		atmp init 0
+		outs asnd1+asnd2, atmp
+	endif
 endin
 
 </CsInstruments>

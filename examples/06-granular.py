@@ -27,7 +27,7 @@ spass('closest', d('mfccs-seg'))
 ]
 
 ################################################################################
-## Using maxOnset=1 will let the algorhythim pick one grain per analysis      ##
+## Using maxFrame=1 will let the algorhythim pick one grain per analysis      ##
 ## frame, i.e. every 0.0124 seconds                                           ##
 ################################################################################
-SUPERIMPOSE = si(maxOnset=1) 
+SUPERIMPOSE = si(maxFrame=1) 

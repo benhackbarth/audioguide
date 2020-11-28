@@ -314,7 +314,6 @@ class corpus:
 				## input a PYTHON LIST ##
 				#########################
 				for i in range(len(cobj.name)):
-					print(cobj.name[i])
 					cobj.name[i][0] = util.verifyPath(cobj.name[i][0], AnalInterface.searchPaths)
 				timeList.extend(cobj.name)
 				cobj.numbSfFiles = len(cobj.name)
@@ -388,7 +387,7 @@ class corpus:
 					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
 
 				
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, cobj.postSelectAmpBool, cobj.postSelectAmpMin, cobj.postSelectAmpMax, cobj.postSelectAmpMethod, segmentationfileData, metadata, cobj.clipDurationToTarget, cobj.instrTag, cobj.instrParams])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, segmentationfileData, metadata, cobj.clipDurationToTarget, cobj.instrTag, cobj.instrParams])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': [], 'instrTag': cobj.instrTag, 'instrParams': cobj.instrParams} )	
 			###########################
@@ -755,7 +754,7 @@ class SuperimposeTracker():
 	def pick(self, trig, trigVal, onsett, overt, segidxt, timeinSec):
 		if not trig and onsett == 'force':
 			pass
-			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOnset"%(timeinSec) )
+			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minFrame"%(timeinSec) )
 		elif not trig and overt == 'force':
 			pass
 			#self.p.log( "SELECT @ %.2f -- target too soft but forced to by minOverlap"%(timeinSec) )

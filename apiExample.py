@@ -32,23 +32,28 @@ optionsDictionary = {
 
 ag = audioguide.main()
 ag.parse_options_dict(optionsDictionary)
-ag.ops.SUPERIMPOSE = si(maxSegment=2) # <- change options this way
 ag.load_target()
 ag.write_target_output_files()
 ag.load_corpus()
-ag.normalize()
-ag.standard_concatenate()
 
-print("selected events")
-for eobj in ag.outputEvents:
-	print('\nOUTPUT EVENT', eobj.timeInScore, eobj.filename)
-	for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'transposition', 'voiceID']:
-		print('\t', attr, ':', getattr(eobj, attr))
-	# get descriptor data this way
-	print('\tAverage centroid for this segment vs average centroid for target segment: %.3f %.3f'%(eobj.sfseghandle.desc.get('centroid-seg'), eobj.tgtsfseghandle.desc.get('centroid-seg')))
+for descriptor in ['centroid', 'mfccs', 'flatnesses']:
+	ag.ops.SEARCH = [spass('closest', d(descriptor))] # <- change options this way (just be careful not to change an option after you run associated code. for instance, if you change the target filename, you 'll need to run ag.load_target() again).
+	ag.ops.CSOUND_RENDER_FILEPATH = 'output/output-%s.aiff'%descriptor # here we'll change the output csound soundfile name to ensure that each concatenation doesn't overwrite the previous file
+	ag.normalize()
+	ag.standard_concatenate()
+	print(ag.ops.SEARCH[0].descriptor_list, "SELECTED EVENTS")
+	# selected corpus sounds are stored as a list in ag.outputEvents. each output event is an object:
+	for eobj in ag.outputEvents:
+		print('\nOUTPUT EVENT', eobj.timeInScore, eobj.filename)
+		# other attributes
+		#for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'transposition', 'voiceID']:
+		#	print('\t', attr, ':', getattr(eobj, attr))
+		# you can get descriptor data this way
+		print('\tAverage centroid for this segment vs average centroid for target segment: %.3f %.3f'%(eobj.sfseghandle.desc.get('centroid-seg'), eobj.tgtsfseghandle.desc.get('centroid-seg')))
+		print('\tmfcc1 for this segment vs the target segment: %s %s'%(eobj.sfseghandle.desc.get('mfcc1'), eobj.tgtsfseghandle.desc.get('mfcc1')))
 
 
-files = ag.write_concatenate_output_files()
+	files = ag.write_concatenate_output_files()
 
-print("\n\nwrote output files:", files)
+	print("\n\nwrote output files:", files)
 

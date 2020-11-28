@@ -135,7 +135,7 @@ class sfsegment:
 class corpusSegment(sfsegment):
 	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, postSelectAmpBool, postSelectAmpMin, postSelectAmpMax, postSelectAmpMethod, segfileData, metadata, clipDurationToTarget, instrTag, instrParams, normtag='cps'):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, segfileData, metadata, clipDurationToTarget, instrTag, instrParams, normtag='cps'):
 		# initalise the sound segment object	
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, normtag='cps')
 		# additional corpus-specific data
@@ -146,10 +146,6 @@ class corpusSegment(sfsegment):
 		self.limitObjList = limitObjList
 		self.pitchfilter = pitchfilter
 		self.scaleDistance = scaleDistance
-		self.postSelectAmpBool = postSelectAmpBool
-		self.postSelectAmpMin = postSelectAmpMin
-		self.postSelectAmpMax = postSelectAmpMax
-		self.postSelectAmpMethod = postSelectAmpMethod
 		self.superimposeRule = superimposeRule
 		self.transMethod = transMethod
 		self.transQuantize = transQuantize
@@ -281,7 +277,7 @@ class target: # the target
 				for idx in range(len(segments)):
 					if segments[idx] in self.segmentationInOnsetFrames: continue
 					self.segmentationInOnsetFrames.append(segments[idx])
-					if ops.SEGMENTATION_FILE_INFO == 'logic':
+					if ops.TARGET_SEGMENT_LABELS_INFO == 'logic':
 						self.extraSegmentationData.append(logic[idx])
 			# end loop
 
@@ -306,9 +302,9 @@ class target: # the target
 			self.segmentationInSec.append((AnalInterface.f2s(start), AnalInterface.f2s(end)))
 			self.seglengths.append(AnalInterface.f2s(end-start))
 
-		if ops.SEGMENTATION_FILE_INFO != 'logic':
+		if ops.TARGET_SEGMENT_LABELS_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
-				self.extraSegmentationData.append('%s=%.5f'%(ops.SEGMENTATION_FILE_INFO, self.whole.desc[ops.SEGMENTATION_FILE_INFO].get(start, end) ))
+				self.extraSegmentationData.append('%.4f'%(self.whole.desc.get(ops.TARGET_SEGMENT_LABELS_INFO, start=start, stop=end) ))
 				if False:
 					midilist = []
 					import mu
