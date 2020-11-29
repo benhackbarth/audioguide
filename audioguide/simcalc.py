@@ -191,6 +191,7 @@ class distanceCalculations:
 		for c in self.corpusObjs:
 			#print c.filename, c.scaleDistance
 			c.sim_accum = 0.
+			c.sim_data = []
 			tgt_start, array_len = self.getSimCalcStartAndLength(c, tgtseg, tgtSeek, superimposeObj)
 			try:
 				for d in descriptor_list:
@@ -205,7 +206,8 @@ class distanceCalculations:
 						if c.sim_accum > min_accum and not complete_results: raise BreakIt
 					else:
 						peaks = tgtseg.desc.get('peakTime-seg'), c.desc.get('peakTime-seg')
-						dist = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc.get('power'), peaks=peaks)
+						dist, distance_data = timeVaryingDistance(tgtvals, cpsvals, dist=d.distance, envelopeMask=c.envelopeMask, energyWeight=d.energyWeight, energies=c.desc.get('power'), peaks=peaks)
+						c.sim_data.append(distance_data)
 						c.sim_accum += dist*d.weight*c.scaleDistance
 						if c.sim_accum > min_accum and not complete_results and spassMethod == 'closest': raise BreakIt
 				if c.sim_accum < min_accum: min_accum = c.sim_accum
@@ -284,7 +286,7 @@ def timeVaryingDistance(array1, array2, dist=None, envelopeMask=None, energyWeig
 	if dist == 'euclidean': # the default
 		distances = np.power((array1[0:l]-array2[0:l]), 2)
 		if energyWeight: distances *= energies[0:l]
-		return np.sum(distances)/float(l) # divided by the length
+		return np.sum(distances)/float(l), None # divided by the length
 	elif dist == 'pearson':
 		return pearsonCorr(array1[0:l], array2[0:l])
 	elif dist == 'kullback':
@@ -323,14 +325,14 @@ def fixedSizeDigest(array1, array2, dist, peaks):
 		array1Fixed = util.interpArray(array1, lenMask)
 		array2Fixed = util.interpArray(array2, lenMask)
 	distances = np.power((array1Fixed-array2Fixed), 2)
-	return np.sum(distances)/float(l) # divided by the length
+	return np.sum(distances)/float(l), None # divided by the length
 
 
 def kullback(array1, array2):
 	from scipy.stats import norm 
 	l = len(array1)
 	a1 = norm.cdf(array1[0:l])
-	return (a1 * np.log2(a1/norm.cdf(array2[0:l]))).sum() / float(l) # should i divide by length here?
+	return (a1 * np.log2(a1/norm.cdf(array2[0:l]))).sum() / float(l), None # should i divide by length here?
 
 
 def pearsonCorr(x,y):
@@ -347,7 +349,7 @@ def pearsonCorr(x,y):
 	num = psum - (sum_x * sum_y/n)
 	den = pow((sum_x_sq - pow(sum_x, 2) / n) * (sum_y_sq - pow(sum_y, 2) / n), 0.5)
 	if den == 0: return 0
-	return num / den
+	return num / den, None
 
 def dtwDist(x,y):
 	try:
@@ -360,8 +362,9 @@ def dtwDist(x,y):
 	except ImportError:
 		print(ImportError, "scipy package is not installed.")
 	"""Dynamic Time Warping Distance"""
-	dist, _ = fastdtw(x, y, dist=euclidean)
-	return dist
+	dist, path_data = fastdtw(x, y, dist=euclidean)
+	#print('\n\n', path_data, '\n\n')
+	return dist, path_data
 
 
 	

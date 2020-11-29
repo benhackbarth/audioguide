@@ -115,7 +115,15 @@ instr 1
 	endif 
 
 	; do envelope
-	aAmp    linseg   0, iAttackTime, 1, iCpsSegDur-iDecayTime-iAttackTime, 1, iDecayTime, 0
+	if (iAttackTime == 0 && iDecayTime == 0) then
+		aAmp init 1
+	elseif (iAttackTime == 0) then
+		aAmp    linseg   1, iCpsSegDur-iDecayTime, 1, iDecayTime, 0
+	elseif (iDecayTime == 0) then
+		aAmp    linseg   0, iAttackTime, 1, iCpsSegDur-iAttackTime, 1
+	else
+		aAmp    linseg   0, iAttackTime, 1, iCpsSegDur-iDecayTime-iAttackTime, 1, iDecayTime, 0
+	endif
 	aAmp   pow    aAmp, iEnvSlope
 	aAmp = aAmp * ampdbfs(iCpsAmpDb)
 
