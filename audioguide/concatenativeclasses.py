@@ -89,6 +89,7 @@ class parseOptions:
 		usrOptions = {}
 		fh = open(opsfile)
 		self.opsfileAsString = fh.read()
+		self.WHAT_THE_FUCK = '1'
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
 		self.ops_file_path = os.path.dirname(opsfile)

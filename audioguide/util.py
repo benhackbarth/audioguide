@@ -103,12 +103,16 @@ def nextPowerOfTwo(val):
 	while result < val: result *= 2.
 	return result
 
+
+# global variables for getDynamicFromFilename()
+TYPICAL_DYNAMICS = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
+MAP_STRING_TO_DYNAMIC = {'ppmfpp': 'mf', 'pfp': 'f', 'f-ff': 'f','fp': 'f', 'ppff':'ff', 'ffpp': 'ff', 'slap': 'pp', 'sfz': 'f', 'p1': 'p', 'p2': 'pp', }
+ALL_DYN_KEYS = list(TYPICAL_DYNAMICS.keys())
+ALL_DYN_KEYS.extend(list(MAP_STRING_TO_DYNAMIC.keys()))
+SPLIT_STRINGS = ['-', '_', '.', '|'] # in order of likelihood
+
 def getDynamicFromFilename(file, notFound=-1000):
-	TYPICAL_DYNAMICS = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
-	MAP_DYNAMICS = {'ppmfpp': 'mf', 'pfp': 'f', 'f-ff': 'f','fp': 'f', 'ppff':'ff', 'ffpp': 'ff', 'slap': 'pp', 'sfz': 'f', 'p1': 'p', 'p2': 'pp', }
-	ALL_DYN_KEYS = list(TYPICAL_DYNAMICS.keys())
-	ALL_DYN_KEYS.extend(list(MAP_DYNAMICS.keys()))
-	SPLIT_STRINGS = ['-', '_', '.', '|'] # in order of likelihood
+	global TYPICAL_DYNAMICS, MAP_STRING_TO_DYNAMIC, ALL_DYN_KEYS, SPLIT_STRINGS
 	NOTHING_YET = True
 	whichStr = 0
 	dynamic = "fuck"
@@ -127,8 +131,8 @@ def getDynamicFromFilename(file, notFound=-1000):
 		whichStr += 1
 	if dynamic == 'fuck':
 		return notFound, None
-	elif dynamic in MAP_DYNAMICS:
-		return TYPICAL_DYNAMICS[MAP_DYNAMICS[dynamic]], dynamic
+	elif dynamic in MAP_STRING_TO_DYNAMIC:
+		return TYPICAL_DYNAMICS[MAP_STRING_TO_DYNAMIC[dynamic]], dynamic
 	else:
 		return TYPICAL_DYNAMICS[dynamic], dynamic
 

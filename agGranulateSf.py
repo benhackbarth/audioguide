@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ############################################################################
 ## This software is distributed for free, without warranties of any kind. ##
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
