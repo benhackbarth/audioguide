@@ -66,8 +66,6 @@ for file in args:
 			newSegmentationInOnsetFrames.append( (start, start+grainLengthFrames) )
 			newExtraSegmentationData.append(ag.tgt.extraSegmentationData[sidx])
 			start += grainHopFrames
-	print(len(newExtraSegmentationData))
-	print(len(newSegmentationInOnsetFrames))
 	# overwrite old segmentation
 	ag.tgt.segmentationInOnsetFrames = newSegmentationInOnsetFrames
 	ag.tgt.extraSegmentationData = newExtraSegmentationData

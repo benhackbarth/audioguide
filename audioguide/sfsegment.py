@@ -242,7 +242,6 @@ class target: # the target
 		self.segs = []
 		self.segmentationInFrames = []
 		self.segmentationInOnsetFrames = []
-		self.segmentationInSec = []
 		self.extraSegmentationData = []
 		self.seglengths = []		
 
@@ -297,6 +296,7 @@ class target: # the target
 		###################################
 		## make segment times in seconds ##
 		###################################
+		self.segmentationInSec = []
 		self.segmentationInFrames = self.segmentationInOnsetFrames
 		for start, end in self.segmentationInOnsetFrames:
 			self.segmentationInSec.append((AnalInterface.f2s(start), AnalInterface.f2s(end)))
@@ -342,6 +342,7 @@ class target: # the target
 				s.segmentStartFrame = AnalInterface.getSegmentStartInFrames(s.filename, s.segmentStartSec, s.segmentEndSec, s.lengthInFrames)
 	########################################
 	def writeSegmentationFile(self, filename):
+		assert len(self.segmentationInSec) == len(self.extraSegmentationData)
 		fh = open(filename, 'w')
 		for sidx in range(len(self.segmentationInSec)):
 			fh.write( "%f\t%f\t%s\n"%(self.segmentationInSec[sidx][0], self.segmentationInSec[sidx][1], self.extraSegmentationData[sidx]) )
