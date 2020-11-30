@@ -13,8 +13,8 @@ parser.set_defaults(MINIMUM_DB_OFFSET_BOOST=+12)
 parser.set_defaults(DB_OFFSET_ABSOLUTE=-60)
 parser.set_defaults(OUTPUT_FILE='')
 parser.set_defaults(SEGMENTATION_INFO='logic')
-parser.set_defaults(GRAINLENGTH=0.1)
-parser.set_defaults(GRAINHOP=0.05)
+parser.set_defaults(GRAINLENGTH=0.3)
+parser.set_defaults(GRAINHOP=0.1)
 parser.add_option("-g", "--grainlength", action="store", dest="GRAINLENGTH", type="float", help="sets the length of generated grains in seconds.  All segments generated with agGranulate will be this length.  default=0.3")
 parser.add_option("-o", "--grainoverlap", action="store", dest="GRAINHOP", type="float", help="sets the distance between sucessive grain overlaps in seconds.  If this value is 0.1 a new grain will begin every 0.1 seconds.  If -g is 0.3, the overlap of grains will be 3.  default=0.1")
 
@@ -59,6 +59,7 @@ for file in args:
 
 	grainLengthFrames = round(options.GRAINLENGTH/ag.AnalInterface.f2s(1), 0)
 	grainHopFrames = round(options.GRAINHOP/ag.AnalInterface.f2s(1), 0)
+	print(grainLengthFrames, grainHopFrames)
 	newSegmentationInOnsetFrames = []
 	newExtraSegmentationData = []
 	for sidx, (start, stop) in enumerate(ag.tgt.segmentationInOnsetFrames):

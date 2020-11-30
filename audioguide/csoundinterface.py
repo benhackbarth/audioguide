@@ -326,7 +326,7 @@ instr 2 ; target sound
 	gkTargetRms  rms  asnd1+asnd2
 	if (iPlaySoundChn1Bool == 1) then
 		atmp init 0
-		outs asnd1+asnd2, atmp
+		outs (asnd1+asnd2)*ampdbfs(iScaleDb), atmp
 	endif
 endin
 
