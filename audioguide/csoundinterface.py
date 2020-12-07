@@ -309,7 +309,7 @@ endin
 
 
 instr 2 ; target sound
-	iDur = p3
+	iDur = p35
 	iScaleDb = p4
 	StgtFile   strget   p5
 	iStartRead = p6

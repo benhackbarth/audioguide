@@ -35,7 +35,6 @@ class main:
 		sys.path.append(libpath)
 		self.ops = concatenativeclasses.parseOptions()
 
-
 	def parse_options_file(self, opspath):
 		self.ops.parse_file(opspath)
 		self.finish_setup()
@@ -43,7 +42,6 @@ class main:
 	def parse_options_dict(self, opsdict):
 		self.ops.parse_dict(opsdict)
 		self.finish_setup()
-	
 	
 	def finish_setup(self, printversion=True):
 		if 'concateMethod' in self.ops.EXPERIMENTAL and self.ops.EXPERIMENTAL['concateMethod'] == 'framebyframe':

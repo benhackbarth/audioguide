@@ -144,11 +144,12 @@ $('body').scrollspy({
     </div>
     <div id="navbar" class="navbar-collapse collapse">
      <ul class="nav navbar-nav">
-      <li ><a href="index.html">Home</a></li>
-      <li ><a href="examples.html">Examples</a></li>
-      <li ><a href="release.html">Download</a></li>
-      <li class="active"><a href="docs.html">Documentation</a></li>
-      <li ><a href="tutorial.html">Tutorials</a></li>
+            <li ><a href="index.html">Home</a></li>
+            <li ><a href="release.html">Download</a></li>
+            <li ><a href="docs.html">Documentation</a></li>
+            <li ><a href="tutorial.html">Video Tutorials</a></li>
+            <li ><a href="examples.html">Sound Examples</a></li>
+            <li class="active"><a href="music.html">Music Made with AudioGuide</a></li>
      </ul>
     </div><!--/.nav-collapse -->
    </div>
@@ -367,6 +368,8 @@ TARGET = tsf('cage.aiff', start=2, end=3, stretch=2) # only uses seconds 2-3, bu
 
 
 <div id="TheCORPUSVariable" class="group"><h3>The CORPUS Variable and csf() object</h3>
+<p><iframe width="560" height="315" src="https://www.youtube.com/embed/OqZzxfXEbc8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+
 The CORPUS variable is defined as a list of csf() objects which require a path to a soundfile OR a directory. File paths and/or directory paths may be full paths or relative paths to the location of the options file you&rsquo;re using or a path found in the SEARCH_PATHS variable. A csf() object required the soundfile/directory name, then takes the following optional keyword arguments:
 
 <pre class="language-python"><code class="language-python">csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], pitchfilter={}, limit=[], wholeFile=False, <a href="#ben">recursive</a>=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, clipDurationToTarget=False, onsetLen=0.01, offsetLen='30%', midiPitchMethod='composite', transMethod=None, transQuantize=0, concatFileName=None, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, maxPercentTargetSegments=None, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt')
@@ -553,6 +556,8 @@ However, there are certainly moments when you would want to opt for norm=1. Take
 
 
 <div id="Descriptorsandthedobject" class="group"><h3>Descriptors and the d() object</h3>
+<p><iframe width="560" height="315" src="https://www.youtube.com/embed/UYElwMFF6Ug" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+
 Use the d() object to specify a descriptor, how it is weighted, and how it is normalized. The d() object takes 1 argument -- the name of the desired descriptor -- and then several optional keywords arguments, detailed below.
 
 <pre class="language-python"><code class="language-python">d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energyWeight=False)
@@ -570,7 +575,7 @@ Use the d() object to specify a descriptor, how it is weighted, and how it is no
 
 
 <li><b>normmethod</b> - How to normalize data -- either &lsquo;stddev&rsquo; or &lsquo;minmax&rsquo;. minmax is more precise, stddev is more forgiving of &lsquo;outliers.&rsquo;<li><b>distance</b> - Only valid for time-varying descriptors. How to arithmetically measure distance between target and corpus arrays.<ul>
-<li><b>&lsquo;euclidean&rsquo;</b> - does a simple least squares distance.<li><b>&lsquo;pearson&rsquo;</b> - a pearson correlation measurement.</ul>
+<li><b>&lsquo;euclidean&rsquo;</b> - does a simple least squares distance.<li><b>&lsquo;pearson&rsquo;</b> - a pearson correlation measurement.<li><b>&lsquo;dtw&rsquo;</b> - distance measurement according to dynamic time warping.</ul>
 
 <pre class="language-python"><code class="language-python">SEARCH = [spass('closest', d('centroid', distance='pearson'))] # uses a pearson correlation formula for determining distance between target and corpus centroid arrays.
 </code></pre>
@@ -710,9 +715,10 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 <div id="TheINSTRUMENTSVariable" class="group"><h3>Creating Notated Scores</h3>
+<p><iframe width="560" height="315" src="https://www.youtube.com/embed/pSf3GJEGzcU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+
 <p>The score() object permits elements of the CORPUS to be translated into musical notation via bach in Max/MSP.</p>
 
-<p>A video walkthrough of these features is <a href="https://www.youtube.com/watch?v=pSf3GJEGzcU">here</a>.</p>
 
 
 <div id="scoreVariable" class="subgroup"><h4>score() and instr()</h4>

@@ -560,6 +560,37 @@ def getMidiPitchFromString(string):
 		FILENAME_PITCH_DICT[string] = False
 		return False # could'nt find one
 
+
+
+
+
+
+def getDynamicFromFilename(file, dynToDbDict, stringToDynDict, notFound=-1000):
+	SPLIT_STRINGS = ['-', '_', '.', '|']
+	NOTHING_YET = True
+	whichStr = 0
+	searchstring = os.path.split(os.path.splitext(file)[0])[1]
+
+	dynamic = 'fuck'
+	while NOTHING_YET:
+		if whichStr > len(SPLIT_STRINGS)-1:
+			break
+		splitStr = SPLIT_STRINGS[whichStr]
+		strings = searchstring.split(splitStr)
+		strings.reverse() # they tend to be at the end of the file
+		for s in strings:
+			if s in stringToDynDict:
+				dynamic = s
+				NOTHING_YET = False
+				break
+		whichStr += 1
+	if dynamic == 'fuck':
+		return notFound, None
+	else:
+		return dynToDbDict[dynamic], dynamic
+
+
+
 def percentInFile(handle, start, end):
 	return (handle.segmentStartSec/handle.soundfileTotalDuration)*100.
 

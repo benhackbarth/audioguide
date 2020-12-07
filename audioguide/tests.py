@@ -158,6 +158,10 @@ UserVar_types = {
 'IRCAMDESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
 'SUPERVP_BIN': ['None', 'a string'],
 'PM2_BIN': ['None', 'a string'],
+'DYNAMIC_TO_DECIBEL': ['None', 'a dictionary'],
+'FILENAMESTRING_TO_DYNAMICS': ['None', 'a dictionary'],
+
+
 ################  USER INTERACTION / PRINTING  ##############
 'SEARCH_PATHS': ['a list of strings'],
 'VERBOSITY': ['a number greater than or equal to zero'],

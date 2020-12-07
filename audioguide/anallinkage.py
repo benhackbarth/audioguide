@@ -209,6 +209,23 @@ EnergyEnvelope  = 1
 			if isinstance(v, spassObj):
 				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list, self.numbMfccs)
 	########################################################
+	def setupDescriptors(self, ops):
+		####################################################
+		## global variables for filename -> dynamic -> dB ##
+		####################################################
+		self.dynToDbDict = ops.DYNAMIC_TO_DECIBEL
+		TMP_FILENAMESTRING_TO_DYN = {
+		'pp': ['pianissimo'],
+		'p': ['piano', 'p', 'p1', 'p2', 'pianissimo'],
+		'mp': ['mezzo-piano', 'mp'],
+		'mf': ['mezzo-forte', 'mf', 'ppmfpp'],
+		'f': ['forte', 'f', 'fp', 'pfp'],
+		'ff': ['fortissimo', 'ff', 'ffp', 'f-ff', 'ppff', 'ffpp', 'sfz'],
+		}
+		self.stringToDynDict = {}
+		for k, v in TMP_FILENAMESTRING_TO_DYN.items():
+			for i in v: self.stringToDynDict[i] = k
+		self.stringToDynDict.update(ops.FILENAMESTRING_TO_DYNAMICS)
 	########################################################
 	def logcommand(self, command):
 		return

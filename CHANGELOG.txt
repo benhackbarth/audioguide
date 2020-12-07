@@ -9,18 +9,20 @@
  
 • For creating musical scores with Bach, added new methods for handling pitch as well as handling time -- instr(interval_limit_breakpoints) and instr(interval_limit_range_per_sec). See the Creating Notated Scores section of the documentation for details. This section of the documentation has also been rewritten.
 
+• Numerous errors and bugs fixed.
+
 
 ##################
 ## Version 1.42 ##
 ##################
-• Fixed a bug in the descriptors chromas and chromas-seg
+• Fixed a bug in the descriptor chromas and chromas-seg
  
 
 
 #################
 ## Version 1.4 ##
 #################
-• Support for creating musical scores was added with the score() and instr() objects. See the "Creating Notated Scores" section of the documentation for details. For a video walkthrough, watch https://www.youtube.com/watch?v=pSf3GJEGzcU 
+• Support for creating musical scores was added with the score() and instr() objects. See the "Creating Notated Scores" section of the documentation for details. For a video walkthrough, see the audioguide video tutorial page.
 
 • The order of unit selection in agConcatenate.py has changed. In previous versions, corpus segments were selected for each target segment in turn. Now, one selection is made per target segment until there are no valid target segments remaining. This gives better results, especially when creating notated scores. This means concatenations will yield slightly different results from version 1.37.
 
