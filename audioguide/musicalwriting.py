@@ -390,9 +390,8 @@ class instruments:
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
 		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, thisinstr['cps'][eobj.sfseghandle.voiceID]['cobj_to_pitch'][eobj.sfseghandle], eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
-	def write(self, outputEvents):
+	def write(self, outputEvents, bachSlotsDict):
 		if not self.active: return
-
 		dictByInstrument = {}
 		for eobj in outputEvents:
 			if eobj.selectedinstrument == None: continue
@@ -405,21 +404,49 @@ class instruments:
 			if db < -60: db = -60
 			amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
 
+
 			# do slots stuff
-			slotAssignEveryNote = [(1, 'technique', str(thiscps['technique']), 'text'), (2, 'temporal_mode', thiscps['temporal_mode'], 'text'), (3, 'selectnumber', int(eobj.simSelects), 'int'), (10, 'fullpath', eobj.filename, 'text'), (11, 'filename', eobj.printName, 'text'), (12, 'sfskiptime', eobj.sfSkip*1000, 'float'), (13, 'db_scale', eobj.envDb, 'float'), (14, 'sftransposition', eobj.transposition, 'float'), (15, 'sfchannels', int(eobj.sfchnls), 'int')]
+			slotAssignEveryNote = []
 			slotDataOnlyOnce = {}
-			if eobj.dynamicFromFilename != None:
-				slotDataOnlyOnce[20] = eobj.dynamicFromFilename
-			else:
-				slotDataOnlyOnce[20] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
-			if thiscps['articulation'] != None:
-				slotDataOnlyOnce[22] = "%s"%thiscps['articulation']
-			if thiscps['notehead'] != None:
-				slotDataOnlyOnce[23] = "%s"%thiscps['notehead']
-			if thiscps['annotation'] != None:
-				slotDataOnlyOnce[24] = "%s"%thiscps['annotation']
-
-
+			for slotidx, slotkey in bachSlotsDict.items():
+				if slotkey == 'technique':
+					slotAssignEveryNote.append((slotidx, slotkey, str(thiscps['technique']), 'text'))
+				elif slotkey == 'temporal_mode':
+					slotAssignEveryNote.append((slotidx, slotkey, thiscps['temporal_mode'], 'text'))
+				elif slotkey == 'selectnumber':
+					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.simSelects), 'int'))
+				elif slotkey == 'fullpath':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.filename, 'text'))
+				elif slotkey == 'filename':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.printName, 'text'))
+				elif slotkey == 'sfskiptime':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.sfSkip*1000, 'float'))
+				elif slotkey == 'db_scale':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.envDb, 'float'))
+				elif slotkey == 'sftransposition':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.transposition, 'float'))
+				elif slotkey == 'sfchannels':
+					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.sfchnls), 'int'))
+				elif slotkey == 'dynamic':# ONLY ONCE
+					if eobj.dynamicFromFilename != None:
+						slotDataOnlyOnce[slotidx] = eobj.dynamicFromFilename
+					else:
+						slotDataOnlyOnce[slotidx] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
+				elif slotkey == 'articulation':
+					if thiscps['articulation'] != None:# ONLY ONCE
+						slotDataOnlyOnce[slotidx] = "%s"%thiscps['articulation']
+				elif slotkey == 'notehead':
+					if thiscps['notehead'] != None:# ONLY ONCE
+						slotDataOnlyOnce[slotidx] = "%s"%thiscps['notehead']
+				elif slotkey == 'annotation':
+					if thiscps['annotation'] != None:# ONLY ONCE
+						slotDataOnlyOnce[slotidx] = "%s"%thiscps['annotation']
+				else:
+					# a descriptor ?
+					if slotkey.find('-seg') != -1:
+						slotAssignEveryNote.append((slotidx, slotkey, eobj.sfseghandle.desc.get(slotkey), 'float'))
+					else:
+						slotAssignEveryNote.append((slotidx, slotkey, list(eobj.sfseghandle.desc.get(slotkey)), 'floatlist'))
 
 			if timeinMs not in self.instruments[eobj.selectedinstrument]['notes']:
 				self.instruments[eobj.selectedinstrument]['notes'][timeinMs] = [[], slotDataOnlyOnce]

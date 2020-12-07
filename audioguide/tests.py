@@ -109,6 +109,7 @@ UserVar_types = {
 'ROTATE_VOICES': ['True or False'],
 'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
 'RESTRICT_CORPUS_OVERLAP_BY_STRING': ['a dictionary'],
+'INSTRUMENTS_BACH_SLOTS_DICT': ['a dictionary'],
 
 ########  NORMALIZATION  #######
 'NORMALIZATION_METHOD': ['standard', 'cluster'],

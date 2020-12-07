@@ -25,7 +25,10 @@ ROTATE_VOICES = False
 ORDER_CORPUS_BY_DESCRIPTOR = None
 RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING = {}
 RESTRICT_CORPUS_OVERLAP_BY_STRING = {}
+
+##########  INSTRUMENTS   #######
 INSTRUMENTS = None
+INSTRUMENTS_BACH_SLOTS_DICT = {1: 'technique', 2: 'temporal_mode', 3: 'selectnumber', 10: 'fullpath', 11: 'filename', 12: 'sfskiptime', 13: 'db_scale', 14: 'sftransposition', 15: 'sfchannels', 20: 'dynamic', 22: 'articulation', 23: 'notehead', 24: 'annotation'}
 
 #######  NORMALIZATION  #######
 NORMALIZATION_METHOD = 'standard'

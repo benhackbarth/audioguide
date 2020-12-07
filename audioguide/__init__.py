@@ -338,7 +338,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		#########################
 		self.p.logsection( "OUTPUT FILES" )
 		allusedcpsfiles = list(set([oe.filename for oe in self.outputEvents]))
-		self.instruments.write(self.outputEvents)
+		self.instruments.write(self.outputEvents, self.ops.INSTRUMENTS_BACH_SLOTS_DICT)
 
 
 		######################
