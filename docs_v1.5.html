@@ -146,10 +146,10 @@ $('body').scrollspy({
      <ul class="nav navbar-nav">
             <li ><a href="index.html">Home</a></li>
             <li ><a href="release.html">Download</a></li>
-            <li ><a href="docs.html">Documentation</a></li>
+            <li class="active"><a href="docs.html">Documentation</a></li>
             <li ><a href="tutorial.html">Video Tutorials</a></li>
             <li ><a href="examples.html">Sound Examples</a></li>
-            <li class="active"><a href="music.html">Music Made with AudioGuide</a></li>
+            <li ><a href="music.html">Music Made with AudioGuide</a></li>
      </ul>
     </div><!--/.nav-collapse -->
    </div>
@@ -174,7 +174,7 @@ Copyright Ben Hackbarth, 2011-2020.</p><br>
 <section id="Installation" class="group"><h2>Installation</h2>
 For the moment AudioGuide1.5 only works on OS X. On more current versions of OS X it should run out of the box with python2 or python3. Here is a complete list of the resources that AudioGuide1.5 requires on your computer:
 <ul>
-<li><b>csound6</b> - Needed if you would like AudioGuide to automatically render concatenations (which you probably do). Download an installer from <a href="http://csound.github.io/download.html">here</a>.<li><b>numpy (python >= 2.7 has numpy pre-installed)</b> - Numpy is a numerical computation plugin for Python. Upgrading to the latest python2.7 should automatically install numpy. If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Or run "python -m pip install numpy"<li><b>matlibplot (very optional)</b> - Install this python module to enable graphing of descriptors and soundfile segmentation. Get it <a href="http://matplotlib.org/downloads.html">here</a>.</ul>
+<li><b>numpy (python >= 2.7 has numpy pre-installed I think)</b> - Numpy is a numerical computation plugin for Python. Upgrading to the latest python2.7 should automatically install numpy. If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Or run "sudo easy_install pip" then "python -m pip install numpy"<li><b>csound6</b> - Needed if you would like AudioGuide to automatically render concatenations (which you probably do). Download an installer from <a href="http://csound.github.io/download.html">here</a>.</ul>
 </section>
 
 
@@ -830,24 +830,31 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 <div id="INSTRUMENTSSlots" class="subgroup"><h3>Other Data</h3>
-Additional data from Audioguide is automatically added to the output textfile and can be accessed via Bach slots.
+Additional data from AudioGuide is automatically added to the output textfile and can be accessed via Bach slots. The table below summarizes the data that AudioGuide puts into different Bach slots by default.
 
 <table class="table-striped table-condensed">
-<tr><th>Bach Slot Number</th><th>Audioguide Note Data</th></tr>
-<tr><td>1</td><td>This csf()'s technique string from the csf(instrParams) dictionary, e.g. csf(instrParams={'technique': 'pizz'})</td></tr>
-<tr><td>2</td><td>This csf()'s temporal_mode from the csf(instrParams) dictionary, e.g' csf(instrParams={'temporal_mode': 'artic'})</td></tr>
-<tr><td>3</td><td>This note's selection number in the concatenative process. If 0, it was the first sound picked for this target segment in question. If 1, it was the second selection, etc.</td></tr>
-<tr><td>10</td><td>This note's full path.</td></tr>
-<tr><td>11</td><td>This note's filename. Its directory is not included like the full path, above.</td></tr>
-<tr><td>12</td><td>This note's filename's skip time in the file in milliseconds.</td></tr>
-<tr><td>13</td><td>This note's corresponding dB scalar from csf(scaleDb).</td></tr>
-<tr><td>14</td><td>This note's corresponding transposition from the concatenative process in semitones.</td></tr>
-<tr><td>15</td><td>This note's filename's number of channels</td></tr>
-<tr><td>20</td><td>This chord/note's dynamics. By default, these are taken from the filename of the selected sounds (C4-mf-IV.wav will have a dynamic of mf)</td></tr>
-<tr><td>22</td><td>This note/chord's articulation taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'articulation': 'staccato'})</td></tr>
-<tr><td>23</td><td>This note/chord's notehead taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'notehead': 'cross'})</td></tr>
-<tr><td>24</td><td>this note/chord's annotation text taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'annotation': 'strike_with_hand'})</td></tr>
+<tr><th>Data Keyword</th><th>Detault Bach Slot Number</th><th>Audioguide Note Data</th></tr>
+<tr><td>technique</td><td>1</td><td>This csf()'s technique string from the csf(instrParams) dictionary, e.g. csf(instrParams={'technique': 'pizz'})</td></tr>
+<tr><td>temporal_mode</td><td>2</td><td>This csf()'s temporal_mode from the csf(instrParams) dictionary, e.g' csf(instrParams={'temporal_mode': 'artic'})</td></tr>
+<tr><td>selectnumber</td><td>3</td><td>This note's selection number in the concatenative process. If 0, it was the first sound picked for this target segment in question. If 1, it was the second selection, etc.</td></tr>
+<tr><td>fullpath</td><td>10</td><td>This note's full path.</td></tr>
+<tr><td>filename</td><td>11</td><td>This note's filename. Its directory is not included like the full path, above.</td></tr>
+<tr><td>sfskiptime</td><td>12</td><td>This note's filename's skip time in the file in milliseconds.</td></tr>
+<tr><td>db_scale</td><td>13</td><td>This note's corresponding dB scalar from csf(scaleDb).</td></tr>
+<tr><td>sftransposition</td><td>14</td><td>This note's corresponding transposition from the concatenative process in semitones.</td></tr>
+<tr><td>sfchannels</td><td>15</td><td>This note's filename's number of channels</td></tr>
+<tr><td>dynamic</td><td>20</td><td>This chord/note's dynamics. By default, these are taken from the filename of the selected sounds (C4-mf-IV.wav will have a dynamic of mf)</td></tr>
+<tr><td>articulation</td><td>22</td><td>This note/chord's articulation taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'articulation': 'staccato'})</td></tr>
+<tr><td>notehead</td><td>23</td><td>This note/chord's notehead taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'notehead': 'cross'})</td></tr>
+<tr><td>annotation</td><td>24</td><td>this note/chord's annotation text taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'annotation': 'strike_with_hand'})</td></tr>
 </table>
+
+However, you can control what data is assigned to which slot and also add descriptor information to Bach's slots. To do this, overwrite the INSTRUMENTS_BACH_SLOTS_DICT dictionary with your custom settings. You can use and of the 'Data Keyword's above to access concatenation parameters. Addtionally, you can specify a segmented descriptor name to get descriptor data for the chosen sound. A time-varying descriptor will place a descriptor time series into the slot.
+
+<pre class="language-python"><code class="language-python"># custom slot assignment:
+INSTRUMENTS_BACH_SLOTS_DICT = {1: 'technique', 2: 'fullpath', 3: 'sfskiptime', 10: 'noisiness-seg', 11: 'centroid'}
+# this will put each selected sound's technique, fullpath, and skip time into slots 1-3. Each selected sound's averaged noisiness will be put into slot 10 and its time-varying centroid in slot 11.
+</code></pre>
 
 
 </div>

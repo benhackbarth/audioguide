@@ -30,7 +30,7 @@ def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFile
 			break
 	# if not found
 	if foundit == None and os.path.isdir(cobjname) and not wholeFileBool:
-		util.error('segmentation file', "Cannot find any segmentation file for '%s' (tested %s).  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(cobjname, possibilities, cobjname))
+		util.error('segmentation file', "Cannot find an AudioGuide segmentation file for '%s' (tested %s).  To specify the use of whole sound files as corpus segments, write this corpus entry as: \n\tcsf('%s', wholeFile=True)\nor\n\tCORPUS_GLOBAL_ATTRIBUTES = {'wholeFile': True}"%(cobjname, possibilities, cobjname))
 	elif foundit == None and not wholeFileBool:
 		util.error('segmentation file', "Cannot find any segmentation file for '%s' (tested %s)."%(cobjname, possibilities))
 	return foundit
@@ -76,7 +76,10 @@ class parseOptions:
 		# assign dict to this classes' attributes so that values may
 		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
 		tests.testOpsDict(ops)
-		for k, v in ops.items(): setattr(self, k, v)
+		return ops
+	#############################
+	def set_options_from_dict(self, opsdict):
+		for k, v in opsdict.items(): setattr(self, k, v)
 	#############################
 	def parse_file(self, opsfile):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
@@ -89,11 +92,10 @@ class parseOptions:
 		usrOptions = {}
 		fh = open(opsfile)
 		self.opsfileAsString = fh.read()
-		self.WHAT_THE_FUCK = '1'
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
 		self.ops_file_path = os.path.dirname(opsfile)
-		self.parse_dict(usrOptions)
+		return usrOptions
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage

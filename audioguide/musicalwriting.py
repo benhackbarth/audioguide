@@ -408,6 +408,7 @@ class instruments:
 			# do slots stuff
 			slotAssignEveryNote = []
 			slotDataOnlyOnce = {}
+
 			for slotidx, slotkey in bachSlotsDict.items():
 				if slotkey == 'technique':
 					slotAssignEveryNote.append((slotidx, slotkey, str(thiscps['technique']), 'text'))
@@ -427,6 +428,10 @@ class instruments:
 					slotAssignEveryNote.append((slotidx, slotkey, eobj.transposition, 'float'))
 				elif slotkey == 'sfchannels':
 					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.sfchnls), 'int'))
+				elif slotkey == 'env_onset':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.envAttackSec*1000, 'float'))
+				elif slotkey == 'env_offset':
+					slotAssignEveryNote.append((slotidx, slotkey, eobj.envDecaySec*1000, 'float'))
 				elif slotkey == 'dynamic':# ONLY ONCE
 					if eobj.dynamicFromFilename != None:
 						slotDataOnlyOnce[slotidx] = eobj.dynamicFromFilename

@@ -11,6 +11,20 @@ import numpy as np
 
 
 
+
+
+def getClassChecksum(classinstance):
+	return util.listToCheckSum(["%s"%getattr(classinstance, a) for a in dir(classinstance) if not a.startswith('__')])
+
+
+
+
+
+
+
+
+
+
 class TargetOptionsEntry(object):
 	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None, multiriseBool=False, multirisePercentDev=20, multiriseSteps=5, decompose={}):
 		self.filename = filename
@@ -30,6 +44,13 @@ class TargetOptionsEntry(object):
 		self.multirisePercentDev = multirisePercentDev
 		self.multiriseSteps = multiriseSteps
 		self.decompose = decompose
+		
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
+		
+
 
 
 class CorpusOptionsEntry(object):
@@ -75,6 +96,11 @@ class CorpusOptionsEntry(object):
 				if isinstance(self.pitchfilter['pitches'][pidx], str):
 					self.pitchfilter['pitches'][pidx] = descriptordata.getMidiPitchFromString(self.pitchfilter['pitches'][pidx])
 
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
+
 
 
 
@@ -88,6 +114,10 @@ class Score(object):
 		}
 		self.params.update(kwargs)
 
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
 
 
 
@@ -125,6 +155,10 @@ class Instrument(object):
 		# if 'tags' not given, it is the name of the instrument..
 		if 'cpsTags' not in self.params: self.params['cpsTags'] = [self.name]
 
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
 
 
 
@@ -162,7 +196,10 @@ class SearchPassOptionsEntry(object):
 		#####
 		if self.method == 'closest': self.complete_results = True
 
-
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
 
 
 
@@ -183,21 +220,19 @@ class SuperimpositionOptionsEntry(object):
 		self.overlapDur = overlapDur
 		self.overlapAmpThresh = overlapAmpThresh
 		self.incr = incr
-
 		self.peakAlign = peakAlign
 		self.peakAlignEnvelope = peakAlignEnvelope
-		
-
-
-
 	########################################
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
 
 
 
 class SingleDescriptor(object):
 	def __init__(self, name, weight=1., norm=2., normmethod='stddev', distance='euclidean', limit=False, simultaneous=None, energyWeight=False, origin='SEARCH', neededBy=['target', 'corpus'], packagename=None):
 		singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
-		#neverRecalculate = ['zeroCross', 'f0', 'peakamp', 'peakfrq']
 		self.name = name
 		self.weight = weight
 		self.norm = norm
@@ -217,9 +252,13 @@ class SingleDescriptor(object):
 		else: self.parents = [namedict['parent']]
 		self.describes_energy = namedict['describes_energy']
 		self.is_mixable = namedict['is_mixable']
+		self._checksum = getClassChecksum(self)
+	# equality test function for interactive mode
+	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __ne__(self, other): return not self.__eq__(other)
+
 	########################################
 	def __repr__(self):
 		return self.name
-	########################################
-	
+
 

@@ -21,6 +21,7 @@ import audioguide.descriptordata as descriptordata
 import audioguide.util as util
 import audioguide.musicalwriting as musicalwriting
 import audioguide.simcalc as simcalc
+import audioguide.tests as tests
 import audioguide.dimscaling as dimscaling
 
 
@@ -36,11 +37,53 @@ class main:
 		self.ops = concatenativeclasses.parseOptions()
 
 	def parse_options_file(self, opspath):
-		self.ops.parse_file(opspath)
-		self.finish_setup()
+		usrOptions = self.ops.parse_file(opspath)
+		self.parse_options_dict(usrOptions)
+		return os.path.getmtime(opspath)
 
+	def test_options_file_modifications(self, opspath):
+		ops = self.ops.parse_dict(self.ops.parse_file(opspath))
+		changed = []
+		setops = {}
+		for k, v in ops.items():
+			if v == getattr(self.ops, k): continue
+			changed.append(tests.OptionChangeToProgramRun[k])
+			print("CHANGED", k, tests.OptionChangeToProgramRun[k])
+			setops[k] = v
+		self.ops.set_options_from_dict(setops)
+		REINIT = False
+		EVAL_TARGET = False
+		EVAL_CORPUS = False
+		EVAL_NORM = False
+		EVAL_CONCATE = False
+		EVAL_OUTPUT = False
+		if 'reinit' in changed:
+			return True, True, True, True, True, True
+		else:
+			if 'target' in changed:
+				EVAL_TARGET = True
+				EVAL_NORM = True
+				EVAL_CONCATE = True
+				EVAL_OUTPUT = True			
+			if 'corpus' in changed:
+				EVAL_CORPUS = True
+				EVAL_NORM = True
+				EVAL_CONCATE = True
+				EVAL_OUTPUT = True			
+			if 'norm' in changed:
+				EVAL_NORM = True
+				EVAL_CONCATE = True
+				EVAL_OUTPUT = True			
+			if 'concate' in changed:
+				EVAL_CONCATE = True
+				EVAL_OUTPUT = True			
+			if 'output' in changed:
+				EVAL_OUTPUT = True			
+		return REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT
+		
 	def parse_options_dict(self, opsdict):
-		self.ops.parse_dict(opsdict)
+		ops = self.ops.parse_dict(opsdict)
+		self.ops.set_options_from_dict(ops)
 		self.finish_setup()
 	
 	def finish_setup(self, printversion=True):
