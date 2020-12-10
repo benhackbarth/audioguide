@@ -113,10 +113,11 @@ class Score(object):
 		'meter': '4/4',
 		}
 		self.params.update(kwargs)
-
-		self._checksum = getClassChecksum(self)
+		# CUSTOM CHECKSOME
+		self._checksum = util.listToCheckSum([i._checksum for i in self.instrumentobjs] + [str(self.params)])
 	# equality test function for interactive mode
-	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
+	def __eq__(self, other):
+		return type(self) == type(other) and self._checksum == other._checksum
 	def __ne__(self, other): return not self.__eq__(other)
 
 

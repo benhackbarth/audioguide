@@ -37,24 +37,27 @@ ag.write_concatenate_output_files()
 
 if options.INTERACTIVE:
 	import time
-	while True:
-		time.sleep(0.1)
-		mtime_cur = os.path.getmtime(opspath)
-		if mtime_cur != ops_mtime:
-			REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT = ag.test_options_file_modifications(opspath)
-			if REINIT:
-				ag = audioguide.main()
-				ops_mtime = ag.parse_options_file(opspath)
-			if EVAL_TARGET:
-				ag.load_target()
-				ag.write_target_output_files()
-			if EVAL_CORPUS:
-				ag.load_corpus()
-			if EVAL_NORM:
-				ag.normalize()
-			if EVAL_CONCATE:
-				ag.standard_concatenate()
-			if EVAL_OUTPUT:
-				ag.write_concatenate_output_files()
+	try:
+		while True:
+			time.sleep(0.1)
+			mtime_cur = os.path.getmtime(opspath)
+			if mtime_cur != ops_mtime:
+				REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT = ag.test_options_file_modifications(opspath)
+				if REINIT:
+					ag = audioguide.main()
+					ops_mtime = ag.parse_options_file(opspath)
+				if EVAL_TARGET:
+					ag.load_target()
+					ag.write_target_output_files()
+				if EVAL_CORPUS:
+					ag.load_corpus()
+				if EVAL_NORM:
+					ag.normalize()
+				if EVAL_CONCATE:
+					ag.standard_concatenate()
+				if EVAL_OUTPUT:
+					ag.write_concatenate_output_files()
 	
-		ops_mtime = mtime_cur
+			ops_mtime = mtime_cur
+	except KeyboardInterrupt:
+		sys.exit(0)
