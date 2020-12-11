@@ -235,6 +235,8 @@ class descriptor_manager:
 							pmat.calculate_new_column(dname, dparams['type'], dparams['parent'])
 						energydesc = pmat.get_columns([dname], rowslice=slice(self.start, self.end))
 						#if self.tag == 'tgt': print("TGT NEW COLUMN get_matrix_location", self.sfseghandle.idx, dname, energydesc)
+						#if self.tag == 'cps':
+						#	print(self.start, self.end, self.end-self.start, len(np.array(energydesc, copy=True)),  len(self.envelope), [dname])
 						mat.add_columns(np.array(energydesc, copy=True) * self.envelope, [dname])
 			else:
 				st = "raw matrix"

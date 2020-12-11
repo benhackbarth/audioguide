@@ -1,6 +1,14 @@
-##################
+#################
+## Version 1.6 ##
+#################
+• agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rending and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See XXXXX
+ 
+• When creating acoustic scores with Bach it is now possible to customize what data is written into which slots, including exporting descriptor data of selected sounds to bach. See http://www.benhackbarth.com/audioGuide/docs_v1.6.html#INSTRUMENTSSlots
+
+
+#################
 ## Version 1.5 ##
-##################
+#################
 • Total rewrite of the code for internally handling descriptor data. audioguide now runs about 40% faster with large corpi.
 
 • Added new segmented data methods to calculate statistics on time vary descriptor data, including -minseg, -maxseg, -stdseg, -kurtseg, -skewseg. E.g. centroid-stdseg gives a sound segment's standard deviation of centroids. centroid-stats yields a combination of these statistics. See "Appendix 1 - Descriptors" in the docs for more info.
@@ -18,11 +26,10 @@
 • Fixed a bug in the descriptor chromas and chromas-seg
  
 
-
 #################
 ## Version 1.4 ##
 #################
-• Support for creating musical scores was added with the score() and instr() objects. See the "Creating Notated Scores" section of the documentation for details. For a video walkthrough, see the audioguide video tutorial page.
+• Support for creating musical scores was added with the score() and instr() objects. See the "Creating Notated Scores" section of the documentation for details. For a video walkthrough, see http://www.benhackbarth.com/audioGuide/tutorial.html
 
 • The order of unit selection in agConcatenate.py has changed. In previous versions, corpus segments were selected for each target segment in turn. Now, one selection is made per target segment until there are no valid target segments remaining. This gives better results, especially when creating notated scores. This means concatenations will yield slightly different results from version 1.37.
 

@@ -13,8 +13,8 @@ import numpy as np
 
 
 
-def getClassChecksum(classinstance):
-	return util.listToCheckSum(["%s"%getattr(classinstance, a) for a in dir(classinstance) if not a.startswith('__')])
+def getClassChecksum(classinstance, also=[]):
+	return util.listToCheckSum(["%s"%getattr(classinstance, a) for a in dir(classinstance) if not a.startswith('__')] + also)
 
 
 
@@ -54,7 +54,7 @@ class TargetOptionsEntry(object):
 
 
 class CorpusOptionsEntry(object):
-	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, metadata=[], maxPercentTargetSegments=None, instrTag=None, instrParams={}, clipDurationToTarget=False):
+	def __init__(self, name,  allowRepetition=True, concatFileName=None, end=None, envelopeSlope=1, excludeStr=None,  excludeTimes=[], includeStr=None, includeTimes=[], limit={}, pitchfilter={}, limitDur=None,  midiPitchMethod='composite', offsetLen='30%', onsetLen=0.01, recursive=True, restrictInTime=0, restrictOverlaps=None,  restrictRepetition=0.5,  scaleDb=0.0,  scaleDistance=1,  segmentationExtension='.txt',  segmentationFile=None,  start=None,  superimposeRule=None,  transMethod=None,  transQuantize=0, wholeFile=False, wholeFileMinStart=0, wholeFileMaxEnd=None, metadata=[], maxPercentTargetSegments=None, instrTag=None, instrParams={}, clipDurationToTarget=False):
 		self.name = name
 		self.start = start
 		self.end = end
@@ -66,6 +66,8 @@ class CorpusOptionsEntry(object):
 		self.limit = limit
 		self.pitchfilter = pitchfilter
 		self.wholeFile = wholeFile
+		self.wholeFileMinStart = wholeFileMinStart
+		self.wholeFileMaxEnd = wholeFileMaxEnd
 		self.limitDur = limitDur
 		self.midiPitchMethod = midiPitchMethod
 		self.recursive = recursive
@@ -184,7 +186,7 @@ class SearchPassOptionsEntry(object):
 				pass
 			else:
 				self.descriptor_list += args[3] + args[4] # add other descriptors for loading
-			print(self.parsetest, self.submethod, self.parsedescriptor, self.parseSymbol, self.parsevalue, self.needMinMax, self.descriptor_list)
+			#print(self.parsetest, self.submethod, self.parsedescriptor, self.parseSymbol, self.parsevalue, self.needMinMax, self.descriptor_list)
 		else:
 			self.submethod = None
 			self.needMinMax = False
@@ -197,7 +199,7 @@ class SearchPassOptionsEntry(object):
 		#####
 		if self.method == 'closest': self.complete_results = True
 
-		self._checksum = getClassChecksum(self)
+		self._checksum = getClassChecksum(self, also=[dobj._checksum for dobj in self.descriptor_list])
 	# equality test function for interactive mode
 	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
 	def __ne__(self, other): return not self.__eq__(other)

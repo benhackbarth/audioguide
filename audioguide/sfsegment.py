@@ -14,12 +14,12 @@ import numpy as np
 class sfsegment:
 	def __init__(self, filename, startSec, endSec, AnalInterface, envDb=+0, envAttackSec=0., envDecaySec=0., envSlope=1., envAttackenvDecayCushionSec=0.01, normtag='notag'):
 		self.filename = util.verifyPath(filename, AnalInterface.searchPaths)
+		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.printName = os.path.split(self.filename)[1] # short name for printing
 		# filename-based descriptor info
 		self.midiPitchFromFilename = descriptordata.getMidiPitchFromString(self.printName)
 		self.rmsAmplitudeFromFilename, self.dynamicFromFilename = descriptordata.getDynamicFromFilename(self.printName, AnalInterface.dynToDbDict, AnalInterface.stringToDynDict, notFound=-1000)
 		# other info
-		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.soundfileTotalDuration, self.soundfileChns = AnalInterface.validateAnalResource(self.filename)
 		self.segmentStartSec = startSec
 		self.segmentEndSec = endSec
@@ -33,7 +33,7 @@ class sfsegment:
 		else: self.segmentEndSec = self.segmentEndSec
 		self.segmentDurationSec = self.segmentEndSec-self.segmentStartSec		
 		# ensure length is at least 1 frame
-		self.lengthInFrames = max(1, AnalInterface.getSegmentFrameLength(self.segmentDurationSec, self.filename))
+		self.lengthInFrames = max(1, AnalInterface.getSegmentFrameLength(self.segmentStartSec, self.segmentDurationSec, self.filename))
 		self.f2s = AnalInterface.f2s(1)
 		##############################################################
 		## check to make sure all user supplied values check out OK ##
@@ -220,10 +220,10 @@ class target: # the target
 		self.multirisePercentDev = userOptsTargetObject.multirisePercentDev
 		self.multiriseSteps = userOptsTargetObject.multiriseSteps
 	########################################
-	def timeStretch(self, AnalInterface, ops, p):
-		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, AnalInterface.supervp_bin, p=p)
-		self.startSec = 0 # this now gets reset, as starttime was considered when making the stretched file
-		self.endSec = None # this now gets reset, as endtime was considered when making the stretched file
+#	def timeStretch(self, AnalInterface, ops, p):
+#		self.filename = util.initStretchedSoundfile(self.filename, self.startSec, self.endSec, self.stretch, AnalInterface.supervp_bin, p=p)
+#		self.startSec = 0 # this now gets reset, as starttime was considered when making the stretched file
+#		self.endSec = None # this now gets reset, as endtime was considered when making the stretched file
 	########################################
 	def initAnal(self, AnalInterface, ops, p):
 		# Start by loading the entire target as an 

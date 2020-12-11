@@ -254,33 +254,33 @@ def verifyPathIsValidSoundfile(file):
 	return isValidSoundfile
 
 
-def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
-	supervp_flags = '''-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'''
-	
-	stretcheddir = os.path.join(os.path.dirname(__file__), 'data_stretched_sfs')
-	if not os.path.exists(stretcheddir): os.makedirs(stretcheddir)
-	# get filename
-	sfroot, sfhead = os.path.split(sffile)
-	sfheadroot, sfheadext = os.path.splitext(sfhead)
-	checksum = listToCheckSum([sffile, start, end, stretchcoeff])
-	stretchedfilename = os.path.join(stretcheddir, '%sx%.2f-%s%s'%(sfheadroot, stretchcoeff, checksum, sfheadext))
-	if os.path.exists(stretchedfilename): return stretchedfilename
-	#################################
-	## do supervp time stretching! ##
-	#################################
-	# make temporary stretch coeff file (needed by supervp)
-	stretchParamFile = os.path.join(stretcheddir, 'stretchtmpfile.txt')
-	fh = open(stretchParamFile, 'w')
-	fh.write("-10 1\n0 %s\n"%(stretchcoeff))
-	fh.close()
-	# add start time and end time offsets to flags if needed
-	if start != None: supervp_flags += ' -B%f'%start
-	if end != None: supervp_flags += ' -E%f'%end
-	# make supervp command!
-	command = '%s -t -Z -U -S"%s" %s -D"%s" "%s"'%(svpbin, sffile, supervp_flags, stretchParamFile, stretchedfilename)
-	#print 'TARGET TIME STRETCH - "%s"'%command
-	executeCommand( command )
-	return stretchedfilename
+#def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
+#	supervp_flags = '''-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'''
+#	
+#	stretcheddir = os.path.join(os.path.dirname(__file__), 'data_stretched_sfs')
+#	if not os.path.exists(stretcheddir): os.makedirs(stretcheddir)
+#	# get filename
+#	sfroot, sfhead = os.path.split(sffile)
+#	sfheadroot, sfheadext = os.path.splitext(sfhead)
+#	checksum = listToCheckSum([sffile, start, end, stretchcoeff])
+#	stretchedfilename = os.path.join(stretcheddir, '%sx%.2f-%s%s'%(sfheadroot, stretchcoeff, checksum, sfheadext))
+#	if os.path.exists(stretchedfilename): return stretchedfilename
+#	#################################
+#	## do supervp time stretching! ##
+#	#################################
+#	# make temporary stretch coeff file (needed by supervp)
+#	stretchParamFile = os.path.join(stretcheddir, 'stretchtmpfile.txt')
+#	fh = open(stretchParamFile, 'w')
+#	fh.write("-10 1\n0 %s\n"%(stretchcoeff))
+#	fh.close()
+#	# add start time and end time offsets to flags if needed
+#	if start != None: supervp_flags += ' -B%f'%start
+#	if end != None: supervp_flags += ' -E%f'%end
+#	# make supervp command!
+#	command = '%s -t -Z -U -S"%s" %s -D"%s" "%s"'%(svpbin, sffile, supervp_flags, stretchParamFile, stretchedfilename)
+#	#print 'TARGET TIME STRETCH - "%s"'%command
+#	executeCommand( command )
+#	return stretchedfilename
 
 
 def parseEquationString(mstr, symbs):

@@ -157,8 +157,6 @@ UserVar_types = {
 'IRCAMDESCRIPTOR_F0_AMP_THRESHOLD': ['an integer greater than zero'],
 'IRCAMDESCRIPTOR_F0_QUALITY': ['an integer greater than zero'], # DEPRECATED
 'IRCAMDESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
-'SUPERVP_BIN': ['None', 'a string'],
-'PM2_BIN': ['None', 'a string'],
 'DYNAMIC_TO_DECIBEL': ['None', 'a dictionary'],
 'FILENAMESTRING_TO_DYNAMICS': ['None', 'a dictionary'],
 
@@ -248,9 +246,6 @@ OptionChangeToProgramRun = {
 "IRCAMDESCRIPTOR_F0_MAX_FREQUENCY": "reinit",
 "IRCAMDESCRIPTOR_F0_AMP_THRESHOLD": "reinit",
 "IRCAMDESCRIPTOR_NUMB_MFCCS": "reinit",
-
-"SUPERVP_BIN": "reinit",
-"PM2_BIN": "reinit",
 
 "DYNAMIC_TO_DECIBEL": "corpus",
 "FILENAMESTRING_TO_DYNAMICS": "corpus",

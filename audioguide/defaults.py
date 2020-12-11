@@ -77,9 +77,6 @@ IRCAMDESCRIPTOR_F0_MIN_FREQUENCY = 20
 IRCAMDESCRIPTOR_F0_MAX_FREQUENCY = 5000
 IRCAMDESCRIPTOR_F0_AMP_THRESHOLD = 1
 IRCAMDESCRIPTOR_NUMB_MFCCS = 13
-# other binary locations - None means disabled, otherwise specify a full path
-SUPERVP_BIN = None
-PM2_BIN = None
 # filenames -> dynamic -> dB settings
 DYNAMIC_TO_DECIBEL = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
 FILENAMESTRING_TO_DYNAMICS = {}

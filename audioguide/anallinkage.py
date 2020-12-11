@@ -33,7 +33,7 @@ class AnalInterface:
 	tgtOnsetDescriptors = {'power-odf-7': 1}
 	global descriptToFiles
 
-	def __init__(self, pm2_bin=None, supervp_bin=None, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
+	def __init__(self, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
 		global descriptToFiles
 		self.desc_manager = descriptors.descriptor_manager()
 		# establish data directory
@@ -47,9 +47,6 @@ class AnalInterface:
 		self.p = p
 		self.ircamdescriptor_bin = os.path.join( os.path.dirname(__file__), 'ircamdescriptor-2.8.6', 'ircamdescriptor-2.8.6' )
 		assert os.path.exists(self.ircamdescriptor_bin)
-		# check for other bin files #
-		self.pm2_bin = findbin(pm2_bin, 'AudioSculpt3.0b7/Kernels/pm2')
-		self.supervp_bin = findbin(supervp_bin, 'AudioSculpt3.0b7/Kernels/supervp')
 		# anal
 		self.resampleRate = resampleRate
 		#############################################################################
@@ -323,10 +320,11 @@ EnergyEnvelope  = 1
 		return self.rawData[sffile]['info']['lengthsec'], self.rawData[sffile]['info']['channels']
 	########################################################
 	########################################################
-	def getSegmentFrameLength(self, segmentDurationSec, sffile):
+	def getSegmentFrameLength(self, segmentStartSec, segmentDurationSec, sffile):
+		start_f = self.s2f(segmentStartSec, sffile, minimum=1)
 		length = self.s2f(segmentDurationSec, sffile, minimum=1)
-		if length > self.rawData[sffile]['info']['ircamd']['framelength']:
-			length = self.rawData[sffile]['info']['ircamd']['framelength']
+		if start_f+length > self.rawData[sffile]['info']['ircamd']['framelength']:
+			length = self.rawData[sffile]['info']['ircamd']['framelength'] - start_f
 		return length
 	########################################################
 	########################################################
