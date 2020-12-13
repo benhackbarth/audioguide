@@ -11,7 +11,7 @@ LISP_OUTPUT_FILEPATH = None #'output/output.lisp.txt'
 DATA_FROM_SEGMENTATION_FILEPATH = None #'output/datafromsegmentation.txt'
 DICT_OUTPUT_FILEPATH = 'output/output.json'
 MAXMSP_OUTPUT_FILEPATH = 'output/output.maxmsp.json'
-SCORE_OUTPUT_FILEPATH = 'output/bachroll.txt'
+BACH_FILEPATH = 'output/bachroll.txt'
 TARGET_DESCRIPTORS_FILEPATH = None # 'output/targetdescriptors.json'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH = None
@@ -26,9 +26,15 @@ ORDER_CORPUS_BY_DESCRIPTOR = None
 RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING = {}
 RESTRICT_CORPUS_OVERLAP_BY_STRING = {}
 
+##########  BACH   #######
+BACH_INCLUDE_TARGET = True
+BACH_TARGET_STAFF = 'F'
+BACH_CORPUS_STAFF = 'FG'
+BACH_SLOTS_MAPPING = {1: 'filepath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 10: 'sftransposition', 11: 'selectnumber', 12: 'filehead', 20: 'dynamic', 22: 'articulation', 23: 'notehead', 24: 'annotation', 25: 'technique', 26: 'temporal_mode'}
+
+
 ##########  INSTRUMENTS   #######
 INSTRUMENTS = None
-INSTRUMENTS_BACH_SLOTS_DICT = {1: 'technique', 2: 'temporal_mode', 3: 'selectnumber', 10: 'fullpath', 11: 'filename', 12: 'sfskiptime', 13: 'db_scale', 14: 'sftransposition', 15: 'sfchannels', 16: 'env_onset', 17: 'env_offset', 20: 'dynamic', 22: 'articulation', 23: 'notehead', 24: 'annotation'}
 
 #######  NORMALIZATION  #######
 NORMALIZATION_METHOD = 'standard'

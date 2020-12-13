@@ -305,18 +305,6 @@ class target: # the target
 		if ops.TARGET_SEGMENT_LABELS_INFO != 'logic':
 			for start, end in self.segmentationInFrames:
 				self.extraSegmentationData.append('%.4f'%(self.whole.desc.get(ops.TARGET_SEGMENT_LABELS_INFO, start=start, stop=end) ))
-				if False:
-					midilist = []
-					import mu
-					for f in range(start, end):
-						if self.whole.desc['power'][f] < 0.0005: continue
-						midi = mu.midiPitchToNoteNameString(mu.frq2midi(self.whole.desc['f0'][f]))
-						midi = midi.replace(' ','')
-	
-						midilist.append((midi))
-					peakidx = np.argmax(self.whole.desc['power'][start:end])
-					print("\n\nSegment %.2f: -- %s"%(AnalInterface.f2s(start), str(midilist)))
-		
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
@@ -331,7 +319,6 @@ class target: # the target
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 
 		p.percentageBarClose(txt=closebartxt)
-
 		###################################
 		## hack for signal decomposition ##
 		###################################

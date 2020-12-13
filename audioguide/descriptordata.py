@@ -21,8 +21,12 @@ class expandable_matrix:
 
 	def get_columns(self, dnames, rowslice=None):
 		'''returns a copy of the matrix with specificed named columns'''
-		if len(dnames) == 1: cols = self.column_dnames.index(dnames[0])
-		else: cols = [self.column_dnames.index(d) for d in dnames]
+		try:
+			if len(dnames) == 1: cols = self.column_dnames.index(dnames[0])
+			else: cols = [self.column_dnames.index(d) for d in dnames]
+		except ValueError: 
+			print("descriptordata ERROR: No known descriptor", dnames)
+			sys.exit(1)
 		if rowslice == None: return self.matrix[:, cols]
 		else: return self.matrix[rowslice, cols]
 
@@ -242,6 +246,9 @@ class descriptor_manager:
 				st = "raw matrix"
 				mat = self.overlord.sffile2matrix[self.sfseghandle.filename]
 				if not mat.has_column(dname):
+					if dparams['parent'] == None:
+						print("\nDescriptordata Error: No known descriptor", dname, "\n\n")
+						sys.exit(1)
 					# on demand calculation of new columns - delta, deltadelta, odf
 					mat.calculate_new_column(dname, dparams['type'], dparams['parent'])
 				idx = start + self.start

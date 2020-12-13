@@ -14,7 +14,13 @@ import numpy as np
 
 
 def getClassChecksum(classinstance, also=[]):
-	return util.listToCheckSum(["%s"%getattr(classinstance, a) for a in dir(classinstance) if not a.startswith('__')] + also)
+	check_me = []
+	for a in dir(classinstance):
+		if a.startswith('__'): continue
+		if a == 'descriptor_list': check_me.extend([a._checksum for a in getattr(classinstance, a)])
+		else: check_me.append(str(getattr(classinstance, a)))
+	#print(check_me)
+	return util.listToCheckSum(check_me)
 
 
 
@@ -198,8 +204,7 @@ class SearchPassOptionsEntry(object):
 		for k, v in _defaults.items(): setattr(self, k, kwargs.get(k, v))
 		#####
 		if self.method == 'closest': self.complete_results = True
-
-		self._checksum = getClassChecksum(self, also=[dobj._checksum for dobj in self.descriptor_list])
+		self._checksum = getClassChecksum(self)
 	# equality test function for interactive mode
 	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
 	def __ne__(self, other): return not self.__eq__(other)
@@ -260,8 +265,5 @@ class SingleDescriptor(object):
 	def __eq__(self, other): return type(self) == type(other) and self._checksum == other._checksum
 	def __ne__(self, other): return not self.__eq__(other)
 
-	########################################
-	def __repr__(self):
-		return self.name
 
 

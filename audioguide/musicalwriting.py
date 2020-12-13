@@ -192,11 +192,10 @@ class notetracker:
 
 ################################################################################
 class instruments:
-	def __init__(self, scoreFromUserOptions, usercorpus, outputfile, tgtlength, cpsseglist, hopsizesec, p):
+	def __init__(self, scoreFromUserOptions, usercorpus, tgtlength, cpsseglist, hopsizesec, p):
 		self.active = scoreFromUserOptions != None and len(scoreFromUserOptions.instrumentobjs) != 0
 		if not self.active: return
 		#
-		self.outputfile = outputfile
 		self.tgtlength = tgtlength
 		self.tracker = notetracker(hopsizesec)
 		self.hopsizesec = hopsizesec
@@ -374,6 +373,18 @@ class instruments:
 			if add_this_instr: cobj.instrument_candidates.append(i)
 		if len(cobj.instrument_candidates) == 0: return False
 		else: return True
+
+	########################################
+	def _slot_add_descriptors(self, slotidx, slotkey, descobj, slotAssignEveryNote):
+		if type(slotkey) == type([]) or type(slotkey) == type(()):
+			# a list of segmented descriptors
+			output = [str(descobj.get(d)) for d in slotkey]
+			slotAssignEveryNote.append((slotidx, 'listofdescriptors', '[%s]'%' '.join(output), 'floatlist'))
+		elif slotkey.find('seg') != -1:
+			slotAssignEveryNote.append((slotidx, slotkey, descobj.get(slotkey), 'float'))
+		else:
+			list_no_commas = ' '.join([str(d) for d in descobj.get(slotkey)])
+			slotAssignEveryNote.append((slotidx, slotkey, '[%s]'%list_no_commas, 'floatlist'))
 	########################################
 	def increment(self, start, dur, eobj):
 		if not self.active: return
@@ -390,16 +401,77 @@ class instruments:
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
 		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, thisinstr['cps'][eobj.sfseghandle.voiceID]['cobj_to_pitch'][eobj.sfseghandle], eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
-	def write(self, outputEvents, bachSlotsDict):
-		if not self.active: return
-		dictByInstrument = {}
+	def write(self, outputfile, targetSegs, outputEvents, bachSlotsDict, tgtStaffType, cpsStaffType, addTarget=True):
+		#if not self.active: return
+		instru_to_notes = {}
+		bach_stave_list = []
+		bach_stavename_list = []
+		bach_clef_list = []
+		
+		#########################
+		## parse target sounds ##
+		#########################
+		if addTarget: # using target?
+			instru_to_notes['target'] = {}
+			bach_stave_list.append('target')
+			bach_stavename_list.append('target')
+			bach_clef_list.append(tgtStaffType)
+			for tobj in targetSegs:	
+				pitchInCents = tobj.desc.get('MIDIPitch-seg')*100
+				timeinMs = int(tobj.segmentStartSec*1000)
+				durationInMs = int(tobj.segmentDurationSec*1000)
+				db = tobj.envDb
+				if db < -60: db = -60
+				amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
+				# do slots stuff
+				slotAssignEveryNote = []
+				slotDataOnlyOnce = {}
+				for slotidx, slotkey in bachSlotsDict.items():
+					if slotkey in ['filehead', 'sftransposition', 'dynamic', 'articulation', 'notehead', 'annotation', 'technique', 'temporal_mode']: continue
+					if slotkey == 'fullpath':
+						slotAssignEveryNote.append((slotidx, slotkey, tobj.filename, 'text'))
+					elif slotkey == 'selectnumber':
+						slotAssignEveryNote.append((slotidx, slotkey, int(tobj.numberSelectedUnits), 'int'))
+					elif slotkey == 'sfskiptime':
+						slotAssignEveryNote.append((slotidx, slotkey, "%.2f"%(tobj.segmentDurationSec*1000), 'float'))
+					elif slotkey == 'sfchannels':
+						slotAssignEveryNote.append((slotidx, slotkey, int(tobj.soundfileChns), 'int'))
+					elif slotkey == 'env':
+						maxamp = util.dbToAmp(tobj.envDb)
+						slotAssignEveryNote.append((slotidx, slotkey, '[0 %f 0]'%maxamp, 'function'))
+					else:
+						# a descriptor ?
+						self._slot_add_descriptors(slotidx, slotkey, tobj.desc, slotAssignEveryNote)
+				if timeinMs not in instru_to_notes['target']:
+					instru_to_notes['target'][timeinMs] = [[], slotDataOnlyOnce]
+				instru_to_notes['target'][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
+
+		#########################
+		## parse corpus sounds ##
+		#########################
+		if self.active: # using instruments?
+			bach_stave_list.extend(list(self.instruments.keys()))
+			bach_stavename_list.extend([self.instruments[i]['displayname'] for i in self.instruments])
+			bach_clef_list.extend([self.instruments[i]['params'].params['clef'] for i in self.instruments])
 		for eobj in outputEvents:
-			if eobj.selectedinstrument == None: continue
-			if eobj.selectedinstrument not in dictByInstrument: dictByInstrument[eobj.selectedinstrument] = {}
-			thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
+			LINKED_TO_INSTRUMENT = self.active and eobj.selectedinstrument != None
+			if not LINKED_TO_INSTRUMENT:
+				bachname = 'cps_vc%i'%eobj.voiceID
+				if bachname not in bach_stave_list:
+					bach_stave_list.append(bachname)
+					bach_stavename_list.append(bachname)
+					bach_clef_list.append(cpsStaffType)
+				pitchInCents = eobj.sfseghandle.desc.get('MIDIPitch-seg')*100
+			else:
+				bachname = eobj.selectedinstrument
+				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
+				pitchInCents = thiscps['cobj_to_pitch'][eobj.sfseghandle]*100
+				
+			if bachname not in instru_to_notes: instru_to_notes[bachname] = {}
+				
+
 			timeinMs = int(eobj.timeInScore*1000)
-			durationInMs = int(eobj.tgtsegdur*1000) # cps duration may be modified by clipDurationToTarget; duration is the sf duration.
-			pitchInCents = thiscps['cobj_to_pitch'][eobj.sfseghandle]*100
+			durationInMs = int(eobj.duration*1000) # cps duration may be modified by clipDurationToTarget; duration is the sf duration.
 			db = eobj.envDb
 			if db < -60: db = -60
 			amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
@@ -411,67 +483,64 @@ class instruments:
 
 			for slotidx, slotkey in bachSlotsDict.items():
 				if slotkey == 'technique':
-					slotAssignEveryNote.append((slotidx, slotkey, str(thiscps['technique']), 'text'))
+					if LINKED_TO_INSTRUMENT:
+						slotAssignEveryNote.append((slotidx, slotkey, str(thiscps['technique']), 'text'))
 				elif slotkey == 'temporal_mode':
-					slotAssignEveryNote.append((slotidx, slotkey, thiscps['temporal_mode'], 'text'))
+					if LINKED_TO_INSTRUMENT:
+						slotAssignEveryNote.append((slotidx, slotkey, thiscps['temporal_mode'], 'text'))
 				elif slotkey == 'selectnumber':
 					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.simSelects), 'int'))
 				elif slotkey == 'fullpath':
 					slotAssignEveryNote.append((slotidx, slotkey, eobj.filename, 'text'))
-				elif slotkey == 'filename':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.printName, 'text'))
+				elif slotkey == 'filehead':
+					slotAssignEveryNote.append((slotidx, slotkey, os.path.splitext(eobj.printName)[0], 'text'))
 				elif slotkey == 'sfskiptime':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.sfSkip*1000, 'float'))
-				elif slotkey == 'db_scale':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.envDb, 'float'))
+					slotAssignEveryNote.append((slotidx, slotkey, "%.2f"%(eobj.sfSkip*1000), 'float'))
 				elif slotkey == 'sftransposition':
 					slotAssignEveryNote.append((slotidx, slotkey, eobj.transposition, 'float'))
 				elif slotkey == 'sfchannels':
 					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.sfchnls), 'int'))
-				elif slotkey == 'env_onset':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.envAttackSec*1000, 'float'))
-				elif slotkey == 'env_offset':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.envDecaySec*1000, 'float'))
+				elif slotkey == 'env':
+					maxamp = util.dbToAmp(eobj.envDb)
+					slotAssignEveryNote.append((slotidx, slotkey, '[0 0 0] [%.4f %f 0] [%.4f %f 0] [1 0 0]'%(eobj.envAttackSec/eobj.duration, maxamp, (eobj.duration-eobj.envDecaySec)/eobj.duration, maxamp), 'function'))
 				elif slotkey == 'dynamic':# ONLY ONCE
 					if eobj.dynamicFromFilename != None:
 						slotDataOnlyOnce[slotidx] = eobj.dynamicFromFilename
 					else:
-						slotDataOnlyOnce[slotidx] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
+						if LINKED_TO_INSTRUMENT:
+							slotDataOnlyOnce[slotidx] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
 				elif slotkey == 'articulation':
-					if thiscps['articulation'] != None:# ONLY ONCE
+					if LINKED_TO_INSTRUMENT and thiscps['articulation'] != None:# ONLY ONCE
 						slotDataOnlyOnce[slotidx] = "%s"%thiscps['articulation']
 				elif slotkey == 'notehead':
-					if thiscps['notehead'] != None:# ONLY ONCE
+					if LINKED_TO_INSTRUMENT and thiscps['notehead'] != None:# ONLY ONCE
 						slotDataOnlyOnce[slotidx] = "%s"%thiscps['notehead']
 				elif slotkey == 'annotation':
-					if thiscps['annotation'] != None:# ONLY ONCE
+					if LINKED_TO_INSTRUMENT and thiscps['annotation'] != None:# ONLY ONCE
 						slotDataOnlyOnce[slotidx] = "%s"%thiscps['annotation']
 				else:
 					# a descriptor ?
-					if slotkey.find('-seg') != -1:
-						slotAssignEveryNote.append((slotidx, slotkey, eobj.sfseghandle.desc.get(slotkey), 'float'))
-					else:
-						slotAssignEveryNote.append((slotidx, slotkey, list(eobj.sfseghandle.desc.get(slotkey)), 'floatlist'))
+					self._slot_add_descriptors(slotidx, slotkey, eobj.sfseghandle.desc, slotAssignEveryNote)
 
-			if timeinMs not in self.instruments[eobj.selectedinstrument]['notes']:
-				self.instruments[eobj.selectedinstrument]['notes'][timeinMs] = [[], slotDataOnlyOnce]
-			self.instruments[eobj.selectedinstrument]['notes'][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
-		
+			if timeinMs not in instru_to_notes[bachname]:
+				instru_to_notes[bachname][timeinMs] = [[], slotDataOnlyOnce]
+			instru_to_notes[bachname][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
+
 		bachstring = 'roll '
 		# set up clefs
-		clefs = ['clefs'] + [self.instruments[i]['params'].params['clef'] for i in self.instruments]
+		clefs = ['clefs'] + bach_clef_list
 		bachstring += "[%s] "%' '.join(clefs)
 		# set up voices
-		voicenames = ['voicenames'] + [self.instruments[i]['displayname'] for i in self.instruments]
+		voicenames = ['voicenames'] + bach_stavename_list
 		bachstring += "[%s] "%' '.join(voicenames)
 		# slots
+		# function needs [range 0 1]
 		customslots = ['[%i [type %s] [name %s]]'%(slotnumb, slottype, slotname) for slotnumb, slotname, slotdata, slottype in slotAssignEveryNote]
 		bachstring += '[slotinfo %s]'%' '.join(customslots)
-		#  [2 [type text] [name french]] [3 [type text] [name italian]]
 		# 
-		for instru in self.instruments:
+		for instru in bach_stave_list:
 			bachstring += '[ ' # instrument start
-			for time, (notelist, slotDict) in self.instruments[instru]['notes'].items():
+			for time, (notelist, slotDict) in instru_to_notes[instru].items():
 				bachstring += '[%i.'%time # note start
 				for didx, d in enumerate(notelist):
 					# only write slots for first note
@@ -485,7 +554,7 @@ class instruments:
 				bachstring += '] ' # note end
 			bachstring += '] ' # instrument end
 			
-		fh = open(self.outputfile, 'w')
+		fh = open(outputfile, 'w')
 		fh.write(bachstring)
 		fh.close()
 	########################################

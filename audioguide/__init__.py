@@ -61,9 +61,6 @@ class main:
 
 
 	def load_target(self):
-		############
-		## TARGET ##
-		############
 		self.p.logsection( "TARGET" )
 		self.tgt = sfsegment.target(self.ops.TARGET, self.AnalInterface)
 		self.tgt.initAnal(self.AnalInterface, self.ops, self.p)
@@ -130,6 +127,7 @@ class main:
 
 
 
+
 	def dimensional_scale_data(self):
 		self.ops.parseDescriptors()
 		dimscaling.buildarray_all_timevarying_descriptors(self.tgt.segs + self.cps.postLimitSegmentNormList, self.ops._normalizeDescriptors, self.AnalInterface)
@@ -139,6 +137,7 @@ class main:
 spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=25),
 spass('closest', d('X', norm=1), d('Y', norm=1))
 ]
+
 
 
 	def normalize(self):
@@ -167,7 +166,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		distanceCalculations = simcalc.distanceCalculations(self.ops.SUPERIMPOSE, self.ops.RANDOM_SEED, self.AnalInterface, self.tgt.segs, self.p)
 		distanceCalculations.setTarget(self.ops.SEARCH, self.tgt.segs)
 
-		self.instruments = musicalwriting.instruments(self.ops.INSTRUMENTS, self.ops.CORPUS, self.ops.SCORE_OUTPUT_FILEPATH, self.tgt.lengthInFrames, self.cps.postLimitSegmentNormList, self.AnalInterface.hopLengthSec, self.p)
+		self.instruments = musicalwriting.instruments(self.ops.INSTRUMENTS, self.ops.CORPUS, self.tgt.lengthInFrames, self.cps.postLimitSegmentNormList, self.AnalInterface.hopLengthSec, self.p)
 
 		superimp = concatenativeclasses.SuperimposeTracker(self.tgt.lengthInFrames, len(self.tgt.segs), self.ops.SUPERIMPOSE.overlapAmpThresh, self.ops.SUPERIMPOSE.peakAlign, self.ops.SUPERIMPOSE.peakAlignEnvelope, len(self.ops.CORPUS), self.ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, self.p)
 		self.cps.setupConcate(self.tgt, self.AnalInterface)
@@ -347,7 +346,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		#########################
 		self.p.logsection( "OUTPUT FILES" )
 		allusedcpsfiles = list(set([oe.filename for oe in self.outputEvents]))
-		self.instruments.write(self.outputEvents, self.ops.INSTRUMENTS_BACH_SLOTS_DICT)
+		self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
 
 
 		######################

@@ -100,7 +100,8 @@ UserVar_types = {
 'TARGET_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'TARGET_PLOT_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH': ['None', 'a string'],
-'SCORE_OUTPUT_FILEPATH': ['None', 'a string'],
+'BACH_FILEPATH': ['None', 'a string'],
+
 ##########  CORPUS   #######
 'CORPUS_GLOBAL_ATTRIBUTES': ['a dictionary'],
 'VOICE_PATTERN': ['a list of strings'],
@@ -109,7 +110,12 @@ UserVar_types = {
 'ROTATE_VOICES': ['True or False'],
 'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
 'RESTRICT_CORPUS_OVERLAP_BY_STRING': ['a dictionary'],
-'INSTRUMENTS_BACH_SLOTS_DICT': ['a dictionary'],
+
+########  BACH  #######
+'BACH_INCLUDE_TARGET': ['True or False'],
+'BACH_TARGET_STAFF': ['a string'],
+'BACH_CORPUS_STAFF': ['a string'],
+'BACH_SLOTS_MAPPING': ['a dictionary'],
 
 ########  NORMALIZATION  #######
 'NORMALIZATION_METHOD': ['standard', 'cluster'],
@@ -190,7 +196,7 @@ OptionChangeToProgramRun = {
 "DATA_FROM_SEGMENTATION_FILEPATH": "output",
 "DICT_OUTPUT_FILEPATH": "output",
 "MAXMSP_OUTPUT_FILEPATH": "output",
-"SCORE_OUTPUT_FILEPATH": "output",
+"BACH_FILEPATH": "output",
 "TARGET_DESCRIPTORS_FILEPATH": "output",
 "TARGET_PLOT_DESCRIPTORS_FILEPATH": "output",
 "CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH": "output",
@@ -203,7 +209,10 @@ OptionChangeToProgramRun = {
 "RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING": "corpus",
 "RESTRICT_CORPUS_OVERLAP_BY_STRING": "corpus",
 
-"INSTRUMENTS_BACH_SLOTS_DICT": "output",
+"BACH_INCLUDE_TARGET": "output",
+"BACH_TARGET_STAFF": "output",
+"BACH_CORPUS_STAFF": "output",
+"BACH_SLOTS_MAPPING": "output",
 
 "NORMALIZATION_METHOD": "norm",
 "NORMALIZATION_DELTA_FREEDOM": "norm",
