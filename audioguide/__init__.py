@@ -346,7 +346,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		#########################
 		self.p.logsection( "OUTPUT FILES" )
 		allusedcpsfiles = list(set([oe.filename for oe in self.outputEvents]))
-		self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
+		self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
 
 
 		######################

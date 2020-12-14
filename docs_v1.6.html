@@ -701,8 +701,12 @@ spass('closest', d('mfccs')), # now find the best matching segment according to 
 
 
 </div>
-
 </div>
+
+
+
+
+
 
 
 
@@ -732,17 +736,23 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 
-<div id="TheINSTRUMENTSVariable" class="group"><h3>Using Bach and Creating Notated Scores</h3>
-<p>-> <a href="https://www.youtube.com/watch?v=pSf3GJEGzcU&t=0s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
 
-<p>Audioguide automatically creates an output file for every concatenation that may be loaded into a bach.roll in Max/MSP. The path for the bach output file, which is  output/bach_roll.txt by default, is controlable by the BACH_FILEPATH variable. You may visualize, explore, and playback concatenated sounds with the patch maxmsp/bach/main.maxpat. You may also add descriptor data to Bach slots; see BACH_SLOTS_MAPPING below for details.</p>
+<div id="UsingBachForPlayback" class="group"><h3>Using Bach for Playback</h3>
+<p>Audioguide automatically creates an output file for every concatenation that may be loaded into a bach.roll in Max/MSP. The path for the bach output file, which is output/bach_roll.txt by default, is controlable by the BACH_FILEPATH variable. You may visualize, explore, and playback concatenated sounds with the patch maxmsp/bach/bach_playback.maxpat. You may also add descriptor data to Bach slots; see BACH_SLOTS_MAPPING below for details.</p>
 
 <p>The options below give a few controls over how the output of a concatenation can be translated into a bach.roll input:</p>
 
 <p><b>BACH_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, the target soundfile will be included as the first voice in bach_roll.txt.</p><p><b>BACH_TARGET_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">F</span>) The clef used for the target sound.</p><p><b>BACH_CORPUS_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">FG</span>) The clef used for corpus sounds.</p></div>
 
 
-<p>Much more importantly however, AudioGuide's INSTRUMENTS infrastructure lets you restrict the way that elements of corpus can be used during concatenation to create playable instrument parts. INSTRUMENTS and its associated objects, score() and instr(), permit corpus resources to be deployed in time with a high degree of precision and customization, including adding articulation, noteneads, and restricting instrument behavior according to pitch, rhythm, and polyphony.</p>
+
+
+
+
+
+<div id="TheINSTRUMENTSVariable" class="group"><h3>Using Bach to Create Notated Scores</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=pSf3GJEGzcU&t=0s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
+<p>AudioGuide's INSTRUMENTS infrastructure lets you restrict the way that elements of corpus can be used during concatenation to create playable instrument parts. These pays may be viewed, explored, and quantized with Bach in Max/MSP. INSTRUMENTS and its associated objects, score() and instr(), permit corpus resources to be deployed in time with a high degree of precision and customization, including the addition of articulation, noteneads, and restricting instrument behavior according to pitch, rhythm, and polyphony.</p>
 
 
 <div id="scoreVariable" class="subgroup"><h4>score() and instr()</h4>
@@ -863,23 +873,23 @@ Data from the concatenative process is automatically added to the BACH_FILEPATH 
 <tr><td>sfchannels</td><td>3</td><td>This note's filename's number of channels</td><td>Target and Corpus</td></tr>
 <tr><td>env</td><td>4</td><td>This note's amplitude envelope as a bach function</td><td>Target and Corpus</td></tr>
 
-<tr><td>sftransposition</td><td>10</td><td>This note's corresponding transposition from the concatenative process in semitones.</td><td>Corpus Only</td></tr>
-<tr><td>selectnumber</td><td>11</td><td>This note's selection number in the concatenative process. If 0, it was the first sound picked for this target segment in question. If 1, it was the second selection, etc.</td><td>Corpus Only</td></tr>
-<tr><td>filehead</td><td>12</td><td>This note's filehead - the directory and file extension are not included (unlike the full path).</td><td>Corpus Only</td></tr>
+<tr><td>cps_transposition</td><td>10</td><td>This note's corresponding transposition from the concatenative process in semitones.</td><td>Corpus</td></tr>
+<tr><td>cps_selectnumber</td><td>11</td><td>This note's selection number in the concatenative process. If 0, it was the first sound picked for this target segment in question. If 1, it was the second selection, etc.</td><td>Corpus</td></tr>
+<tr><td>cps_filehead</td><td>12</td><td>This note's filehead - the directory and file extension are not included (unlike the full path).</td><td>Corpus</td></tr>
+<tr><td>cps_dynamic</td><td>20</td><td>This chord/note's dynamics. By default, these are taken from the filename of the selected sounds (C4-mf-IV.wav will have a dynamic of mf)</td><td>Corpus</td></tr>
 
-<tr><td>dynamic</td><td>20</td><td>This chord/note's dynamics. By default, these are taken from the filename of the selected sounds (C4-mf-IV.wav will have a dynamic of mf)</td><td>Corpus with InstrTag</td></tr>
-<tr><td>articulation</td><td>22</td><td>This note/chord's articulation taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'articulation': 'staccato'})</td><td>Corpus with InstrTag</td></tr>
-<tr><td>notehead</td><td>23</td><td>This note/chord's notehead taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'notehead': 'cross'})</td><td>Corpus with InstrTag</td></tr>
-<tr><td>annotation</td><td>24</td><td>this note/chord's annotation text taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'annotation': 'strike_with_hand'})</td><td>Corpus with InstrTag</td></tr>
-<tr><td>technique</td><td>25</td><td>This csf()'s technique string from the csf(instrParams) dictionary, e.g. csf(instrParams={'technique': 'pizz'})</td><td>Corpus with InstrTag</td></tr>
-<tr><td>temporal_mode</td><td>26</td><td>This csf()'s temporal_mode from the csf(instrParams) dictionary, e.g' csf(instrParams={'temporal_mode': 'artic'})</td><td>Corpus with InstrTag</td></tr>
+<tr><td>instr_articulation</td><td>22</td><td>This note/chord's articulation taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'articulation': 'staccato'})</td><td>Corpus with InstrTag</td></tr>
+<tr><td>instr_notehead</td><td>23</td><td>This note/chord's notehead taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'notehead': 'cross'})</td><td>Corpus with InstrTag</td></tr>
+<tr><td>instr_annotation</td><td>24</td><td>this note/chord's annotation text taken from the csf(instrParams) dictionary, e.g. csf(instrParams={'annotation': 'strike_with_hand'})</td><td>Corpus with InstrTag</td></tr>
+<tr><td>instr_technique</td><td>25</td><td>This csf()'s technique string from the csf(instrParams) dictionary, e.g. csf(instrParams={'technique': 'pizz'})</td><td>Corpus with InstrTag</td></tr>
+<tr><td>instr_temporal_mode</td><td>26</td><td>This csf()'s temporal_mode from the csf(instrParams) dictionary, e.g' csf(instrParams={'temporal_mode': 'artic'})</td><td>Corpus with InstrTag</td></tr>
 </table>
 
 However, you can control what data is assigned to which slot and also add descriptor information to Bach's slots. To do this, overwrite the BACH_SLOTS_MAPPING dictionary with your custom settings. You can use and of the Data Keyword's above to access concatenation parameters. Addtionally, you can specify a segmented descriptor name to get descriptor data for the chosen sound. A time-varying descriptor will place a descriptor time series into the slot.
 
 <pre class="language-python"><code class="language-python"># custom slot assignment:
-BACH_SLOTS_MAPPING = {'technique': 1, 'fullpath': 2, 'sfskiptime': 3, 'noisiness-seg': 10, 'centroid': 11}
-# this will put each selected sound's technique, fullpath, and skip time into slots 1-3. Each selected sound's averaged noisiness will be put into slot 10 (as a float) and its time-varying centroid in slot 11 (as a floatlist).
+BACH_SLOTS_MAPPING = {1: 'instr_technique', 2: 'fullpath', 3: 'sfskiptime', 10: 'noisiness-seg', 11: 'centroid'}
+# this will put each selected sound with an instr's technique, fullpath, and skip time into slots 1-3. Each selected sound's averaged noisiness will be put into slot 10 (as a float) and its time-varying centroid in slot 11 (as a floatlist).
 </code></pre>
 
 
@@ -1152,7 +1162,10 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 		 <li><a href="#SEARCHvariable">SEARCH variable and spass() object</a></li>
 		 <li><a href="#TheSUPERIMPOSEvariabls">The SUPERIMPOSE variable and si() object</a></li>
 		 
-		 <li><a href="#TheINSTRUMENTSVariable">Using Bach and Creating Notated Scores</a></li>
+
+
+		 <li><a href="#UsingBachForPlayback">Using Bach for Playback</a></li>
+		 <li><a href="#TheINSTRUMENTSVariable">Using Bach to Create Notated Scores</a></li>
 			 <ul class="nav nav-stacked">
 				 <li><a href="#scoreVariable">The score() object</a></li>
 				 <li><a href="#INSTRUMENTSPitch">Handling Pitch</a></li>

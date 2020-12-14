@@ -30,8 +30,7 @@ RESTRICT_CORPUS_OVERLAP_BY_STRING = {}
 BACH_INCLUDE_TARGET = True
 BACH_TARGET_STAFF = 'F'
 BACH_CORPUS_STAFF = 'FG'
-BACH_SLOTS_MAPPING = {1: 'filepath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 10: 'sftransposition', 11: 'selectnumber', 12: 'filehead', 20: 'dynamic', 22: 'articulation', 23: 'notehead', 24: 'annotation', 25: 'technique', 26: 'temporal_mode'}
-
+BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 10: 'cps_transposition', 11: 'cps_selectnumber', 12: 'cps_filehead', 20: 'cps_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}
 
 ##########  INSTRUMENTS   #######
 INSTRUMENTS = None
