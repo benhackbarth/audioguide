@@ -1,8 +1,10 @@
 #################
 ## Version 1.6 ##
 #################
-• agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rending and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See XXXXX
+• agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rending and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See https://www.youtube.com/watch?v=h0Ee77VoFe0
  
+• A Max/MSP bach.roll output file is now written for each concatenation by default. Check out examples/10-bachOutput.py and maxims/bach/bach_playback.maxpat for details.
+
 • When creating acoustic scores with Bach it is now possible to customize what data is written into which slots, including exporting descriptor data of selected sounds to bach. See http://www.benhackbarth.com/audioGuide/docs_v1.6.html#INSTRUMENTSSlots
 
 

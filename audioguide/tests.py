@@ -85,10 +85,9 @@ UserVar_types = {
 'INSTRUMENTS': ['None', 'a score() object'],
 ##########  OUTPUT FILES   #######
 'CSOUND_CSD_FILEPATH': ['None', 'a string'],
+'CSOUND_SCORE_FILEPATH': ['None', 'a string'],
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
 'HTML_LOG_FILEPATH': ['None', 'a string'],
-'MIDI_FILEPATH': ['None', 'a string'],
-'MIDIFILE_TEMPO': ['a number greater than zero'],
 'TARGET_SEGMENT_LABELS_FILEPATH': ['None', 'a string'],
 'TARGET_SEGMENT_LABELS_INFO': ['a string'],
 'TARGET_SEGMENTATION_GRAPH_FILEPATH': ['None', 'a string'],
@@ -185,12 +184,11 @@ OptionChangeToProgramRun = {
 
 
 "CSOUND_CSD_FILEPATH": "output",
+"CSOUND_SCORE_FILEPATH": "output",
 "CSOUND_RENDER_FILEPATH": "output",
 "HTML_LOG_FILEPATH": "reinit",
-"MIDI_FILEPATH": "output",
-"MIDIFILE_TEMPO": "output",
-"TARGET_SEGMENT_LABELS_FILEPATH": "output",
-"TARGET_SEGMENTATION_GRAPH_FILEPATH": "output",
+"TARGET_SEGMENT_LABELS_FILEPATH": "target",
+"TARGET_SEGMENTATION_GRAPH_FILEPATH": "target",
 "OUTPUT_LABEL_FILEPATH": "output",
 "LISP_OUTPUT_FILEPATH": "output",
 "DATA_FROM_SEGMENTATION_FILEPATH": "output",

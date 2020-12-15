@@ -19,7 +19,6 @@ def getClassChecksum(classinstance, also=[]):
 		if a.startswith('__'): continue
 		if a == 'descriptor_list': check_me.extend([a._checksum for a in getattr(classinstance, a)])
 		else: check_me.append(str(getattr(classinstance, a)))
-	#print(check_me)
 	return util.listToCheckSum(check_me)
 
 

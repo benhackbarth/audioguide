@@ -579,7 +579,6 @@ def getDynamicFromFilename(file, dynToDbDict, stringToDynDict, notFound=-1000):
 	NOTHING_YET = True
 	whichStr = 0
 	searchstring = os.path.split(os.path.splitext(file)[0])[1]
-
 	dynamic = 'fuck'
 	while NOTHING_YET:
 		if whichStr > len(SPLIT_STRINGS)-1:

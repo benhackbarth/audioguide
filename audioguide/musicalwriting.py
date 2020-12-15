@@ -21,9 +21,8 @@ import audioguide.util as util
 
 def pitchoverride(cobjlist, config):
 	pitchlist = [c.desc.get('MIDIPitch-seg') for c in cobjlist]
-	minpitch, maxpitch = min(pitchlist), max(pitchlist)
 	output_dict = {}
-	
+
 	for c, standardpitch in zip(cobjlist, pitchlist):
 		if config == None:
 			output_dict[c] = standardpitch
@@ -34,6 +33,7 @@ def pitchoverride(cobjlist, config):
 		# if passing this point, we're using the dict format
 		elif 'type' in config and config['type'] == 'remap':
 			assert 'low' in config and 'high' in config
+			minpitch, maxpitch = min(pitchlist), max(pitchlist)
 			standard_zerotoone = (standardpitch-minpitch)/(maxpitch-minpitch)
 			output_dict[c] = (standard_zerotoone*(config['high']-config['low']))+config['low']
 		# clip
@@ -251,7 +251,7 @@ class instruments:
 				# do equally spaced dynamics
 				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc.get('power-seg'))
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {}
-				if len(self.instruments[k]['cps'][voiceID]['dynamics']) == 1:
+				if len(self.instruments[k]['cps'][voiceID]['dynamics']) == 1 or len(thiscps_powersort) <= 1:
 					self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][0] for c in thiscps}
 				else:
 					for idx, c in enumerate(thiscps_powersort):
@@ -373,18 +373,6 @@ class instruments:
 			if add_this_instr: cobj.instrument_candidates.append(i)
 		if len(cobj.instrument_candidates) == 0: return False
 		else: return True
-
-	########################################
-	def _slot_add_descriptors(self, slotidx, slotkey, descobj, slotAssignEveryNote):
-		if type(slotkey) == type([]) or type(slotkey) == type(()):
-			# a list of segmented descriptors
-			output = [str(descobj.get(d)) for d in slotkey]
-			slotAssignEveryNote.append((slotidx, 'listofdescriptors', '[%s]'%' '.join(output), 'floatlist', '[range 0 100000]'))
-		elif slotkey.find('seg') != -1:
-			slotAssignEveryNote.append((slotidx, slotkey, descobj.get(slotkey), 'float', '[range 0 100000]'))
-		else:
-			list_no_commas = ' '.join([str(d) for d in descobj.get(slotkey)])
-			slotAssignEveryNote.append((slotidx, slotkey, '[%s]'%list_no_commas, 'floatlist', '[range 0 100000]'))
 	########################################
 	def increment(self, start, dur, eobj):
 		if not self.active: return
@@ -402,156 +390,89 @@ class instruments:
 		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, thisinstr['cps'][eobj.sfseghandle.voiceID]['cobj_to_pitch'][eobj.sfseghandle], eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
 	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, tgtStaffType, cpsStaffType, addTarget=True):
-		#if not self.active: return
-		instru_to_notes = {}
-		bach_stave_list = []
-		bach_stavename_list = []
-		bach_clef_list = []
+		bs = audioguide_bach_segments(bachSlotsDict)		
 		#########################
 		## parse target sounds ##
 		#########################
 		if addTarget: # using target?
-			instru_to_notes['target'] = {}
-			bach_stave_list.append('target')
-			bach_stavename_list.append('target')
-			bach_clef_list.append(tgtStaffType)
+			bs.add_voice('target', 'target', clef=tgtStaffType)
 			for tobj in targetSegs:	
-				pitchInCents = tobj.desc.get('MIDIPitch-seg')*100
-				timeinMs = int(tobj.segmentStartSec*1000)
-				durationInMs = int(tobj.segmentDurationSec*1000)
-				db = tobj.envDb
-				if db < -60: db = -60
-				amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
-				# do slots stuff
-				slotAssignEveryNote = []
-				slotDataOnlyOnce = {}
-				for slotidx, slotkey in bachSlotsDict.items():
-					if slotkey in ['cps_filehead', 'cps_transposition', 'cps_dynamic', 'instr_articulation', 'instr_notehead', 'instr_annotation', 'instr_technique', 'instr_temporal_mode']: continue
-					if slotkey == 'fullpath':
-						slotAssignEveryNote.append((slotidx, slotkey, '"%s"'%tobj.filename, 'text', ''))
-					elif slotkey == 'cps_selectnumber':
-						slotAssignEveryNote.append((slotidx, slotkey, int(tobj.numberSelectedUnits), 'int', '[range 0 100000]'))
-					elif slotkey == 'sfskiptime':
-						slotAssignEveryNote.append((slotidx, slotkey, "%.2f"%(tobj.segmentStartSec*1000), 'float', '[range 0 100000]'))
-					elif slotkey == 'sfchannels':
-						slotAssignEveryNote.append((slotidx, slotkey, int(tobj.soundfileChns), 'int', '[range 0 100]'))
-					elif slotkey == 'env':
-						maxamp = util.dbToAmp(tobj.envDb)
-						slotAssignEveryNote.append((slotidx, slotkey, '[0 %f 0]'%maxamp, 'function', '[range 0 1]'))
-					else:
-						# a descriptor ?
-						self._slot_add_descriptors(slotidx, slotkey, tobj.desc, slotAssignEveryNote)
-				if timeinMs not in instru_to_notes['target']:
-					instru_to_notes['target'][timeinMs] = [[], slotDataOnlyOnce]
-				instru_to_notes['target'][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
-
-		#########################
-		## parse corpus sounds ##
-		#########################
+				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, tobj.segmentStartSec, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc)
+		###############################
+		## add any instrument voices ##
+		###############################
+		repr_voices = []
 		if self.active: # using instruments?
-			bach_stave_list.extend(list(self.instruments.keys()))
-			bach_stavename_list.extend([self.instruments[i]['displayname'] for i in self.instruments])
-			bach_clef_list.extend([self.instruments[i]['params'].params['clef'] for i in self.instruments])
+			for v_id, ddict in self.instruments.items():
+				bs.add_voice(v_id, self.instruments[v_id]['displayname'], clef=self.instruments[v_id]['params'].params['clef'])
+				repr_voices.extend(list(self.instruments[v_id]['cps'].keys()))
+		##########################################
+		## add any non-instrument corpus voices ##
+		##########################################
+		non_instrument_corpus_idxs = [eobj.voiceID for eobj in outputEvents if eobj.voiceID not in repr_voices]
+		non_instrument_corpus_idxs = list(set(non_instrument_corpus_idxs))
+		if len(non_instrument_corpus_idxs) > 0: # if there are any, add _all_ voices even if they don't have notes. gotta be consistent.
+			for voiceid in non_instrument_corpus_idxs:
+				bs.add_voice("cps%i"%voiceid, '"%s"'%os.path.split(corpusNameList[voiceid])[1], clef=cpsStaffType)
+		########################################################
+		## loop through all select corpus items and add notes ##
+		########################################################
 		for eobj in outputEvents:
 			LINKED_TO_INSTRUMENT = self.active and eobj.selectedinstrument != None
 			if not LINKED_TO_INSTRUMENT:
-				bachname = '"%s"'%os.path.split(corpusNameList[eobj.voiceID])[1]
-				if bachname not in bach_stave_list:
-					bach_stave_list.append(bachname)
-					bach_stavename_list.append(bachname)
-					bach_clef_list.append(cpsStaffType)
-				pitchInCents = eobj.sfseghandle.desc.get('MIDIPitch-seg')*100
+				midipitch = eobj.sfseghandle.desc.get('MIDIPitch-seg')
+				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=eobj.dynamicFromFilename)
 			else:
-				bachname = eobj.selectedinstrument
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
-				pitchInCents = thiscps['cobj_to_pitch'][eobj.sfseghandle]*100
-				
-			if bachname not in instru_to_notes: instru_to_notes[bachname] = {}
-				
-
-			timeinMs = int(eobj.timeInScore*1000)
-			durationInMs = int(eobj.duration*1000) # cps duration may be modified by clipDurationToTarget; duration is the sf duration.
-			db = eobj.envDb
-			if db < -60: db = -60
-			amp127 = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
-
-
-			# do slots stuff
-			slotAssignEveryNote = []
-			slotDataOnlyOnce = {}
-
-			for slotidx, slotkey in bachSlotsDict.items():
-				if slotkey == 'instr_technique':
-					if LINKED_TO_INSTRUMENT:
-						slotAssignEveryNote.append((slotidx, slotkey, str(thiscps['technique']), 'text', ''))
-				elif slotkey == 'instr_temporal_mode':
-					if LINKED_TO_INSTRUMENT:
-						slotAssignEveryNote.append((slotidx, slotkey, thiscps['temporal_mode'], 'text', ''))
-				elif slotkey == 'cps_selectnumber':
-					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.simSelects), 'int', '[range 0 100000]'))
-				elif slotkey == 'fullpath':
-					slotAssignEveryNote.append((slotidx, slotkey, '"%s"'%eobj.filename, 'text', ''))
-				elif slotkey == 'cps_filehead':
-					slotAssignEveryNote.append((slotidx, slotkey, '"%s"'%os.path.splitext(eobj.printName)[0], 'text', ''))
-				elif slotkey == 'sfskiptime':
-					slotAssignEveryNote.append((slotidx, slotkey, "%.2f"%(eobj.sfSkip*1000), 'float', '[range 0 100000]'))
-				elif slotkey == 'cps_transposition':
-					slotAssignEveryNote.append((slotidx, slotkey, eobj.transposition, 'float', '[range -1000 1000]'))
-				elif slotkey == 'sfchannels':
-					slotAssignEveryNote.append((slotidx, slotkey, int(eobj.sfchnls), 'int', '[range 0 1000]'))
-				elif slotkey == 'env':
-					maxamp = util.dbToAmp(eobj.envDb)
-					slotAssignEveryNote.append((slotidx, slotkey, '[0 0 0] [%.4f %f 0] [%.4f %f 0] [1 0 0]'%(eobj.envAttackSec/eobj.duration, maxamp, (eobj.duration-eobj.envDecaySec)/eobj.duration, maxamp), 'function', '[range 0 1]'))
-				elif slotkey == 'cps_dynamic':# ONLY ONCE
-					if eobj.dynamicFromFilename != None:
-						slotDataOnlyOnce[slotidx] = eobj.dynamicFromFilename
-					else:
-						if LINKED_TO_INSTRUMENT:
-							slotDataOnlyOnce[slotidx] = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
-				elif slotkey == 'instr_articulation':
-					if LINKED_TO_INSTRUMENT and thiscps['articulation'] != None:# ONLY ONCE
-						slotDataOnlyOnce[slotidx] = "%s"%thiscps['articulation']
-				elif slotkey == 'instr_notehead':
-					if LINKED_TO_INSTRUMENT and thiscps['notehead'] != None:# ONLY ONCE
-						slotDataOnlyOnce[slotidx] = "%s"%thiscps['notehead']
-				elif slotkey == 'instr_annotation':
-					if LINKED_TO_INSTRUMENT and thiscps['annotation'] != None:# ONLY ONCE
-						slotDataOnlyOnce[slotidx] = "%s"%thiscps['annotation']
-				else:
-					# a descriptor ?
-					self._slot_add_descriptors(slotidx, slotkey, eobj.sfseghandle.desc, slotAssignEveryNote)
-
-			if timeinMs not in instru_to_notes[bachname]:
-				instru_to_notes[bachname][timeinMs] = [[], slotDataOnlyOnce]
-			instru_to_notes[bachname][timeinMs][0].append([pitchInCents, durationInMs, amp127, slotAssignEveryNote])
-
+				midipitch = thiscps['cobj_to_pitch'][eobj.sfseghandle] + eobj.transposition
+				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, 
+				cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
+				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_annotation=thiscps['annotation'], 
+				)
+		################################
+		## make a big ol' bach string ##
+		################################
 		bachstring = 'roll '
 		# set up clefs
-		clefs = ['clefs'] + bach_clef_list
-		bachstring += "[%s] "%' '.join(clefs)
+		bachstring += "[clefs %s] "%' '.join([vd['clef'] for vd in bs.voices_ordered])
 		# set up voices
-		voicenames = ['voicenames'] + bach_stavename_list
-		bachstring += "[%s] "%' '.join(voicenames)
-		# slots
-		customslots = ['[%i [type %s] [name %s] %s]'%(slotnumb, slottype, slotname, slotrange) for slotnumb, slotname, slotdata, slottype, slotrange in slotAssignEveryNote]
-		bachstring += '[slotinfo %s]'%' '.join(customslots)
-		# 
-		for instru in bach_stave_list:
+		bachstring += "[voicenames %s] "%' '.join([vd['displayname'] for vd in bs.voices_ordered])
+		# init slots
+		initslots = []
+		for slotname, slotdict in bs.slots.items():
+			if slotdict['range'] == False:
+				# no range needed
+				slotdict['range'] = ''
+			elif type(slotdict['range']) == type([]):
+				# range is fixed
+				slotdict['range'] = '[range %f %f]'%tuple(slotdict['range'])
+			elif slotdict['range'] == 'auto':
+				# range needs to be calculated
+				minny, maxxy = min(bs.slots_minmax_lists[slotdict['idx']]), max(bs.slots_minmax_lists[slotdict['idx']])
+				slotdict['range'] = '[range %f %f] '%(minny, maxxy)
+			
+			if slotname in ['cps_dynamic', 'instr_articulation', 'instr_notehead', 'instr_annotation']: continue
+			slotname = slotname.replace('cps_', '')
+			slotname = slotname.replace('instr_', '')
+			initslots.append('[%i [type %s] [name %s] %s]'%(slotdict['idx'], slotdict['type'], slotname, slotdict['range']) )
+		bachstring += '[slotinfo %s]'%' '.join(initslots)
+
+		# write notes
+		for voice in bs.voice_to_notes:
 			bachstring += '[ ' # instrument start
-			for time, (notelist, slotDict) in instru_to_notes[instru].items():
-				bachstring += '[%i.'%time # note start
+			for time, (notelist, slotDictOnce) in bs.voice_to_notes[voice].items():
+				bachstring += ' [%i.'%time # note start
 				for didx, d in enumerate(notelist):
-					# only write slots for first note
-					always = ' '.join(['[%i %s]'%(s[0], s[2]) for s in d[3]])
+					# only write once slots for first note
+					always = ' '.join(d[3])
 					if didx == 0:
-						once = ' '.join(['[%i %s]'%(slotnumb, slotDataOnlyOnce) for slotnumb, slotDataOnlyOnce in slotDict.items()])
+						once = ' '.join(slotDictOnce)
 						slotstring = '[slots %s %s ]'%(once, always)
-					else: #already wrote slots on a prev not in this chord
+					else: # already wrote slots on a prev not in this chord
 						slotstring = '[slots %s ]'%(always)
 					bachstring += ' [%i %i %i %s] '%(d[0], d[1], d[2], slotstring)
 				bachstring += '] ' # note end
 			bachstring += '] ' # instrument end
-			
 		fh = open(outputfile, 'w')
 		fh.write(bachstring)
 		fh.close()
@@ -560,3 +481,109 @@ class instruments:
 
 
 
+
+########################################
+########################################
+class audioguide_bach_segments:
+	def __init__(self, bachSlotsDict):
+		self.voices_ordered = []
+		self.voice_to_notes = {}
+		self.slots = {}
+		for slotidx, slotkey in bachSlotsDict.items():
+			if   slotkey == 'fullpath': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
+			elif slotkey == 'sfskiptime': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False}
+			elif slotkey == 'sfchannels': self.slots[slotkey] = {'idx': slotidx, 'range': [0, 100], 'type': 'int', 'once': False}
+			elif slotkey == 'env': self.slots[slotkey] = {'idx': slotidx, 'range': [0, 1], 'type': 'function', 'once': False}
+			elif slotkey == 'cps_selectnumber': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'int', 'once': False}
+			elif slotkey == 'cps_filehead': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
+			elif slotkey == 'cps_transposition': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False}
+			elif slotkey == 'cps_dynamic': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
+			elif slotkey == 'instr_technique': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
+			elif slotkey == 'instr_temporal_mode': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
+			elif slotkey == 'instr_articulation': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
+			elif slotkey == 'instr_notehead': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
+			elif slotkey == 'instr_annotation': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
+			else:
+				# descriptors
+				if type(slotkey) == type("") and slotkey.find('seg') != -1:
+					# segmented
+					self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False, 'descriptor': slotkey}
+				elif type(slotkey) == type("") and slotkey.find('seg') == -1:
+					# time-varying
+					self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'floatlist', 'once': False, 'descriptor': slotkey}
+				else:
+					# list of segmented descriptors
+					self.slots["%idescriptors"%len(slotkey)] = {'idx': slotidx, 'range': 'auto', 'type': 'floatlist', 'once': False, 'descriptor': slotkey}
+		self.slots_minmax_lists = {v['idx']: [] for k, v in self.slots.items() if v['range'] == 'auto'}
+	########################################
+	def add_voice(self, voicename, displayname, clef='G'):
+		# voicename is unique, displayname shows up in the score
+		self.voices_ordered.append({'id': voicename, 'displayname': displayname, 'clef': clef})
+		self.voice_to_notes[voicename] = {}
+	########################################
+	def add_note(self, voicename, time, duration, midipitch, fullpath, sfskiptime, sfchannels, db, attack, decay, descobj, cps_transposition=None, cps_selectnumber=None, cps_filehead=None, cps_dynamic=None, instr_articulation=None, instr_notehead=None, instr_annotation=None, instr_technique=None, instr_temporal_mode=None):
+		assert voicename in self.voice_to_notes
+		# basic shit
+		time_ms = time * 1000
+		cents = midipitch * 100
+		duration_ms = duration * 1000
+		if db < -60: db = -60
+		velocity = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
+		
+		slot_data = [], [] # once, everynote
+		for slotkey, datad in self.slots.items():
+			datum = None
+			if slotkey == 'fullpath':
+				datum = '"%s"'%fullpath
+			elif slotkey == 'sfskiptime':
+				datum = sfskiptime*1000
+			elif slotkey == 'sfchannels':
+				datum =  int(sfchannels)
+			elif slotkey == 'env':
+				amp = util.dbToAmp(db)
+				attack_percent = attack/duration
+				decay_percent = (duration-decay)/duration
+				datum = '[0 0 0] [%.6f %f 0] [%.6f %f 0] [1 0 0]'%(attack_percent, amp, decay_percent, amp)
+			elif slotkey == 'cps_selectnumber' and cps_selectnumber != None:
+				datum = int(cps_selectnumber)
+			elif slotkey == 'cps_filehead' and cps_filehead != None:
+				datum = '"%s"'%cps_filehead
+			elif slotkey == 'cps_transposition' and cps_transposition != None:
+				datum = cps_transposition
+			elif slotkey == 'cps_dynamic' and cps_dynamic != None:
+				datum = cps_dynamic
+			elif slotkey == 'instr_technique' and instr_technique != None:
+				datum = '"%s"'%instr_technique
+			elif slotkey == 'instr_temporal_mode' and instr_temporal_mode != None:
+				datum = instr_temporal_mode
+			elif slotkey == 'instr_articulation' and instr_articulation != None:
+				datum = instr_articulation
+			elif slotkey == 'instr_notehead' and instr_notehead != None:
+				datum = instr_notehead
+			elif slotkey == 'instr_annotation' and instr_annotation != None:
+				datum = '"%s"'%instr_annotation
+			elif 'descriptor' in datad and type(datad['descriptor']) == type("") and datad['descriptor'].find('seg') == -1:
+				# time-varying descriptor data
+				datum = list(descobj.get(datad['descriptor']))
+			elif 'descriptor' in datad and type(datad['descriptor']) == type([]):
+				# list of averaged descriptors
+				datum = [descobj.get(d) for d in datad['descriptor']]
+			elif 'descriptor' in datad and type(datad['descriptor']) == type([]) and datad['descriptor'].find('seg') != -1:
+				# single averaged descriptor
+				datum = descobj.get(datad['descriptor'])
+
+			if datum == None: continue # skip things that are not set
+			
+			if type(datum) == type([]):
+				stringdatum = "[%s]"%' '.join(["%.8f"%d for d in datum])
+				if self.slots[slotkey]['range'] == 'auto': self.slots_minmax_lists[datad['idx']].extend(datum)
+			else:
+				stringdatum = str(datum)
+				if self.slots[slotkey]['range'] == 'auto': self.slots_minmax_lists[datad['idx']].append(datum)
+			
+			if self.slots[slotkey]['once']:
+				slot_data[0].append('[%i %s]'%(datad['idx'], stringdatum))
+			else:
+				slot_data[1].append('[%i %s]'%(datad['idx'], stringdatum))
+		if time_ms not in self.voice_to_notes[voicename]: self.voice_to_notes[voicename][time_ms] = [[], slot_data[0]]
+		self.voice_to_notes[voicename][time_ms][0].append([cents, duration_ms, velocity, slot_data[1]])

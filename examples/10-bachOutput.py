@@ -17,7 +17,6 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=2)
 
 CORPUS = [csf('heat sink.aiff', onsetLen='50%', offsetLen='50%'), csf('lachenmann.aiff'),]
 
-
 SEARCH = [
 spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=20),
 spass('closest', d('mfccs'))
@@ -45,10 +44,15 @@ BACH_CORPUS_STAFF = 'FG'
 ################################################################################
 ## Uncomment below to customize what data is placed into which bach slots. A  ##
 ## full list of the keywords that you can use here is given in the "Bach      ##
-## Slots" section of the documentation. We'll also add some segmented         ##
+## Slots" section of the documentation. Lets's also add some segmented        ##
 ## descriptors so that we can access sound descriptor values from within Max. ##
 ## You can add a single averaged descriptor for a bach float slot, a list of  ##
 ## averaged descriptors for a bach floatlist, or a time-varying descriptor    ##
 ## for a bach floatlist.                                                      ##
 ################################################################################
-#BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 10: 'sftransposition', 11: ['centroid-seg', 'centroid-minseg', 'centroid-maxseg', 'centroid-stdseg', 'centroid-kurtseg', 'centroid-skewseg'], 13: 'power-seg'}
+BACH_SLOTS_MAPPING = {
+1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 10: 'cps_transposition', # normal stuff
+5: ['centroid-seg', 'centroid-minseg', 'centroid-maxseg'], # centroid stats
+6: ['mfcc1-seg', 'mfcc2-seg', 'mfcc3-seg', 'mfcc4-seg', 'mfcc5-seg', 'mfcc6-seg', 'mfcc7-seg', 'mfcc8-seg', 'mfcc9-seg', 'mfcc10-seg', 'mfcc11-seg', 'mfcc12-seg'], # averaged mfccs!
+7: 'power' # time-varying power
+}

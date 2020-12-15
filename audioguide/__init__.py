@@ -122,8 +122,8 @@ class main:
 		segmentLength = [c.segmentDurationSec for c in self.cps.postLimitSegmentNormList]
 		htmlCorpusTable.append(['segment length', min(segmentLength), max(segmentLength), np.mean(segmentLength)])
 		power = [c.desc.get('power-seg') for c in self.cps.postLimitSegmentNormList]
-		htmlCorpusTable.append(['power', min(power), max(power), np.mean(power)])
-		self.p.maketable(htmlCorpusTable)
+		htmlCorpusTable.append(['power', np.min(power), np.max(power), np.mean(power)])
+		self.p.maketable(htmlCorpusTable, resolution=5)
 
 
 
@@ -389,23 +389,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			fh.close()
 			dict_of_files_written['MAXMSP_OUTPUT_FILEPATH'] = self.ops.MAXMSP_OUTPUT_FILEPATH
 			self.p.log( "Wrote MAX/MSP JSON lists to file %s\n"%self.ops.MAXMSP_OUTPUT_FILEPATH )
-	
-		######################
-		## midi output file ##
-		######################
-		if self.ops.MIDI_FILEPATH != None:
-			import midifile
-			MyMIDI = midifile.MIDIFile(1)
-			MyMIDI.addTrackName(0, 0., "AudioGuide Track")
-			MyMIDI.addTempo(0, 0., self.ops.MIDIFILE_TEMPO)
-			temposcalar = self.ops.MIDIFILE_TEMPO/60.
-			for oe in self.outputEvents:
-				MyMIDI.addNote(0, 0, oe.midiPitch, oe.timeInScore*temposcalar, oe.duration*temposcalar, oe.midiVelocity)
-			binfile = open(self.ops.MIDI_FILEPATH, 'wb')
-			MyMIDI.writeFile(binfile)
-			binfile.close()
-			dict_of_files_written['MIDI_FILEPATH'] = self.ops.MIDI_FILEPATH
-			self.p.log( "Wrote MIDIfile %s\n"%self.ops.MIDI_FILEPATH )
 
 		###################################
 		## superimpose label output file ##
@@ -456,9 +439,9 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			dict_of_files_written['DATA_FROM_SEGMENTATION_FILEPATH'] = self.ops.DATA_FROM_SEGMENTATION_FILEPATH
 			self.p.log( "Wrote data from segmentation file to textfile %s\n"%self.ops.DATA_FROM_SEGMENTATION_FILEPATH )
 
-		########################
-		## csound output file ##
-		########################
+		############################
+		## csound CSD output file ##
+		############################
 		if self.ops.CSOUND_CSD_FILEPATH != None:
 			from audioguide import csoundinterface as csd
 			maxOverlaps = np.max([oe.simSelects for oe in self.outputEvents])
@@ -480,8 +463,33 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 	
 			if self.ops.CSOUND_NORMALIZE:
 				csd.normalize(self.ops.CSOUND_RENDER_FILEPATH, db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
-
-
+		################################
+		## csound simple score output ##
+		################################
+		if self.ops.CSOUND_SCORE_FILEPATH != None:
+			from audioguide import csoundinterface as csd
+			csSco = '''; p2 - corpus segment start time
+; p3 - corpus segment duration
+; p4 - envelope gain in dB (0=no gain)
+; p5 - corpus segment filename (string)
+; p6 - corpus segment start time (skip into file)
+; p7 - corpus segment transposition in semitones
+; p8 - corpus segment rms peak amp
+; p9 - corpus segment peak time in sec
+; p10 - corpus segment effective duration in sec
+; p11 - envelope attack time in sec
+; p12 - envelope release time in sec
+; p13 - envelope slope - 1=linear, 2=exp, 0.5=log
+; p14 - corpus segment's index in the user's corpus entry
+; p15 - how many other sounds have been selected at this same time
+; p16 - the corresponding target segment's duration
+; p17 - the corresponding target segment's number
+; p18 - the stretch mapping the target and corpus durations.  none=no change, 
+'''
+			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
+			fh = open(self.ops.CSOUND_SCORE_FILEPATH, 'w')
+			fh.write(csSco)
+			fh.close()
 		####################
 		## close log file ##
 		####################

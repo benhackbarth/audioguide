@@ -297,12 +297,6 @@ def getScaleDb(scaleDb, sfsegmentObj):
 	# just a float
 	if True in [isinstance(scaleDb, int), isinstance(scaleDb, float)]:
 		return scaleDb
-	# is it a dict - {'_pp_': -40, '_mp_': -30}
-	elif isinstance(scaleDb, dict):
-		#### NOT IMPLEMENTED YET
-		#### NOT IMPLEMENTED YET
-		#### NOT IMPLEMENTED YET
-		return 0
 	elif scaleDb == 'filenamedyn':
 		return sfsegmentObj.rmsAmplitudeFromFilename
 	else:

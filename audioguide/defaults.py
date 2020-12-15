@@ -1,9 +1,8 @@
 ##############  OUTPUT FILES  #############
 CSOUND_CSD_FILEPATH = 'output/output.csd'
+CSOUND_SCORE_FILEPATH = None # 'output/output.score.txt'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'
 HTML_LOG_FILEPATH = 'output/log.html'
-MIDI_FILEPATH = None # 'output/output.mid'
-MIDIFILE_TEMPO = 60.
 TARGET_SEGMENT_LABELS_FILEPATH = 'output/targetlabels.txt'
 TARGET_SEGMENTATION_GRAPH_FILEPATH = None #'output/targetlabels.jpg'
 OUTPUT_LABEL_FILEPATH = 'output/outputlabels.txt'
@@ -83,7 +82,7 @@ IRCAMDESCRIPTOR_F0_MAX_FREQUENCY = 5000
 IRCAMDESCRIPTOR_F0_AMP_THRESHOLD = 1
 IRCAMDESCRIPTOR_NUMB_MFCCS = 13
 # filenames -> dynamic -> dB settings
-DYNAMIC_TO_DECIBEL = {'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}
+DYNAMIC_TO_DECIBEL = {'pp': -40, 'p': -35, 'mp': -30, 'mf': -22, 'f': -15, 'ff': -6}
 FILENAMESTRING_TO_DYNAMICS = {}
 
 ###############  USER INTERACTION / PRINTING  ##############
