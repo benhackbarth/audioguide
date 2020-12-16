@@ -150,8 +150,6 @@ class Instrument(object):
 		#'interval_exclude': [], # 	the difference in semitones between two adjectent notes may not be found in this list
 		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
 		'interval_limit_range_per_sec': None,
-		# handle pitch
-		'pitchoverride': None,
 		# handle dynamics
 		'dynamics': ('pp', 'p', 'mp', 'mf', 'f', 'ff'),
 		# INSTRUMENT_ONLY VARIABLES

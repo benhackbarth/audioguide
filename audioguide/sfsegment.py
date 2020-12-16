@@ -173,8 +173,6 @@ class targetSegment(sfsegment):
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, normtag='tgt')
 		# additional target-specific data
 		self.midiPitchMethod = midiPitchMethod
-		self.classification = 0
-		self.numberSelectedUnits = 0
 		self.idx = segmentidx
 
 
@@ -346,6 +344,8 @@ class target: # the target
 		for seg in self.segs:
 			seg.seek = 0
 			seg.selectiondone = False
+			seg.classification = 0
+			seg.numberSelectedUnits = 0
 			seg.desc.rewind()
 			seg.desc.init_mixture(mixturelist)
 			seg.has_been_mixed = False

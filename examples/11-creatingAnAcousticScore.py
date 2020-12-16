@@ -45,14 +45,15 @@ csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'min
 
 CORPUS_GLOBAL_ATTRIBUTES = {
 'pitchfilter': {'pitches': [60, 69], "tolerance": 3},
+'limit': ['power-seg > 30%'],
 }
 
 
 INSTRUMENTS = score(
 instr('violin', polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('violin', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('viola', clef='Alto', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
-instr('cello', clef='F', minspeed=0.08, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]),
+instr('violin', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
+instr('viola', clef='Alto', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
+instr('cello', clef='F', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]),
 )
 
 
@@ -69,4 +70,6 @@ spass('closest', d('mfccs-seg', norm=1)),
 SUPERIMPOSE = si() # don't need to worry about overlaps, as, when the instruments get filled up, selection will automatically stop. however the number of total notes selected per segment can be restricted with maxSegment=n
 
 
-BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 5: ['mfcc1-seg', 'mfcc2-seg', 'mfcc3-seg', 'mfcc4-seg', 'mfcc5-seg', 'mfcc6-seg', 'mfcc7-seg', 'mfcc8-seg', 'mfcc9-seg', 'mfcc10-seg', 'mfcc11-seg', 'mfcc12-seg'], 10: 'cps_transposition', 11: 'cps_selectnumber', 12: 'cps_filehead', 20: 'cps_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}
+BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 5: 'transposition', 6: 'selectionnumber', 
+7: ['mfcc1-seg', 'mfcc2-seg', 'mfcc3-seg', 'mfcc4-seg', 'mfcc5-seg', 'mfcc6-seg', 'mfcc7-seg', 'mfcc8-seg', 'mfcc9-seg', 'mfcc10-seg', 'mfcc11-seg', 'mfcc12-seg'], 
+20: 'instr_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}

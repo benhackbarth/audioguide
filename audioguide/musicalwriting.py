@@ -341,7 +341,7 @@ class instruments:
 		thisinstr = self.instruments[eobj.selectedinstrument]
 		# increment shit
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
-		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.sfseghandle.midipitch, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
+		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.midi, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
 	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, tgtStaffType, cpsStaffType, addTarget=True):
 		bs = audioguide_bach_segments(bachSlotsDict)		
@@ -351,7 +351,7 @@ class instruments:
 		if addTarget: # using target?
 			bs.add_voice('target', 'target', clef=tgtStaffType)
 			for tobj in targetSegs:	
-				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, tobj.segmentStartSec, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc)
+				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, tobj.segmentStartSec, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc, 0, tobj.numberSelectedUnits)
 		###############################
 		## add any instrument voices ##
 		###############################
@@ -374,13 +374,10 @@ class instruments:
 		for eobj in outputEvents:
 			LINKED_TO_INSTRUMENT = self.active and eobj.selectedinstrument != None
 			if not LINKED_TO_INSTRUMENT:
-				midipitch = eobj.sfseghandle.desc.get('MIDIPitch-seg')
-				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=eobj.dynamicFromFilename)
+				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects)
 			else:
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
-				midipitch = eobj.midi
-				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, 
-				cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
+				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
 				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_annotation=thiscps['annotation'], 
 				)
 		################################
@@ -405,7 +402,7 @@ class instruments:
 				minny, maxxy = min(bs.slots_minmax_lists[slotdict['idx']]), max(bs.slots_minmax_lists[slotdict['idx']])
 				slotdict['range'] = '[range %f %f] '%(minny, maxxy)
 			
-			if slotname in ['cps_dynamic', 'instr_articulation', 'instr_notehead', 'instr_annotation']: continue
+			if slotname in ['instr_dynamic', 'instr_articulation', 'instr_notehead', 'instr_annotation']: continue
 			slotname = slotname.replace('cps_', '')
 			slotname = slotname.replace('instr_', '')
 			initslots.append('[%i [type %s] [name %s] %s]'%(slotdict['idx'], slotdict['type'], slotname, slotdict['range']) )
@@ -448,10 +445,9 @@ class audioguide_bach_segments:
 			elif slotkey == 'sfskiptime': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False}
 			elif slotkey == 'sfchannels': self.slots[slotkey] = {'idx': slotidx, 'range': [0, 100], 'type': 'int', 'once': False}
 			elif slotkey == 'env': self.slots[slotkey] = {'idx': slotidx, 'range': [0, 1], 'type': 'function', 'once': False}
-			elif slotkey == 'cps_selectnumber': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'int', 'once': False}
-			elif slotkey == 'cps_filehead': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
-			elif slotkey == 'cps_transposition': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False}
-			elif slotkey == 'cps_dynamic': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
+			elif slotkey == 'transposition': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'float', 'once': False}
+			elif slotkey == 'selectionnumber': self.slots[slotkey] = {'idx': slotidx, 'range': 'auto', 'type': 'int', 'once': False}
+			elif slotkey == 'instr_dynamic': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
 			elif slotkey == 'instr_technique': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
 			elif slotkey == 'instr_temporal_mode': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
 			elif slotkey == 'instr_articulation': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': True}
@@ -475,7 +471,7 @@ class audioguide_bach_segments:
 		self.voices_ordered.append({'id': voicename, 'displayname': displayname, 'clef': clef})
 		self.voice_to_notes[voicename] = {}
 	########################################
-	def add_note(self, voicename, time, duration, midipitch, fullpath, sfskiptime, sfchannels, db, attack, decay, descobj, cps_transposition=None, cps_selectnumber=None, cps_filehead=None, cps_dynamic=None, instr_articulation=None, instr_notehead=None, instr_annotation=None, instr_technique=None, instr_temporal_mode=None):
+	def add_note(self, voicename, time, duration, midipitch, fullpath, sfskiptime, sfchannels, db, attack, decay, descobj, transposition, selectionnumber, instr_dynamic=None, instr_articulation=None, instr_notehead=None, instr_annotation=None, instr_technique=None, instr_temporal_mode=None):
 		assert voicename in self.voice_to_notes
 		# basic shit
 		time_ms = time * 1000
@@ -484,7 +480,7 @@ class audioguide_bach_segments:
 		if db < -60: db = -60
 		velocity = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
 		
-		slot_data = [], [] # once, everynote
+		slot_data = [], [] # everychord, everynote
 		for slotkey, datad in self.slots.items():
 			datum = None
 			if slotkey == 'fullpath':
@@ -498,14 +494,12 @@ class audioguide_bach_segments:
 				attack_percent = attack/duration
 				decay_percent = (duration-decay)/duration
 				datum = '[0 0 0] [%.6f %f 0] [%.6f %f 0] [1 0 0]'%(attack_percent, amp, decay_percent, amp)
-			elif slotkey == 'cps_selectnumber' and cps_selectnumber != None:
-				datum = int(cps_selectnumber)
-			elif slotkey == 'cps_filehead' and cps_filehead != None:
-				datum = '"%s"'%cps_filehead
-			elif slotkey == 'cps_transposition' and cps_transposition != None:
-				datum = cps_transposition
-			elif slotkey == 'cps_dynamic' and cps_dynamic != None:
-				datum = cps_dynamic
+			elif slotkey == 'transposition':
+				datum = transposition
+			elif slotkey == 'selectionumber':
+				datum = int(selectionnumber)
+			elif slotkey == 'instr_dynamic' and instr_dynamic != None:
+				datum = instr_dynamic
 			elif slotkey == 'instr_technique' and instr_technique != None:
 				datum = '"%s"'%instr_technique
 			elif slotkey == 'instr_temporal_mode' and instr_temporal_mode != None:

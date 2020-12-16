@@ -37,6 +37,7 @@ ag.write_concatenate_output_files()
 
 if options.INTERACTIVE:
 	import time
+	print("ready..")
 	try:
 		while True:
 			time.sleep(0.1)
@@ -57,7 +58,7 @@ if options.INTERACTIVE:
 					ag.standard_concatenate()
 				if EVAL_OUTPUT:
 					ag.write_concatenate_output_files()
-	
+				print("done. ready..")
 			ops_mtime = mtime_cur
 	except KeyboardInterrupt:
 		sys.exit(0)
