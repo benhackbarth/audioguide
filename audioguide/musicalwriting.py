@@ -496,7 +496,7 @@ class audioguide_bach_segments:
 				datum = '[0 0 0] [%.6f %f 0] [%.6f %f 0] [1 0 0]'%(attack_percent, amp, decay_percent, amp)
 			elif slotkey == 'transposition':
 				datum = transposition
-			elif slotkey == 'selectionumber':
+			elif slotkey == 'selectionnumber':
 				datum = int(selectionnumber)
 			elif slotkey == 'instr_dynamic' and instr_dynamic != None:
 				datum = instr_dynamic
@@ -523,7 +523,7 @@ class audioguide_bach_segments:
 			if datum == None: continue # skip things that are not set
 			
 			if type(datum) == type([]):
-				stringdatum = "[%s]"%' '.join(["%.8f"%d for d in datum])
+				stringdatum = ' '.join(["%.8f"%d for d in datum])
 				if self.slots[slotkey]['range'] == 'auto': self.slots_minmax_lists[datad['idx']].extend(datum)
 			else:
 				stringdatum = str(datum)

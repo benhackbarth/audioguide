@@ -13,7 +13,7 @@
 ################################################################################
 
 
-TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.2) # add midiPitchMethod=60 to make the target pitches C4
+TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5) # add midiPitchMethod=60 to make the target pitches C4
 
 CORPUS = [
 csf('heat sink.aiff', onsetLen='50%', offsetLen='50%'), 
@@ -23,7 +23,7 @@ csf('/Users/ben/Documents/sfdb/violin/mutedpizz', wholeFile=True),
 
 SEARCH = [
 spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=20),
-spass('closest', d('mfccs'))
+spass('closest', d('chromas'))
 ]
 
 
@@ -36,7 +36,7 @@ SUPERIMPOSE = si(maxSegment=3)
 ## subsequent voices according to their csf() index in CORPUS. Here, any      ##
 ## sounds from heat sink will be place in voice 2 and lachenmann in voice 3.  ##
 ################################################################################
-BACH_INCLUDE_TARGET = False
+BACH_INCLUDE_TARGET = True
 
 ###############################################################################
 ## You can customize the staff type of the target sound and/or corpus sounds ##
