@@ -3,7 +3,7 @@
 ## that may be loaded into a bach.roll in Max/MSP. The path for the bach      ##
 ## output file, which is output/bach_roll.txt by default, is controlable by   ##
 ## the BACH_FILEPATH variable. You may visualize, explore, and playback       ##
-## concatenated sounds with the patch maxmsp/bach/bach_playback.maxpat.       ##
+## concatenated sounds with the patch maxmsp/bach/ag_playback.maxpat.         ##
 ################################################################################
 
 ################################################################################
@@ -23,7 +23,7 @@ csf('/Users/ben/Documents/sfdb/violin/mutedpizz', wholeFile=True),
 
 SEARCH = [
 spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=20),
-spass('closest', d('chromas'))
+spass('closest', d('kurtosis'))
 ]
 
 
@@ -36,7 +36,7 @@ SUPERIMPOSE = si(maxSegment=3)
 ## subsequent voices according to their csf() index in CORPUS. Here, any      ##
 ## sounds from heat sink will be place in voice 2 and lachenmann in voice 3.  ##
 ################################################################################
-BACH_INCLUDE_TARGET = True
+BACH_INCLUDE_TARGET = False
 
 ###############################################################################
 ## You can customize the staff type of the target sound and/or corpus sounds ##
