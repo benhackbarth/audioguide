@@ -312,22 +312,6 @@ def getTransposition(tgtseg, cpsseg):
 	elif cpsseg.transMethod.startswith('semitone'):
 		trans = float(cpsseg.transMethod.split()[1])
 		return trans
-	# FORCE A SINGLE CHROMA
-	elif cpsseg.transMethod.startswith('single-pitch'):
-		pitch = int(cpsseg.transMethod.split()[1])
-		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
-		return pitch-srcPitch
-	# FORCE A PITCH RANGE!   KINDA HACKY, GOTTA FIND A BETTER WAY TO CODE THIS UI
-	elif cpsseg.transMethod.startswith('pitch-range'):
-		pitchLow = int(cpsseg.transMethod.split()[1])
-		pitchHigh = int(cpsseg.transMethod.split()[2])
-		srcPitch = cpsseg.desc.get('MIDIPitch-seg') 
-		if srcPitch < pitchLow:
-			return pitchLow-srcPitch
-		elif srcPitch > pitchHigh:
-			return pitchHigh-srcPitch
-		else:
-			return 0.
 	# RANDOM RANGE
 	elif cpsseg.transMethod.startswith('random'):
 		pieces = cpsseg.transMethod.split()
@@ -357,66 +341,6 @@ def getTransposition(tgtseg, cpsseg):
 		return quantize(output, cpsseg.transQuantize)
 
 
-# MARKOV
-#	elif cpsseg.transMethod[0] == 'markov':
-#		output = makeMarkovPitchChoice(cpsseg.transMethod[1])
-#	elif cpsseg.transMethod[0] == 'matchTgtTemporality':
-# match the length of tgt segment
-#		scaleTgtDur = 1.3 # to provide a little overlap
-#		minTrans = 0.5
-#		maxTrans = 2.
-#		rawTrans = cpsseg.data['raw']['effDurFrames-seg'][0]/float(thisTargetSegmentLength*1.1)
-#		output = np.clip(rawTrans, minTrans, maxTrans)
-#	return quantize(output, quantizef)
-
-
-#def makeMarkovPitchChoice(incomingPitch):
-#	global markov1, markov1IntMap
-#	if tgt.lastMarkovIntMapChoice == None: # INIT ME
-#		#     	m2nd	M2nd	m3rd	M3rd	TT
-#		m2nd =[ 30,		10,		10,		20,		10]
-#		M2nd =[ 10,		0,		2,		3,		3]
-#		m3rd =[ 0,		5,		5,		0,		20]
-#		M3rd =[ 30,		2,		0,		1,		3]
-#		TT   =[ 60,		10,		0,		10,		10]
-#		markov1 = [m2nd, M2nd, m3rd, M3rd, TT]
-#		markov1IntMap = [1, 2, 3, 4, 6]
-#		for likelihood in markov1:
-#			total = 0.0
-#			for i in range(0, len(likelihood)):
-#				total = total+likelihood[i]
-#			for i in range(0, len(likelihood)): # make sure all lists total 1...
-#				likelihood[i] = likelihood[i]*(1/total)
-#		# write first int val
-#		tgt.lastMarkovIntMapChoice = int(random.uniform(0, len(likelihood))) # set it if this is the first note...
-#		tgt.lastMarkovPitchChoice = incomingPitch
-#		return 0
-#	else: # make a markov call...
-#		number = random.uniform(0, 1)
-#		accum = 0
-#		i = 0
-#		while accum < number:
-#		    accum += markov1[int(tgt.lastMarkovIntMapChoice)][int(i)]
-#		    i += 1
-#		thisIntMapChoice = i-1
-#		thisInterval = markov1IntMap[thisIntMapChoice]
-#		thisTargetPitch = thisInterval+incomingPitch
-##		print ""
-##		print ""
-##		print ""
-##		print "INCOMING PITCH:", incomingPitch, "INCOMING PC:", incomingPitch%12
-##		print "CHOSEN INTERVAL:", thisInterval, "LAST PITCH:", tgt.lastMarkovPitchChoice
-##		print "TARGET PITCH:", (tgt.lastMarkovPitchChoice+thisInterval), "TARGET PC:", (tgt.lastMarkovPitchChoice+thisInterval)%12
-#		subtractPC = (tgt.lastMarkovPitchChoice+thisInterval)%12-(incomingPitch%12)
-#		addPC = (tgt.lastMarkovPitchChoice+thisInterval)%12+(incomingPitch%12)
-#		if abs(addPC) <= abs(subtractPC): trans = addPC
-#		else: trans = subtractPC
-#		while trans > 6: trans -= 12
-#		while trans < -6: trans += 12
-##		print "CHOSEN TRANS:", trans
-##		print ""
-#		tgt.lastMarkovPitchChoice = incomingPitch+trans
-#		return trans
 
 
 

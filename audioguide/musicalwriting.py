@@ -13,49 +13,6 @@ import audioguide.util as util
 
 
 
-
-
-
-
-
-
-def pitchoverride(cobjlist, config):
-	pitchlist = [c.desc.get('MIDIPitch-seg') for c in cobjlist]
-	output_dict = {}
-
-	for c, standardpitch in zip(cobjlist, pitchlist):
-		if config == None:
-			output_dict[c] = standardpitch
-		elif type(config) in [float, int]: # pitchoverride=60
-			output_dict[c] = config
-		elif type(config) != dict:
-			util.error("INSTRUMENTS", 'pitchoverride must either be None, a number, or a dictionary.')
-		# if passing this point, we're using the dict format
-		elif 'type' in config and config['type'] == 'remap':
-			assert 'low' in config and 'high' in config
-			minpitch, maxpitch = min(pitchlist), max(pitchlist)
-			standard_zerotoone = (standardpitch-minpitch)/(maxpitch-minpitch)
-			output_dict[c] = (standard_zerotoone*(config['high']-config['low']))+config['low']
-		# clip
-		elif 'type' in config and config['type'] == 'clip':
-			assert 'low' in config or 'high' in config
-			if 'low' in config and standardpitch < config['low']: output_dict[c] = config['low']
-			elif 'high' in config and standardpitch > config['high']: output_dict[c] = config['high']
-			else: output_dict[c] = standardpitch
-		# filename string match
-		elif 'type' in config and config['type'] == 'file_match':
-			for k in config:
-				if k == 'type': continue
-				if util.matchString(c.printName, k, caseSensative=True):
-					output_dict[c] = config[k]
-			# not found
-			output_dict[c] = standardpitch
-		else:
-			util.error("INSTRUMENTS", 'Ya done goofed son.')
-	return output_dict
-
-
-
 class notetracker:
 	'''tracks lots of info about notes that have been picked. provides data for testing the viability of future selections.'''
 	instrument_num_notes = 0
@@ -246,8 +203,6 @@ class instruments:
 			# make pitch/dynamics matrix
 			for voiceID in self.instruments[k]['cps']:
 				thiscps = [c for c in cpsseglist if c.voiceID == voiceID]
-				# do pitch
-				self.instruments[k]['cps'][voiceID]['cobj_to_pitch'] = pitchoverride(thiscps, self.instruments[k]['cps'][voiceID]['pitchoverride'])
 				# do equally spaced dynamics
 				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc.get('power-seg'))
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {}
@@ -369,7 +324,6 @@ class instruments:
 				if not eval(t):
 					add_this_instr = False
 					break
-
 			if add_this_instr: cobj.instrument_candidates.append(i)
 		if len(cobj.instrument_candidates) == 0: return False
 		else: return True
@@ -387,7 +341,7 @@ class instruments:
 		thisinstr = self.instruments[eobj.selectedinstrument]
 		# increment shit
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
-		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, thisinstr['cps'][eobj.sfseghandle.voiceID]['cobj_to_pitch'][eobj.sfseghandle], eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
+		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.sfseghandle.midipitch, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
 	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, tgtStaffType, cpsStaffType, addTarget=True):
 		bs = audioguide_bach_segments(bachSlotsDict)		
@@ -424,7 +378,7 @@ class instruments:
 				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=eobj.dynamicFromFilename)
 			else:
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
-				midipitch = thiscps['cobj_to_pitch'][eobj.sfseghandle] + eobj.transposition
+				midipitch = eobj.midi
 				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, midipitch, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, 
 				cps_selectnumber=eobj.simSelects, cps_filehead=os.path.splitext(eobj.printName)[0], cps_transposition=eobj.transposition, cps_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
 				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_annotation=thiscps['annotation'], 

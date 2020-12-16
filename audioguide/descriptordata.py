@@ -359,7 +359,7 @@ def SegmentedDescriptorComputation(sfdescobj, dname, dparams, handle, start, end
 	elif dname == "effDurFrames-seg": # perceived segment duration in frames
 		output = effectiveDur(handle, start)
 	elif dname == "MIDIPitch-seg":
-		output = MIDIPitchByFileName( handle.printName, handle.midiPitchMethod, handle )
+		output = handle.midipitch
 	elif dname == "peakTime-seg":
 		output = peakTimeSeg(sfdescobj.get('power', start=start, stop=end))
 	elif dname == "logAttackTime-seg":
@@ -533,8 +533,6 @@ def MIDIPitchByFileName(name, midiPitchMethod, handle, notfound=-1):
 		test = getMidiPitchFromString( os.path.splitext(os.path.split(name)[1])[0] )
 		if test != False: return test
 		else: return MIDIPitchByFileName(name, 'f0-seg', handle)
-	elif type(midiPitchMethod) in [float, int]:
-		return midiPitchMethod
 	elif midiPitchMethod == 'centroid-seg':
 		return util.frq2Midi(handle.desc.get('centroid-seg'))
 	elif midiPitchMethod == 'f0-seg':
@@ -543,6 +541,45 @@ def MIDIPitchByFileName(name, midiPitchMethod, handle, notfound=-1):
 			return util.frq2Midi(f0)
 		else:
 			return notfound
+
+
+def evaluate_midipitches(segmentobjlist, config, notfound=-1):	
+	if config in ['filename', 'composite', 'centroid-seg', 'f0-seg']:
+		output_pitch_list = [MIDIPitchByFileName(obj.printName, config, obj, notfound=-1) for obj in segmentobjlist]
+	
+	elif type(config) in [float, int]: # pitchoverride=60
+		output_pitch_list = [config for obj in segmentobjlist]
+	
+	elif type(config) != dict:
+		util.error("SF SEGMENTS", 'midiPitchMethod must either be a string, a number, or a dictionary.')
+
+	elif 'type' not in config:
+		util.error("SF SEGMENTS", "a midiPitchMethod dictionary needs the key 'type'.")
+
+	elif config['type'] == 'remap': # {'type': 'remap', 'method': 'centroid-seg', 'high': 80, 'low': 76}
+		assert 'low' in config and 'high' in config and 'method' in config
+		pitchlist = np.array([MIDIPitchByFileName(obj.printName, config['method'], obj, notfound=-1) for obj in segmentobjlist])
+		minpitch, maxpitch = min(pitchlist), max(pitchlist)
+		output_pitch_list = (((pitchlist-minpitch)/(maxpitch-minpitch))*(config['high']-config['low']))+config['low']
+	# clip
+#	elif config['type'] == 'clip':
+#		assert 'low' in config or 'high' in config
+#		if 'low' in config and standardpitch < config['low']: output_dict[c] = config['low']
+#		elif 'high' in config and standardpitch > config['high']: output_dict[c] = config['high']
+#		else: output_dict[c] = standardpitch
+#	# filename string match
+#	elif config['type'] == 'file_match':
+#		for k in config:
+#			if k == 'type': continue
+#			if util.matchString(c.printName, k, caseSensative=True):
+#				output_dict[c] = config[k]
+#		# not found
+#		output_dict[c] = standardpitch
+	else:
+		util.error("INSTRUMENTS", 'Ya done goofed son.')
+	for o, p in zip(segmentobjlist, output_pitch_list): o.midipitch = p
+
+
 
 
 FILENAME_PITCH_DICT = {} # save string results here so it doesn't have to reevaulate..

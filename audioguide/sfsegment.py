@@ -319,6 +319,10 @@ class target: # the target
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
 
 		p.percentageBarClose(txt=closebartxt)
+		################################################
+		## evaluate midipitch for each target segment ##
+		################################################
+		descriptordata.evaluate_midipitches(self.segs, self.segs[0].midiPitchMethod)
 		###################################
 		## hack for signal decomposition ##
 		###################################
