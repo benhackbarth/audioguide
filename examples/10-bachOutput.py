@@ -36,7 +36,7 @@ SUPERIMPOSE = si(maxSegment=3)
 ## subsequent voices according to their csf() index in CORPUS. Here, any      ##
 ## sounds from heat sink will be place in voice 2 and lachenmann in voice 3.  ##
 ################################################################################
-BACH_INCLUDE_TARGET = False
+BACH_INCLUDE_TARGET = True
 
 ###############################################################################
 ## You can customize the staff type of the target sound and/or corpus sounds ##

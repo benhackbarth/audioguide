@@ -16,7 +16,7 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	elif channelRenderMethod == "oneChannelPerVoice":
 		nchnls = cpsLength
 	elif channelRenderMethod == "oneChannelPerOverlap":
-		nchnls = maxOverlaps
+		nchnls = maxOverlaps + 1
 	elif channelRenderMethod == "oneChannelPerInstrument":
 		nchnls = len(instruments.instruments)
 	elif channelRenderMethod == "oneChannelPerClassification":
@@ -251,11 +251,11 @@ instr 1
 	iStrCmpResult  strcmp   SchannelRenderType, "oneChannelPerOverlap"
 	if (iStrCmpResult == 0) then
 		if (iFileChannels == 1) then
-			outch     int(p15+1), asnd1
+			outch     int(p16+1), asnd1
 		elseif (iFileChannels == 2) then
-			outch     int(p15+1), asnd1+asnd2
+			outch     int(p16+1), asnd1+asnd2
 		elseif (iFileChannels == 4) then
-			outch     int(p15+1), asnd1+asnd2+asnd3+asnd4
+			outch     int(p16+1), asnd1+asnd2+asnd3+asnd4
 		endif 
 	endif
 	
@@ -309,7 +309,7 @@ endin
 
 
 instr 2 ; target sound
-	iDur = p35
+	iDur = p3
 	iScaleDb = p4
 	StgtFile   strget   p5
 	iStartRead = p6
@@ -332,23 +332,25 @@ endin
 
 </CsInstruments>
 <CsScore>
-; p2 - corpus segment start time
-; p3 - corpus segment duration
-; p4 - envelope gain in dB (0=no gain)
-; p5 - corpus segment filename (string)
-; p6 - corpus segment start time (skip into file)
-; p7 - corpus segment transposition in semitones
-; p8 - corpus segment rms peak amp
-; p9 - corpus segment peak time in sec
-; p10 - corpus segment effective duration in sec
-; p11 - envelope attack time in sec
-; p12 - envelope release time in sec
-; p13 - envelope slope - 1=linear, 2=exp, 0.5=log
-; p14 - corpus segment's index in the user's corpus entry
-; p15 - how many other sounds have been selected at this same time
-; p16 - the corresponding target segment's duration
-; p17 - the corresponding target segment's number
-; p18 - the stretch mapping the target and corpus durations.  none=no change, 
+;iCpsSegDur = p3
+;iCpsAmpDb = p4
+;SCpsFile   strget   p5
+;iStartRead = p6
+;iTransposition = semitone(p7)
+;iRmsAmp = p8
+;iPeakTime = p9
+;iEffDur = p10
+;iAttackTime = p11
+;iDecayTime = p12
+;iEnvSlope = p13
+;iCorpusIdx = p14
+;iInstrumentIdx = p15
+;iSimSelectNumb = p16
+;iTgtSegDur = p17
+;iTgtSegNumb = p18
+;iClassification = p19
+;SstretchCode   strget   p20
+;SchannelRenderType   strget   p21
 
 %s
 e
