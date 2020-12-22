@@ -79,7 +79,7 @@ class notetracker:
 		for i in instrumentsobj.instruments:
 			# test to see what techniques are invalid according to "technique_time_constraints"
 			instrumentInvalidTechniques[i] = []
-			for (testtech, constrainingtech), frameseek in instrumentsobj.instruments[i]['technique_time_constraints'].items():
+			for (testtech, direction, constrainingtech), frameseek in instrumentsobj.instruments[i]['technique_time_constraints'].items():
 				if frameseek < 0: testf = (max(0, time+frameseek), time)
 				else: testf = (time, time+frameseek)
 				if constrainingtech not in self.instrdata[i]['tech']:
@@ -195,10 +195,9 @@ class instruments:
 				self.instruments[k]['cps'][voiceID]['polyphony_minspeed_frames'] = self._s2f(self.instruments[k]['cps'][voiceID]['polyphony_minspeed'])
 			self.instruments[k]['technique_time_constraints'] = {}
 			for idx, (constrainingtech, querytech, timesec) in enumerate(ins.params['technique_switch_delay_map']):
-				#self.instruments[k]['technique_switch_delay_map'].append([querytech, constrainingtech, self._s2f(timesec)])
-				self.instruments[k]['technique_time_constraints'][(querytech, constrainingtech)] = -self._s2f(timesec)
+				self.instruments[k]['technique_time_constraints'][(querytech, '<-', constrainingtech)] = -self._s2f(timesec)
 				# add cross associations
-				self.instruments[k]['technique_time_constraints'][(constrainingtech, querytech)] = self._s2f(timesec)
+				self.instruments[k]['technique_time_constraints'][(constrainingtech, '->', querytech)] = self._s2f(timesec)
 			# do dynamics
 			# make pitch/dynamics matrix
 			for voiceID in self.instruments[k]['cps']:
