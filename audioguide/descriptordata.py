@@ -297,7 +297,8 @@ class descriptor_manager:
 		def mixture_subtract(self, cpsseg, ampscale, minLen, verbose=True):
 			tgtseg = self.sfseghandle
 			preSubtractPeak = util.ampToDb(np.max(self.get('power', start=tgtseg.seek, stop=tgtseg.seek+minLen)))
-			rawSubtraction = tgtseg.desc.get('power', start=tgtseg.seek, stop=tgtseg.seek+minLen)-(cpsseg.desc.get('power', stop=minLen)*ampscale)
+			#print('\n\n', (cpsseg.desc.get('power', stop=minLen)*ampscale), '\n\n')
+			rawSubtraction = tgtseg.desc.get('power', start=tgtseg.seek, stop=tgtseg.seek+minLen)-((cpsseg.desc.get('power', stop=minLen)*ampscale))
 			rawSubtraction = np.clip(rawSubtraction, 0, None)
 			postSubtractPeak = util.ampToDb(np.max(rawSubtraction))
 			
