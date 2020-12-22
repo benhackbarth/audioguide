@@ -162,7 +162,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		##############################
 		self.p.logsection( "CONCATENATION" )
 		self.tgt.setupConcate(self.ops._mixtureDescriptors)
-		self.AnalInterface.done()
+		self.AnalInterface.done(dataGbLimit=self.ops.DESCRIPTOR_DATABASE_SIZE_LIMIT, dataDayLimit=self.ops.DESCRIPTOR_DATABASE_AGE_LIMIT)
 		distanceCalculations = simcalc.distanceCalculations(self.ops.SUPERIMPOSE, self.ops.RANDOM_SEED, self.AnalInterface, self.tgt.segs, self.p)
 		distanceCalculations.setTarget(self.ops.SEARCH, self.tgt.segs)
 
