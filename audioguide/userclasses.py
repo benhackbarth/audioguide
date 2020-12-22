@@ -237,7 +237,7 @@ class SuperimpositionOptionsEntry(object):
 
 class SingleDescriptor(object):
 	def __init__(self, name, weight=1., norm=2., normmethod='stddev', distance='euclidean', limit=False, simultaneous=None, energyWeight=False, origin='SEARCH', neededBy=['target', 'corpus'], packagename=None):
-		singleNumberDescriptors = ['effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
+		singleNumberDescriptors = ['effDur-seg', 'dur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
 		self.name = name
 		self.weight = weight
 		self.norm = norm

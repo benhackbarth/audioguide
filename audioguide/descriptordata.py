@@ -354,7 +354,7 @@ class descriptor_manager:
 def SegmentedDescriptorComputation(sfdescobj, dname, dparams, handle, start, end):
 	# SINGLE-NUMBER METHODS
 	if dname == "dur-seg": # raw segment duration
-		output = handle.lengthInFrames
+		output = handle.lengthInFrames * handle.f2s
 	elif dname == "effDur-seg": # perceived segment duration in seconds
 		output = effectiveDur(handle, start) * handle.f2s
 	elif dname == "effDurFrames-seg": # perceived segment duration in frames
