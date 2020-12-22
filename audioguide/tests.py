@@ -149,6 +149,8 @@ UserVar_types = {
 'CSOUND_NORMALIZE_PEAK_DB': ['a number'],
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
+'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
+'DESCRIPTOR_DATABASE_AGE_LIMIT': ['a number greater than zero'],
 'DESCRIPTOR_OVERRIDE_DATA_PATH': ['None', 'a string'],
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],
 'DESCRIPTOR_WIN_SIZE_SEC': ['a number greater than zero'],
@@ -240,6 +242,8 @@ OptionChangeToProgramRun = {
 "CSOUND_NORMALIZE": "output",
 "CSOUND_NORMALIZE_PEAK_DB": "output",
 
+"DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",
+"DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",
 "DESCRIPTOR_OVERRIDE_DATA_PATH": "reinit",
 "DESCRIPTOR_FORCE_ANALYSIS": "reinit",
 "DESCRIPTOR_WIN_SIZE_SEC": "reinit",
