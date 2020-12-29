@@ -349,6 +349,19 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
 
 
+
+		################
+		## AAF output ##
+		################
+		if self.ops.AAF_FILEPATH != None:
+			import audioguide.aaf as aaf
+			this_aaf = aaf.output(self.ops.AAF_FILEPATH)
+			for cpsfile in allusedcpsfiles: this_aaf.addSoundfileResource(cpsfile)
+			this_aaf.makeTracks(self.outputEvents)
+			this_aaf.done()
+
+
+
 		######################
 		## dict output file ##
 		######################

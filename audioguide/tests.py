@@ -100,6 +100,10 @@ UserVar_types = {
 'TARGET_PLOT_DESCRIPTORS_FILEPATH': ['None', 'a string'],
 'CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH': ['None', 'a string'],
 'BACH_FILEPATH': ['None', 'a string'],
+'AAF_FILEPATH': ['None', 'a string'],
+
+
+
 
 ##########  CORPUS   #######
 'CORPUS_GLOBAL_ATTRIBUTES': ['a dictionary'],
