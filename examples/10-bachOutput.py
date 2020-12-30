@@ -8,7 +8,7 @@
 
 ################################################################################
 ## Please note that this example shows only the simplest interaction with     ##
-## Bach. Example 11 details AudioGuide's INSTRUMENTS infrastructure, which    ##
+## Bach. Example 12 details AudioGuide's INSTRUMENTS infrastructure, which    ##
 ## let's you create acoustic scores.                                          ##
 ################################################################################
 
