@@ -5,20 +5,20 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.6"
+__version__ = "1.69"
 
 
 
 
-import sys, os, operator, platform
+import sys, os, operator, platform, json
 import numpy as np
-import json
+
+import audioguide.util as util
 import audioguide.sfsegment as sfsegment
 import audioguide.userinterface as userinterface
 import audioguide.concatenativeclasses as concatenativeclasses
 import audioguide.anallinkage as anallinkage
 import audioguide.descriptordata as descriptordata
-import audioguide.util as util
 import audioguide.musicalwriting as musicalwriting
 import audioguide.simcalc as simcalc
 import audioguide.tests as tests
@@ -356,9 +356,16 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		if self.ops.AAF_FILEPATH != None:
 			import audioguide.aaf as aaf
 			this_aaf = aaf.output(self.ops.AAF_FILEPATH)
-			for cpsfile in allusedcpsfiles: this_aaf.addSoundfileResource(cpsfile)
-			this_aaf.makeTracks(self.outputEvents)
+			if self.ops.AAF_INCLUDE_TARGET:
+				this_aaf.addSoundfileResource(self.tgt.filename, self.AnalInterface.rawData[self.tgt.filename]['info'])
+				this_aaf.makeTgtTrack(self.tgt)
+			
+			for cpsfile in allusedcpsfiles:
+				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
+			this_aaf.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'])
 			this_aaf.done()
+			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
+			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
 
 
 
