@@ -366,7 +366,7 @@ class instruments:
 		non_instrument_corpus_idxs = list(set(non_instrument_corpus_idxs))
 		if len(non_instrument_corpus_idxs) > 0: # if there are any, add _all_ voices even if they don't have notes. gotta be consistent.
 			for voiceid in non_instrument_corpus_idxs:
-				bs.add_voice("cps%i"%voiceid, '"%s"'%os.path.split(corpusNameList[voiceid])[1], clef=cpsStaffType)
+				bs.add_voice("cps%i"%voiceid, util.cpsPathToTrackName(corpusNameList[voiceid]), clef=cpsStaffType)
 		########################################################
 		## loop through all select corpus items and add notes ##
 		########################################################
