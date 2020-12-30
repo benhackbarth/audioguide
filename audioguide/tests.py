@@ -114,12 +114,6 @@ UserVar_types = {
 'RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING': ['a dictionary'],
 'RESTRICT_CORPUS_OVERLAP_BY_STRING': ['a dictionary'],
 
-########  BACH  #######
-'BACH_INCLUDE_TARGET': ['True or False'],
-'BACH_TARGET_STAFF': ['a string'],
-'BACH_CORPUS_STAFF': ['a string'],
-'BACH_SLOTS_MAPPING': ['a dictionary'],
-
 ########  NORMALIZATION  #######
 'NORMALIZATION_METHOD': ['standard', 'cluster'],
 'NORMALIZATION_DELTA_FREEDOM': ['a number greater than or equal to zero'], 
@@ -151,6 +145,18 @@ UserVar_types = {
 'CSOUND_PLAY_RENDERED_FILE': ['True or False'],
 'CSOUND_NORMALIZE': ['True or False'],
 'CSOUND_NORMALIZE_PEAK_DB': ['a number'],
+
+########  BACH  #######
+'BACH_INCLUDE_TARGET': ['True or False'],
+'BACH_TARGET_STAFF': ['a string'],
+'BACH_CORPUS_STAFF': ['a string'],
+'BACH_SLOTS_MAPPING': ['a dictionary'],
+
+# AAF
+'AAF_INCLUDE_TARGET': ['True or False'],
+
+
+
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
@@ -246,6 +252,9 @@ OptionChangeToProgramRun = {
 "CSOUND_NORMALIZE": "output",
 "CSOUND_NORMALIZE_PEAK_DB": "output",
 
+"AAF_FILEPATH": "output",
+"AAF_INCLUDE_TARGET": "output",
+
 "DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",
 "DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",
 "DESCRIPTOR_OVERRIDE_DATA_PATH": "reinit",
@@ -260,6 +269,7 @@ OptionChangeToProgramRun = {
 "IRCAMDESCRIPTOR_F0_MIN_FREQUENCY": "reinit",
 "IRCAMDESCRIPTOR_F0_MAX_FREQUENCY": "reinit",
 "IRCAMDESCRIPTOR_F0_AMP_THRESHOLD": "reinit",
+"IRCAMDESCRIPTOR_F0_QUALITY": "reinit",
 "IRCAMDESCRIPTOR_NUMB_MFCCS": "reinit",
 
 "DYNAMIC_TO_DECIBEL": "corpus",
@@ -271,6 +281,8 @@ OptionChangeToProgramRun = {
 "EXPERIMENTAL": "reinit",
 }
 
+for k in UserVar_types:
+	assert k in OptionChangeToProgramRun
 
 def UpdatedOpsTestForChanges(currentops, newops):
 	changed = []

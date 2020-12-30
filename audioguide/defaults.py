@@ -26,12 +26,6 @@ ORDER_CORPUS_BY_DESCRIPTOR = None
 RESTRICT_CORPUS_SELECT_PERCENTAGE_BY_STRING = {}
 RESTRICT_CORPUS_OVERLAP_BY_STRING = {}
 
-##########  BACH   #######
-BACH_INCLUDE_TARGET = True
-BACH_TARGET_STAFF = 'F'
-BACH_CORPUS_STAFF = 'FG'
-BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 5: 'transposition', 6: 'selectionnumber', 20: 'instr_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}
-
 ##########  INSTRUMENTS   #######
 INSTRUMENTS = None
 
@@ -67,6 +61,16 @@ CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # None | transpose | pv
 CSOUND_PLAY_RENDERED_FILE = True
 CSOUND_NORMALIZE = False
 CSOUND_NORMALIZE_PEAK_DB = -3
+
+##########  BACH   #######
+BACH_INCLUDE_TARGET = True
+BACH_TARGET_STAFF = 'F'
+BACH_CORPUS_STAFF = 'FG'
+BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 5: 'transposition', 6: 'selectionnumber', 20: 'instr_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}
+
+###########  AAF   ########
+AAF_INCLUDE_TARGET = False
+
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################
 DESCRIPTOR_DATABASE_SIZE_LIMIT = 1
