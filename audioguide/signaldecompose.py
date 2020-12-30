@@ -52,7 +52,12 @@ def decomposeTargetSf(filename, startsec, endsec, params):
 def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize):
 	'''pitch/noise separation
 		creates an output soundfile that is the length of the inputsoundfile * 2'''
-	import numpy, scipy, librosa
+	try:
+		import librosa
+	except ImportError:
+		util.missing_module('librosa')
+
+	import numpy, scipy
 	import soundfile as sf
 	print("Decomposing %s into pitch/noise audio streams"%(inputsoundfile))
 	if endsec == None: durationsec = None
@@ -73,7 +78,12 @@ def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize
 def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fftsize, hopsize, sparseDictLearn=False):
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
-	import numpy, scipy, librosa
+	try:
+		import librosa
+	except ImportError:
+		util.missing_module('librosa')
+
+	import numpy, scipy
 	import soundfile as sf
 	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	

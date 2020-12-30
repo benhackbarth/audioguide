@@ -355,12 +355,13 @@ def dtwDist(x,y):
 	try:
 		from fastdtw import fastdtw
 	except ImportError:
-		print(ImportError, "fastdtw package is not installed.")
+		util.missing_module('fastdtw')
+
 
 	try:
 		from scipy.spatial.distance import euclidean
 	except ImportError:
-		print(ImportError, "scipy package is not installed.")
+		util.missing_module('scipy')
 	"""Dynamic Time Warping Distance"""
 	dist, path_data = fastdtw(x, y, dist=euclidean)
 	#print('\n\n', path_data, '\n\n')

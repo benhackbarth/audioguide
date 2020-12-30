@@ -53,6 +53,15 @@ def error(errorType, errorData, exitcode=1):
 	exit(exitcode)
 
 
+
+def missing_module(modulename, exitcode=1):
+	print("\n\nYou are missing python's %s package. To install with pip, try the following terminal command:"%modulename)
+	print("\npython3 -m pip install %s\n"%modulename)
+	print("\nif you do not have pip, run: sudo easy_install pip\n\n")
+	exit(exitcode)
+
+
+
 def bold(string):
 	return "\033[1m"+str(string)+"\033[0;0m"
 
@@ -252,6 +261,13 @@ def verifyPathIsValidSoundfile(file):
 			isValidSoundfile = True
 			break
 	return isValidSoundfile
+
+
+def cpsPathToTrackName(fileordir):
+	output = os.path.split(fileordir)[1]
+	if os.path.isdir(fileordir): output += '/'
+	return output
+
 
 
 #def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
