@@ -1,3 +1,9 @@
+##################
+## Version 1.69 ##
+##################
+• Added an AAF output file type for importing concatenations into Logic/Pro Tools. See examples/11-logicOutput.py
+
+
 #################
 ## Version 1.6 ##
 #################

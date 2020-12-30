@@ -55,8 +55,10 @@ def error(errorType, errorData, exitcode=1):
 
 
 def missing_module(modulename, exitcode=1):
+	mapit = {'aaf2': 'pyaaf2'}
+	if modulename in mapit: modulename = mapit[modulename]
 	print("\n\nYou are missing python's %s package. To install with pip, try the following terminal command:"%modulename)
-	print("\npython3 -m pip install %s\n"%modulename)
+	print("\n%s -m pip install %s\n"%(sys.executable, modulename))
 	print("\nif you do not have pip, run: sudo easy_install pip\n\n")
 	exit(exitcode)
 
