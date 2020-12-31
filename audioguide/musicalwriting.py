@@ -350,7 +350,10 @@ class instruments:
 		if addTarget: # using target?
 			bs.add_voice('target', 'target', clef=tgtStaffType)
 			for tobj in targetSegs:	
-				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, tobj.segmentStartSec, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc, 0, tobj.numberSelectedUnits)
+				skip = tobj.segmentStartSec
+				if hasattr(tobj, 'decomposeSfSkip'): # hack for signal decomposition
+					skip = tobj.decomposeSfSkip
+				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, skip, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc, 0, tobj.numberSelectedUnits)
 		###############################
 		## add any instrument voices ##
 		###############################
@@ -377,7 +380,7 @@ class instruments:
 			else:
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
 				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
-				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_annotation=thiscps['annotation'], 
+				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_notehead=thiscps['notehead'], instr_annotation=thiscps['annotation'], 
 				)
 		################################
 		## make a big ol' bach string ##
