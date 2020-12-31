@@ -326,7 +326,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			for cidx, classified in enumerate(classifications): self.outputEvents[cidx].classification = int(classified)	
 
 
-
 		#########################################
 		## target signal decomposition cleanup ##
 		#########################################
