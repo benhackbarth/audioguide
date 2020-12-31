@@ -339,7 +339,11 @@ def pearsonCorr(x,y):
 	'''pearson correlation, return between -1,1
 	-1 if inversely corrlated, 0 if no correlation
 	+1 if identically correlated'''
-	from itertools import imap
+	try:
+		 from itertools import imap
+	except ImportError:
+		 # Python 3...
+		 imap=map
 	n = len(x)
 	sum_x = sum(x)
 	sum_y = sum(y)
@@ -348,16 +352,16 @@ def pearsonCorr(x,y):
 	psum = sum(imap(lambda x, y: x * y, x, y))
 	num = psum - (sum_x * sum_y/n)
 	den = pow((sum_x_sq - pow(sum_x, 2) / n) * (sum_y_sq - pow(sum_y, 2) / n), 0.5)
-	if den == 0: return 0
+	if den == 0: return 0, None
 	return num / den, None
+
+
 
 def dtwDist(x,y):
 	try:
 		from fastdtw import fastdtw
 	except ImportError:
 		util.missing_module('fastdtw')
-
-
 	try:
 		from scipy.spatial.distance import euclidean
 	except ImportError:
