@@ -461,7 +461,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		############################
 		## csound CSD output file ##
 		############################
-		if self.ops.CSOUND_CSD_FILEPATH != None:
+		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None:
 			from audioguide import csoundinterface as csd
 			maxOverlaps = np.max([oe.simSelects for oe in self.outputEvents])
 			csSco = 'i2  0.  %f  %f  "%s"  %f  %i\n\n'%(self.tgt.endSec-self.tgt.startSec, self.tgt.whole.envDb, self.tgt.filename, self.tgt.startSec, int(self.ops.CSOUND_CHANNEL_RENDER_METHOD == 'targetoutputmix'))
@@ -487,24 +487,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################################
 		if self.ops.CSOUND_SCORE_FILEPATH != None:
 			from audioguide import csoundinterface as csd
-			csSco = '''; p2 - corpus segment start time
-; p3 - corpus segment duration
-; p4 - envelope gain in dB (0=no gain)
-; p5 - corpus segment filename (string)
-; p6 - corpus segment start time (skip into file)
-; p7 - corpus segment transposition in semitones
-; p8 - corpus segment rms peak amp
-; p9 - corpus segment peak time in sec
-; p10 - corpus segment effective duration in sec
-; p11 - envelope attack time in sec
-; p12 - envelope release time in sec
-; p13 - envelope slope - 1=linear, 2=exp, 0.5=log
-; p14 - corpus segment's index in the user's corpus entry
-; p15 - how many other sounds have been selected at this same time
-; p16 - the corresponding target segment's duration
-; p17 - the corresponding target segment's number
-; p18 - the stretch mapping the target and corpus durations.  none=no change, 
-'''
+			csSco = csd.instru2helpstring()+'\n'
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
 			fh = open(self.ops.CSOUND_SCORE_FILEPATH, 'w')
 			fh.write(csSco)

@@ -332,32 +332,18 @@ endin
 
 </CsInstruments>
 <CsScore>
-;iCpsSegDur = p3
-;iCpsAmpDb = p4
-;SCpsFile   strget   p5
-;iStartRead = p6
-;iTransposition = semitone(p7)
-;iRmsAmp = p8
-;iPeakTime = p9
-;iEffDur = p10
-;iAttackTime = p11
-;iDecayTime = p12
-;iEnvSlope = p13
-;iCorpusIdx = p14
-;iInstrumentIdx = p15
-;iSimSelectNumb = p16
-;iTgtSegDur = p17
-;iTgtSegNumb = p18
-;iClassification = p19
-;SstretchCode   strget   p20
-;SchannelRenderType   strget   p21
+%s
 
 %s
 e
 </CsScore>
-</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, useTargetAmplitude, sr, kr, nchnls, scoreText) )
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, useTargetAmplitude, sr, kr, nchnls, instru2helpstring(), scoreText) )
 
 
+
+
+def instru2helpstring():
+	return '''; p2 = start time, p3 = duration, p4 = gain in dB (0=no gain), p5 = segment filename, p6 = sf filetime skip, p7 = semitone transposition, p8 = rms peak amp, p9 = peak time in sec, p10 = effective duration in sec, p11 = attack time in sec, p12 = decay time in sec, p13 = envelope slope, p14 = corpus idx, p15 = instrument idx, p16 = superimposition idx, p17 = target segment duration, p18 = target segment idx, p19 = classification, p20 = duration stretch code, p21 = channel render mode'''
 
 
 
