@@ -15,7 +15,7 @@ AudioGuide differs from other programs for concatenative synthesis in several no
 
 * AudioGuide has a robust and flexible system for defining how corpus samples are matched to target segments. One may find the best match according to list of descriptors, but one may also define multiple search "passes", effectively creating a hierarchical search routine.  One may also create boolean tests within the search function to further nuance the search process.  See [here](https://www.youtube.com/watch?v=UYElwMFF6Ug&t=1535s).
 
-* By default AudioGuide creates a variety of different output files:
+* AudioGuide can create a variety of different output files:
     * a csound score that is automatically rendered at the end of the concatenative process
     * an .aaf file you can import into Logic/Pro Tools
     * a file you can load into bach.roll in Max/MSP
