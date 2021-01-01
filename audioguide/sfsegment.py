@@ -17,6 +17,7 @@ class sfsegment:
 		self.soundfileExtension = os.path.splitext(self.filename)[1]
 		self.printName = os.path.split(self.filename)[1] # short name for printing
 		# filename-based descriptor info
+		self.midipitch = None
 		self.midiPitchFromFilename = descriptordata.getMidiPitchFromString(self.printName)
 		self.rmsAmplitudeFromFilename, self.dynamicFromFilename = descriptordata.getDynamicFromFilename(self.printName, AnalInterface.dynToDbDict, AnalInterface.stringToDynDict, notFound=-1000)
 		# other info
