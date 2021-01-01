@@ -1,7 +1,13 @@
-##################
-## Version 1.69 ##
-##################
-• Added an AAF output file type for importing concatenations into Logic/Pro Tools. See examples/11-logicOutput.py
+#################
+## Version 1.7 ##
+#################
+• Audioguide now has it’s own youtube channel, featuring a 5-part comprehensive tutorial on getting started with AudioGuide. You can browse the whole tutorial by topic on the new tutorials page.
+https://www.youtube.com/channel/UCGvNi_pIEvWuiF_w3ZK8jOQ
+http://www.benhackbarth.com/audioGuide/tutorial.html
+
+• AudioGuide concatenations can now be written to .aaf files and opened in Logic/Pro Tools. See examples/11-logicOutput.py or https://www.youtube.com/watch?v=rHQI-jXd6iU
+
+• Nadir Babouri created an AudioGuide package for the Atom Text Editor. See https://github.com/nadirB/audioguide-snippets
 
 
 #################
@@ -9,7 +15,7 @@
 #################
 • agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rending and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See https://www.youtube.com/watch?v=h0Ee77VoFe0
  
-• A Max/MSP bach.roll output file is now written for each concatenation by default. Check out examples/10-bachOutput.py and maxmsp/bach/ag_playback.maxpat for details.
+• A Max/MSP bach.roll output file is now written for each concatenation by default. Check out examples/10-bachOutput.py and maxmsp/bach/ag_playback.maxpat for details. Also see here https://www.youtube.com/watch?v=WoLNX2XWemQ&t=1006s
 
 • When creating acoustic scores with Bach it is now possible to customize what data is written into which slots, including exporting descriptor data of selected sounds to bach. See http://www.benhackbarth.com/audioGuide/docs_v1.6.html#INSTRUMENTSSlots
 

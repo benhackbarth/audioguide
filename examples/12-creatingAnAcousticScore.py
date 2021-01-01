@@ -17,49 +17,49 @@ BACH_INCLUDE_TARGET = False
 SEARCH_PATHS = ['/Users/ben/Documents/sfdb/']
 
 CORPUS = [
-# bowed violin sounds
+# violin sounds
 csf('violin/staccato/', instrTag='violin', instrParams={'technique': 'arco', 'articulation': 'staccato', 'temporal_mode': 'artic'}, scaleDb='filenamedyn', wholeFile=True),
 csf('violin/sul-ponticello/', instrTag='violin', instrParams={'technique': 'arco', 'annotation': 'SP'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('violin/sul-tasto/', instrTag='violin', instrParams={'technique': 'arco', 'annotation': 'ST'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('violin/artificial-harmonic/', instrTag='violin', instrParams={'polyphony_max_voices': 1, 'technique': 'arco', 'annotation': 'harmonic'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFile=True),
-csf('violin/pizz/', instrTag='violin', instrParams={'temporal_mode': 'artic', 'minspeed': 0.12, 'technique': 'pizz','annotation': 'pizz', 'articulation': 'staccato'}, scaleDb='filenamedyn', wholeFile=True),
+csf('violin/pizz/', instrTag='violin', instrParams={'temporal_mode': 'artic', 'minspeed': 0.12, 'technique': 'pizz','annotation': 'pizz', 'articulation': 'staccato', 'notehead': 'cross'}, scaleDb='filenamedyn', wholeFile=True),
 
 
-#bowed viola sounds
+# viola sounds
 csf('viola/non-vibrato/', instrTag='viola', instrParams={'technique': 'arco', }, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('viola/sul-ponticello/', instrTag='viola', instrParams={'technique': 'arco', 'annotation': 'SP', }, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
-csf('viola/sul-tasto/', instrTag='viola', instrParams={'technique': 'arco', 'annotation': 'ST', }, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
+csf('viola/sul-tasto/', instrTag='viola', instrParams={'technique': 'arco', 'annotation': 'ST'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('viola/artificial-harmonic/', instrTag='viola', instrParams={'polyphony_max_voices': 1, 'technique': 'arco', 'annotation': 'harmonic'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 
 
-#bowed cello sounds
+# cello sounds
 csf('cello/staccato/', instrTag='cello', instrParams={'technique': 'arco', 'temporal_mode': 'artic', 'articulation': 'accent'}, scaleDb='filenamedyn', wholeFile=True),
 csf('cello/sul-ponticello/', instrTag='cello', instrParams={'technique': 'arco', 'annotation': 'SP'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('cello/sul-tasto/', instrTag='cello', instrParams={'technique': 'arco', 'annotation': 'ST'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
 csf('cello/artificial-harmonic/', instrTag='cello', instrParams={'polyphony_max_voices': 1, 'technique': 'arco', 'annotation': 'harmonic'}, scaleDb='filenamedyn', clipDurationToTarget=True, wholeFileMinStart=0.1, wholeFile=True),
-csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'minspeed': 0.12, 'technique': 'pizz','annotation': 'pizz', 'articulation': 'staccato'}, scaleDb='filenamedyn', wholeFile=True),
+csf('cello/pizz/', instrTag='cello', instrParams={'temporal_mode': 'artic', 'minspeed': 0.12, 'technique': 'pizz','annotation': 'pizz', 'articulation': 'staccato', 'notehead': 'cross'}, scaleDb='filenamedyn', wholeFile=True),
 
 
 ]
 
 
 CORPUS_GLOBAL_ATTRIBUTES = {
-'pitchfilter': {'pitches': [60, 69], "tolerance": 3},
+#'pitchfilter': {'pitches': [60, 69], "tolerance": 3},
 'limit': ['power-seg > 30%'],
 }
 
 
 INSTRUMENTS = score(
-instr('violin', polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('violin', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
+instr('violin', polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
+instr('violin', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
 instr('viola', clef='Alto', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
-instr('cello', clef='F', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 1), ('arco', 'pizz', 0.6)]),
+instr('cello', clef='F', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]),
 )
 
 
 SEARCH = [
-spass('closest_percent', d('power-seg', norm=1), percent=30),
-spass('closest', d('mfccs-seg', norm=1)),
+spass('ratio_limit', d('power-seg'), maxratio=1),
+spass('closest', d('mfccs-seg')),
 ]
 
 
