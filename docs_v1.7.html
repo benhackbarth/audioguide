@@ -893,40 +893,8 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 <script src="https://gist.github.com/benhackbarth/ef3ce9cc10ac4ccba655117b491006a8.js"></script>
-</div>
 
-
-
-
-
-
-
-<div id="INSTRUMENTSDynamics" class="subgroup"><h4>Handling Dynamics/Volume</h4>
-<p>Audioguide puts two different kinds of dynamic information into the bachroll.</p>
-
-<p>The first is in each note's midi velocity. Here, audioguide gives a note's playback volume such so that soundfiles in the bach score can be played back at the same volume heard in audioguide's soundfile output. This value comes from each csf(scaleDb). This means that if you use scaleDb='filenamedyn', you will get the same amplitude scalars in bach's velocity as you audioguide uses internally. This value is dB is also included in slot 13 (see below).</p>
-
-
-<p>The second set of information is found in the written dynamic values (e.g. f, mp), put into bach's dynamic slot (ag uses the default slot, 20). These strings are obtained, by default, through any dynamics found in the filenames of the samples that are used. For instance, if audioguide picks the sound 'HA_ES_mu_mf_C4.wav', it will automatically be assigned a written dynamic of mf in slot 20. However, if you're using soundfiles in a csf() that do not have dynamics written into the filenames, audioguide will automatically assign each sf in a csf() a dynamic according to the relative loudness of each sf. These loudnesses get mapped onto a list of dynamics which, by default, are ['pp', 'p', 'mp', 'mf', 'f', 'ff']. However this can be changed for individual csf()s:</p>
-
-
-<script src="https://gist.github.com/benhackbarth/fa65c40f1a4867f271dfd058ea473868.js"></script>
-
-
-
-
-
-
-
-
-
-
-<div id="INSTRUMENTSTime" class="subgroup"><h4>Handling Time</h4>
-<p>Audioguide provides methods in the instruments interface for controlling how instr()s behave in time.</p>
-
-<p>minspeed and polyphony_minspeed are the most basic, brute-force controls, dictating the minimum time in seconds between sucessive onsets for an instrument.</p>
-
-<p>There are several more nuanced controls for how pitch may move over time. Consider, first, the unrestricted pitch selection of a solo violin concatenation:</p>
+<p>There are several nuanced controls for specifying how pitch may move over time. Consider, first, the unrestricted pitch selection of a solo violin concatenation:</p>
 
 <script src="https://gist.github.com/benhackbarth/8f96600914a35a8967114a29d2a2e144.js"></script>
 
@@ -934,9 +902,6 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
  <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_1.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
  <figcaption class="figure-caption"></figcaption>
 </figure>
-
-
-
 
 <p>interval_limit_breakpoints lets the user specify a list of breakpoints for how intervals are restricted over time. In the example below, the breakpoints are given as [(0,7), (1, 24)], which translates to: if the distance between this selection and the end of the last note is 0 second, restrict this intervals choice to 7 semitones. if the distance is 1 second, restrict it to 24 semitones. The algorithm interpolates these breakpoints, so if the distance in seconds is 0.5, the restriction interval will be 15.5 semitones. You must have at least 2 breakpoints, and the first time difference must be zero, but you have have additional breakpoints if you want. Any note distances greater than the biggest time difference found in interval_limit_breakpoints (in this example, 1 second), any interval is possible. This also works for polyphony.</p>
 
@@ -955,6 +920,49 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
  <img src="http://www.benhackbarth.com/audioGuide/docimg/violin_3.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
  <figcaption class="figure-caption"></figcaption>
 </figure>
+
+</div>
+
+
+
+
+
+
+
+<div id="INSTRUMENTSDynamics" class="subgroup"><h4>Handling Dynamics/Volume</h4>
+<p>Audioguide puts two different kinds of dynamic information into the bachroll.</p>
+
+<p>The first is in each note's midi velocity. Here, audioguide gives a note's playback volume such so that soundfiles in the bach score can be played back at the same volume heard in audioguide's soundfile output. This value comes from each csf(scaleDb). This means that if you use scaleDb='filenamedyn', you will get the same amplitude scalars in bach's velocity as you audioguide uses internally. This value is dB is also included in slot 13 (see below).</p>
+
+
+<p>The second set of information is found in the written dynamic values (e.g. f, mp), put into bach's dynamic slot (ag uses the default slot, 20). These strings are obtained, by default, through any dynamics found in the filenames of the samples that are used. For instance, if audioguide picks the sound 'HA_ES_mu_mf_C4.wav', it will automatically be assigned a written dynamic of mf in slot 20. However, if you're using soundfiles in a csf() that do not have dynamics written into the filenames, audioguide will automatically assign each sf in a csf() a dynamic according to the relative loudness of each sf. These loudnesses get mapped onto a list of dynamics which, by default, are ['pp', 'p', 'mp', 'mf', 'f', 'ff']. However this can be changed for individual csf()s:</p>
+
+
+<script src="https://gist.github.com/benhackbarth/fa65c40f1a4867f271dfd058ea473868.js"></script>
+</div>
+
+
+
+
+
+
+
+
+
+
+<div id="INSTRUMENTSTime" class="subgroup"><h4>Handling Time</h4>
+<p>Audioguide provides methods in the instruments interface for controlling how instr()s behave in time.</p>
+
+<p>minspeed and polyphony_minspeed are the most basic, brute-force controls, dictating the minimum time in seconds between sucessive onsets for an instrument.</p>
+
+<p>instr(temporal_mode) is very important to telling audioguide how to treat selected events for an instrument with regard to minspeed and polyphony_minspeed. If instr(temporal_mode='sus'), all selected corpus sounds will be treated as sustained events, and minspeed will be restricted by the start time and stop time of a selected note. If instr(temporal_mode='artic'), all selected corpus sounds will be treated as duration-less, and minspeed will only use a note's start time to restrict density.</p>
+
+<p>instr(technique_switch_delay_map) let's you specify a minimum delay time between changing from one type of corpus resources to another.</p>
+
+
+
+</div>
+
 
 
 
@@ -1177,7 +1185,7 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 		 <li><a href="#CsoundOutput">Csound Output</a></li>
 		 <li><a href="#AafOutput">Logic/Pro Tools Output</a></li>
 		 <li><a href="#BachOutput">Max/MSP Bach Output</a></li>
-		 <li><a href="#TheINSTRUMENTSVariable">Using Bach to Create Notated Scores</a></li>
+		 <li><a href="#TheINSTRUMENTSVariable">Using Bach to Create Notated Scores</a>
 			 <ul class="nav nav-stacked">
 				 <li><a href="#scoreVariable">The score() object</a></li>
 				 <li><a href="#INSTRUMENTSPitch">Handling Pitch</a></li>
