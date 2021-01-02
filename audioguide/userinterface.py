@@ -185,13 +185,16 @@ class printer:
 		else: self.html = html5output.htmloutput()
 	###############################################
 	def log(self, *args):
-		self.html.log(*args)
+		if self.html != None:
+			self.html.log(*args)
 	###############################################
 	def maketable(self, array, resolution=2):
-		self.html.maketable(array, resolution=resolution)
+		if self.html != None:
+			self.html.maketable(array, resolution=resolution)
 	###############################################
 	def logsection(self, name):
-		self.html.logsection(name)
+		if self.html != None:
+			self.html.logsection(name)
 	###############################################
 	def makeHtmlChartDescriptorNorm(self, unnormDescriptors, normDescriptors, tgtsegs, cpssegs):
 		segmentedDescriptorsToGraph = [dobj for dobj in unnormDescriptors if dobj.seg]
