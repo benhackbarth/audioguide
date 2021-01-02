@@ -43,21 +43,27 @@ class main:
 		self.parse_options_dict(usrOptions, init=init)
 		return os.path.getmtime(opspath)
 
-	def execute(self):
+	def execute(self, print_steps=False):
 		'''execute runs all parts of the concatenative code depending on what options have changed'''
 		initanal, target, corpus, norm, concate, output = self.ops.poll_options()
 		if initanal:
+			if print_steps: print("initializing analysis interface")
 			self.initialize_analysis_interface()
 		if target:
+			if print_steps: print("loading target")
 			self.load_target()
 			self.write_target_output_files()
 		if corpus:
+			if print_steps: print("loading corpus")
 			self.load_corpus()
 		if norm:
+			if print_steps: print("normalizing")
 			self.normalize()
 		if concate:
+			if print_steps: print("concatenating")
 			self.standard_concatenate()
 		if output:
+			if print_steps: print("writing outputs")
 			files = self.write_concatenate_output_files()
 		self.ops.rewind() # clear list for future options changes
 		return files
@@ -93,7 +99,8 @@ class main:
 	
 			descriptors.append(d)
 			dnames.append(dobj.name)
-		self.p.html.jschart_timeseries(yarray=np.array([self.AnalInterface.f2s(i) for i in range(self.tgt.whole.lengthInFrames)]), xarrays=descriptors, ylabel='time in seconds', xlabels=dnames)
+		if self.p.html != None:
+			self.p.html.jschart_timeseries(yarray=np.array([self.AnalInterface.f2s(i) for i in range(self.tgt.whole.lengthInFrames)]), xarrays=descriptors, ylabel='time in seconds', xlabels=dnames)
 
 	def write_target_output_files(self):	
 		#######################
