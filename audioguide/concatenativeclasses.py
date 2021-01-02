@@ -54,7 +54,9 @@ class parseOptionsV2:
 		self.opsfileAsString = ''
 		self.opsfilehead = ''
 		self.ops_file_path = None
+		self.internal_search_paths = []
 		self.audioguide_directory = os.path.dirname(os.path.dirname(__file__))
+		self.internal_search_paths.append(self.audioguide_directory)
 		self.rewind()
 		# load defaults.py
 		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
@@ -68,8 +70,6 @@ class parseOptionsV2:
 		'''records options and tracks changes in options for interative mode'''
 		# package expansion
 		optionvalue = anallinkage.parseOptionPackages(optionname, optionvalue)
-		# add internal search paths
-		if optionname == 'SEARCH_PATHS': optionvalue = self.get_internal_search_paths() + optionvalue
 		# replace "none" with None
 		if isinstance(optionvalue, str) and optionvalue.lower() == 'none': optionvalue = None
 		# complete paths for output files
@@ -93,19 +93,16 @@ class parseOptionsV2:
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
 		usrOptions = {}
+		self.ops_file_path = os.path.dirname(opsfile)
+		self.internal_search_paths.append(self.ops_file_path)
 		fh = open(opsfile)
 		self.opsfileAsString = fh.read()
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
-		self.ops_file_path = os.path.dirname(opsfile)
 		return usrOptions
 	#############################
-	def get_internal_search_paths(self):
-		if self.ops_file_path != None: return [self.audioguide_directory, self.ops_file_path]
-		else: return [self.audioguide_directory]
-	#############################
 	def poll_options(self):
-		''''''
+		'''poll program options to see what parts of the code need to be rerun. e.g., if the corpus changed, we will not need to reload the target.'''
 		initanal = False
 		target = False
 		corpus = False
@@ -142,7 +139,7 @@ class parseOptionsV2:
 	def createAnalInterface(self, p):
 		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
-		self.analinterface = anallinkage.AnalInterface(userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
+		self.analinterface = anallinkage.AnalInterface(userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.internal_search_paths+self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
 		self.analinterface.setupDescriptors(self)
 		return self.analinterface
 	#############################
