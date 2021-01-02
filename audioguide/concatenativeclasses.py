@@ -9,6 +9,7 @@ import audioguide.util as util
 import audioguide.descriptordata as descriptordata
 import audioguide.sfsegment as sfsegment
 import audioguide.tests as tests
+import audioguide.anallinkage as anallinkage
 
 
 
@@ -39,17 +40,8 @@ def findSegmentationFile(cobjname, searchPaths, segmentationExtension, wholeFile
 
 
 
-
-class parseOptions:
+class parseOptionsV2:
 	def __init__(self):
-		usrOptions = {}
-		self.opsfileAsString = ''
-		self.opsfilehead = ''
-		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
-		self.audioguide_directory = os.path.dirname(os.path.dirname(__file__))
-		self.ops_file_path = None
-	#############################
-	def parse_dict(self, opsdict):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
 		from audioguide.userclasses import CorpusOptionsEntry as csf
 		from audioguide.userclasses import Instrument as instr
@@ -57,29 +49,47 @@ class parseOptions:
 		from audioguide.userclasses import SearchPassOptionsEntry as spass
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
-		ops = {}
+		usrOptions = {}
+		# track information about options files that are loaded
+		self.opsfileAsString = ''
+		self.opsfilehead = ''
+		self.ops_file_path = None
+		self.audioguide_directory = os.path.dirname(os.path.dirname(__file__))
+		self.rewind()
+		# load defaults.py
+		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
+		defaultops = {}
 		fh = open(self.defaults_file)
-		exec(fh.read(), locals(), ops)
+		exec(fh.read(), locals(), defaultops)
 		fh.close()
-		ops.update(opsdict)	
-		# replace "none" with None
-		for k, v in ops.items():
-			if not isinstance(v, str): continue
-			if v.lower() == 'none': ops[k] = None
-		if self.ops_file_path != None: ops['SEARCH_PATHS'].append( self.ops_file_path )
-		# complete paths for output files...
-		if self.ops_file_path != None:
-			for item, val in ops.items():
-				if item.find('_FILEPATH') == -1: continue
-				if val == None: continue
-				ops[item] = util.verifyOutputPath(val, self.audioguide_directory)
-		# assign dict to this classes' attributes so that values may
-		# be obtained by writing ops.CORPUS rather than ops['CORPUS']
-		tests.testOpsDict(ops)
-		return ops
+		for k, v in defaultops.items(): self.set_option(k, v)
 	#############################
-	def set_options_from_dict(self, opsdict):
-		for k, v in opsdict.items(): setattr(self, k, v)
+	def set_option(self, optionname, optionvalue, init=False):
+		'''records options and tracks changes in options for interative mode'''
+		# package expansion
+		if optionname == 'SEARCH':
+			for spass in optionvalue:
+				spass.descriptor_list = anallinkage.descriptListPackageExpansion(spass.descriptor_list, 13)
+				if spass.submethod in ['closest','closest_percent','farthest','farthest_percent',]:
+					for idx in range(len(spass.parse_choiceargs)):
+						spass.parse_choiceargs[idx] = anallinkage.descriptListPackageExpansion(spass.parse_choiceargs[idx], 13)
+		elif optionname == 'EXPERIMENTAL':
+			for k, v in optionvalue.items():
+				if isinstance(v, spass):
+					optionvalue = anallinkage.descriptListPackageExpansion(optionvalue, self.numbMfccs)
+		# replace "none" with None
+		if isinstance(optionvalue, str) and optionvalue.lower() == 'none': optionvalue = None
+		# complete paths for output files
+		if optionname.find('_FILEPATH') != -1 and optionvalue != None: optionvalue = util.verifyOutputPath(optionvalue, self.audioguide_directory)
+		# test it
+		tests.testOption(optionname, optionvalue)
+		# see if it has changed
+		if not hasattr(self, optionname) or optionvalue != getattr(self, optionname):
+			self.poll_options_changes.append(tests.OptionChangeToProgramRun[optionname])
+		if not init and hasattr(self, optionname) and optionvalue != getattr(self, optionname):
+			print("CHANGED", optionname)
+		# set the option
+		setattr(self, optionname, optionvalue)
 	#############################
 	def parse_file(self, opsfile):
 		from audioguide.userclasses import TargetOptionsEntry as tsf
@@ -95,19 +105,53 @@ class parseOptions:
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
 		self.ops_file_path = os.path.dirname(opsfile)
+		if self.ops_file_path != None and self.ops_file_path not in self.SEARCH_PATHS: self.SEARCH_PATHS.append( self.ops_file_path )
 		return usrOptions
+	#############################
+	def poll_options(self):
+		''''''
+		initanal = False
+		target = False
+		corpus = False
+		norm = False
+		concate = False
+		output = False
+		if 'reinit' in self.poll_options_changes:
+			return True, True, True, True, True, True
+		else:
+			if 'target' in self.poll_options_changes:
+				target = True
+				norm = True
+				concate = True
+				output = True			
+			if 'corpus' in self.poll_options_changes:
+				corpus = True
+				norm = True
+				concate = True
+				output = True			
+			if 'norm' in self.poll_options_changes:
+				norm = True
+				concate = True
+				output = True			
+			if 'concate' in self.poll_options_changes:
+				concate = True
+				output = True			
+			if 'output' in self.poll_options_changes:
+				output = True			
+		return initanal, target, corpus, norm, concate, output
+	#############################
+	def rewind(self):
+		self.poll_options_changes = []
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
 		self.analinterface = anallinkage.AnalInterface(userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
-		self.analinterface.expandDescriptorPackages(self)
 		self.analinterface.setupDescriptors(self)
 		return self.analinterface
 	#############################
 	def parseDescriptors(self):
 		from audioguide.userclasses import SingleDescriptor as d
-		self.analinterface.expandDescriptorPackages(self)
 		self._limitDescriptors = []
 		# add limiting descriptors
 		if 'limit' in self.CORPUS_GLOBAL_ATTRIBUTES:
@@ -141,6 +185,7 @@ class parseOptions:
 		# sort to make segmented descriptors last
 		self._mixtureDescriptors.sort(key=lambda x: x.seg, reverse=False)
 ##########################################################
+
 
 
 

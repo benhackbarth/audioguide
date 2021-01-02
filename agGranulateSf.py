@@ -51,6 +51,7 @@ for file in args:
 
 	ag = audioguide.main()
 	ag.parse_options_dict(segopsdict)
+	ag.initialize_analysis_interface()
 	ag.load_target()
 	minamp = audioguide.util.ampToDb(min(ag.tgt.whole.desc.get('power')))
 	if options.OUTPUT_FILE == '': segFile = file+'.txt'

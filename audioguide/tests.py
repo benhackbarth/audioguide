@@ -9,16 +9,19 @@ import audioguide.util as util
 
 def testOpsDict(dicty):
 	#print(UserVar_types)
-	for name, value in dicty.items():
-		#print (name, value)
-		if name.startswith('_'): continue # added this exception to permit user variable that start with _
-		if not name in UserVar_types:
-			util.error("user variable", "I don't have an option called %s\n :("%(name))
-		outcomes = []
-		for tstring in UserVar_types[name]:
-			outcomes.append( testVariable(tstring, value) )
-		if not True in outcomes: # if none of these test were passed
-			util.error("user variable", "variable %s must be %s (%s given as %s)"%(name, ' or '.join(UserVar_types[name]), str(value), type(value)))
+	for name, value in dicty.items(): testOption(name, value)
+
+def testOption(name, value):
+	#print (name, value)
+	if name.startswith('_'): return # added this exception to permit user variable that start with _
+	if not name in UserVar_types:
+		util.error("user variable", "I don't have an option called %s\n :("%(name))
+	outcomes = []
+	for tstring in UserVar_types[name]:
+		outcomes.append( testVariable(tstring, value) )
+	if not True in outcomes: # if none of these test were passed
+		util.error("user variable", "variable %s must be %s (%s given as %s)"%(name, ' or '.join(UserVar_types[name]), str(value), type(value)))
+
 
 
 def testInstance(obj1, obj2):

@@ -53,6 +53,7 @@ for file in args:
 
 	ag = audioguide.main()
 	ag.parse_options_dict(segopsdict)
+	ag.initialize_analysis_interface()
 	ag.load_target()
 	minamp = audioguide.util.ampToDb(min(ag.tgt.whole.desc.get('power')))
 	#ag.p.pprint("Evaluating %s from %.2f-%.2f"%(ag.tgt.filename, ag.tgt.whole.segmentStartSec, ag.tgt.whole.segmentEndSec), colour="BOLD")

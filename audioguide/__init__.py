@@ -29,30 +29,41 @@ import audioguide.dimscaling as dimscaling
 
 class main:
 	def __init__(self):
-		# add pre-compiled library path
-		if sys.maxsize > 2**32: bits = 64
-		else: bits = 32
-		libpath = os.path.join(os.path.dirname(__file__), 'audioguide', 'pylib%i.%i-%s-%i'%(sys.version_info[0], sys.version_info[1], platform.system().lower(), bits))
-		sys.path.append(libpath)
-		self.ops = concatenativeclasses.parseOptions()
+		self.ops = concatenativeclasses.parseOptionsV2()
 
-	def parse_options_file(self, opspath):
+	def set_option(self, optionname, optionvalue):
+		self.ops.set_option(optionname, optionvalue)
+
+	def parse_options_dict(self, opsdict, init=False):
+		for optionname, optionvalue in opsdict.items():
+			self.ops.set_option(optionname, optionvalue, init=init)
+
+	def parse_options_file(self, opspath, init=False):
 		usrOptions = self.ops.parse_file(opspath)
-		self.parse_options_dict(usrOptions)
+		self.parse_options_dict(usrOptions, init=init)
 		return os.path.getmtime(opspath)
 
-	def test_options_file_modifications(self, opspath):
-		newops = self.ops.parse_dict(self.ops.parse_file(opspath))
-		REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT, newoptstoset = tests.UpdatedOpsTestForChanges(self.ops, newops)
-		self.ops.set_options_from_dict(newoptstoset)
-		return REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT
+	def execute(self):
+		'''execute runs all parts of the concatenative code depending on what options have changed'''
+		initanal, target, corpus, norm, concate, output = self.ops.poll_options()
+		if initanal:
+			self.initialize_analysis_interface()
+		if target:
+			self.load_target()
+			self.write_target_output_files()
+		if corpus:
+			self.load_corpus()
+		if norm:
+			self.normalize()
+		if concate:
+			self.standard_concatenate()
+		if output:
+			files = self.write_concatenate_output_files()
+		self.ops.rewind() # clear list for future options changes
+		return files
 		
-	def parse_options_dict(self, opsdict):
-		ops = self.ops.parse_dict(opsdict)
-		self.ops.set_options_from_dict(ops)
-		self.finish_setup()
-	
-	def finish_setup(self, printversion=True):
+
+	def initialize_analysis_interface(self, printversion=True):
 		if 'concateMethod' in self.ops.EXPERIMENTAL and self.ops.EXPERIMENTAL['concateMethod'] == 'framebyframe':
 			util.error("CONFIG", "Frame by frame concatenation is only possible with the agConcatenateFrames.py script.")
 		self.p = userinterface.printer(self.ops.VERBOSITY, os.path.dirname(__file__), self.ops.HTML_LOG_FILEPATH)

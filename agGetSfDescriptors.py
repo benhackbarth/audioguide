@@ -31,5 +31,6 @@ optionsDictionary = {
 
 ag = audioguide.main()
 ag.parse_options_dict(optionsDictionary)
+ag.initialize_analysis_interface()
 ag.load_target()
 ag.tgt.whole.desc.writedict(outputfile, ag.AnalInterface)
