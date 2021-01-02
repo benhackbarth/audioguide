@@ -24,10 +24,13 @@ ag.set_option('CORPUS', [csf('examples/lachenmann.aiff')])
 ag.set_option('SUPERIMPOSE', si(maxSegment=5))
 ag.set_option('VERBOSITY', 0)
 ag.set_option('CSOUND_PLAY_RENDERED_FILE', False)
+ag.set_option('TARGET_SEGMENT_LABELS_FILEPATH', None)
 ag.set_option('MAXMSP_OUTPUT_FILEPATH', None)
 ag.set_option('DICT_OUTPUT_FILEPATH', None)
 ag.set_option('OUTPUT_LABEL_FILEPATH', None)
 ag.set_option('HTML_LOG_FILEPATH', None)
+ag.set_option('BACH_FILEPATH', None)
+
 
 
 for tgt in ['examples/cage.aiff', 'examples/bone.aiff']:
@@ -53,7 +56,6 @@ for tgt in ['examples/cage.aiff', 'examples/bone.aiff']:
 			#print('\tAverage centroid for this segment vs average centroid for target segment: %.3f %.3f'%(eobj.sfseghandle.desc.get('centroid-seg'), eobj.tgtsfseghandle.desc.get('centroid-seg')))
 			#print('\tmfcc1 for this segment vs the target segment: %s %s'%(eobj.sfseghandle.desc.get('mfcc1'), eobj.tgtsfseghandle.desc.get('mfcc1')))
 
-
-		print("\nwrote output files:")
+		print("\nWrote output files:")
 		for k, v in files.items(): print("\t%s -> %s"%(k, v))
 

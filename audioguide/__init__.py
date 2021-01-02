@@ -47,23 +47,23 @@ class main:
 		'''execute runs all parts of the concatenative code depending on what options have changed'''
 		initanal, target, corpus, norm, concate, output = self.ops.poll_options()
 		if initanal:
-			if print_steps: print("initializing analysis interface")
+			if print_steps: print("1. initializing analysis interface")
 			self.initialize_analysis_interface()
 		if target:
-			if print_steps: print("loading target")
+			if print_steps: print("2. loading target")
 			self.load_target()
 			self.write_target_output_files()
 		if corpus:
-			if print_steps: print("loading corpus")
+			if print_steps: print("3. loading corpus")
 			self.load_corpus()
 		if norm:
-			if print_steps: print("normalizing")
+			if print_steps: print("4. normalizing")
 			self.normalize()
 		if concate:
-			if print_steps: print("concatenating")
+			if print_steps: print("5. concatenating")
 			self.standard_concatenate()
 		if output:
-			if print_steps: print("writing outputs")
+			if print_steps: print("6. writing outputs")
 			files = self.write_concatenate_output_files()
 		self.ops.rewind() # clear list for future options changes
 		return files
@@ -363,8 +363,14 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		#########################
 		self.p.logsection( "OUTPUT FILES" )
 		allusedcpsfiles = list(set([oe.filename for oe in self.outputEvents]))
-		self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
-
+		
+		
+		#################
+		## BACH output ##
+		#################	
+		if self.ops.BACH_FILEPATH != None:
+			self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
+			dict_of_files_written['BACH_FILEPATH'] = self.ops.BACH_FILEPATH
 
 
 		################
