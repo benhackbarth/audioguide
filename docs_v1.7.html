@@ -738,12 +738,110 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 
-<div id="UsingBachForPlayback" class="group"><h3>Using Bach for Playback</h3>
+<div id="OtherOptions" class="group"><h3>Other Options</h3>
+
+<div id="DescriptorComputationParameters" class="subgroup"><h4>Descriptor Computation Parameters</h4>
+<p><b>DESCRIPTOR_FORCE_ANALYSIS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True, AudioGuide is forced to remake all analysis file, even if previously made.</p><p><b>DESCRIPTOR_WIN_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.04096</span>) the FFT window size of descriptor analysis in seconds. Note that this value gets automatically rounded to the nearest power-of-two size based on IRCAMDESCRIPTOR_RESAMPLE_RATE. 0.04096 seconds = 512 @ 12.5kHz (the default resample rate).</p><p><b>DESCRIPTOR_HOP_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.01024</span>) the FFT window overlaps of descriptor analysis in seconds. Note that this value gets automatically rounded to the nearest power-of-two size based on IRCAMDESCRIPTOR_RESAMPLE_RATE. Important, as it effectively sets of temporal resolution of AudioGuide. Performance is best when DESCRIPTOR_HOP_SIZE_SEC/DESCRIPTOR_WIN_SIZE_SEC is a whole number.</p><p><b>IRCAMDESCRIPTOR_RESAMPLE_RATE</b> (type=<span style="color:red">int</span>, default=<span style="color:green">12500</span>) The internal resample rate of the IRCAM analysis binary. Important, as it sets the frequency resolution of spectral sound descriptors.</p><p><b>IRCAMDESCRIPTOR_WINDOW_TYPE</b> (type=<span style="color:red">string</span>, default=<span style="color:green">&lsquo;blackman&rsquo;</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_NUMB_MFCCS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">13</span>) sets the number of MFCCs to make. When you use the descriptor 'mfccs' if will automatcially be expanded into mfccs1-N where N is IRCAMDESCRIPTOR_NUMB_MFCCS.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_F0_MIN_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">20</span>) minimum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) maximum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_AMP_THRESHOLD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1</span>) Thresholding of the spectrum in F0 detection.</p><p><b>DESCRIPTOR_DATABASE_SIZE_LIMIT</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1</span>) The maximum size of the analysis database in gigabytes (audioguide/data) that will trigger AudioGuide to delete the oldest analysis files.</p><p><b>DESCRIPTOR_DATABASE_AGE_LIMIT</b> (type=<span style="color:red">float</span>, default=<span style="color:green">7</span>) The minimum age in days of analysis files in the analysis database (audioguide/data) that AudioGuide will delete if the size of the database is over DESCRIPTOR_DATABASE_SIZE_LIMIT gb.</p>
+</div>
+
+
+
+
+
+
+
+
+
+<div id="Concatenation" class="subgroup"><h4>Concatenation</h4>
+<p><b>ROTATE_VOICES</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False]</span>) if True, AudioGuide will rotate through the list of corpus entries during concatenation. This means that, when selecting corpus segment one, AudioGuide will only search sound segments from the first item of the CORPUS variable. Selection 2 will only search the second, and so on. Corpus rotation is modular around the length of the CORPUS variable. If the corpus only has one item, True will have no effect.</p><p><b>VOICE_PATTERN</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) if an empty list, this does nothing. However, if the user gives a list of strings, AudioGuide will rotate through this list of each concatenative selection and only use corpus segments who&rsquo;s filepath match this string. Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.</p><p><b>DYNAMIC_TO_DECIBEL</b> (type=<span style="color:red">dict</span>, default=<span style="color:green">{'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}</span>) This variable specifies the default decebel values for dynamic strings used by csf(scaleDb='filenamedyn').</p><p><b>FILENAMESTRING_TO_DYNAMICS</b> (type=<span style="color:red">dict</span>, default=<span style="color:green">{}</span>) User-defined strings for matching soundfile names with dynamics as in DYNAMIC_TO_DECIBEL. E.g. {'really loud': 'ff', 'loudish': 'f'}. Any filenames which match one these partial strings will be assigned the given dynamic, and then the decebel scalar found in DYNAMIC_TO_DECIBEL will be used if scaleDb='filenamedyn'.</p><p><b>OUTPUT_GAIN_DB</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) adds a uniform gain in dB to all selected corpus units. Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.</p><p><b>RANDOM_SEED</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) sets the pseudo-random seed for random unit selection. By default a value of None will use the system&rsquo;s timestamp. Setting an integer will create repeatable random results.</p></div>
+
+
+
+
+<div id="Post-ConcatenationEventManipulation" class="subgroup"><h4>Post-Concatenation Event Manipulation</h4>
+<p>These options change selected corpus events <i>after</i> concatenative selection, meaning that they do not affect similarity calculations, but are applied afterwards. At the moment, all of these parameters affect the temporality of the corpus sounds. These parameters affect all output files - csound, midi, json, etc.</p>
+
+<p><b>OUTPUTEVENT_ALIGN_PEAKS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True aligns the peak times of corpus segments to match those of the target segments. Thus, every corpus segment selected to represent a target segment will be moved in time such that corpus segment's peak amplitude is aligned with the target segment's.</p><p><b>OUTPUTEVENT_QUANTIZE_TIME_METHOD</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) controls the quantisation of the start times of events selected during concatenation. Note that any quantisation takes place after the application of OUTPUTEVENT_TIME_STRETCH and OUTPUTEVENT_TIME_ADD, as detailed below. This variable has the following possible settings:</p><ul><li><b>None</b> - no quantisation takes place (the default).<li><b>&lsquo;snapToGrid&rsquo;</b> - conform the start times of events to a grid spaced in OUTPUTEVENT_QUANTIZE_TIME_INTERVAL second slices.<li><b>&lsquo;medianAggregate&rsquo;</b> - change each event&rsquo;s start time to the median start time of events in slices of OUTPUTEVENT_QUANTIZE_TIME_INTERVAL seconds.</ul><p><b>OUTPUTEVENT_QUANTIZE_TIME_INTERVAL</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.25</span>) defines the temporal interval in seconds for quantisation. If OUTPUTEVENT_QUANTIZE_TIME_METHOD = None, this doesn&rsquo;t do anything.</p><p><b>OUTPUTEVENT_TIME_STRETCH</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1.</span>) stretch the temporality of selected units. A value of 2 will stretch all events offsets by a factor of 2. Does not affect corpus segment durations.</p><p><b>OUTPUTEVENT_TIME_ADD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.</span>) offset the start time of selected events by a value in seconds.</p><p><b>OUTPUTEVENT_DURATION_SELECT</b> (type=<span style="color:red">string</span>, default=<span style="color:green">cps</span>) if 'cps', AudioGuide will play each selected corpus sample according to its duration. if 'tgt', AudioGuide will use the duration of the target segment a corpus segment was matched to to determine its playback duration. 'tgt' may result in clipped corpus sounds.</p><p><b>OUTPUTEVENT_DURATION_MIN</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a minimum duration for all selected corpus segments. When this variable is a float, the length of each segment's playback will be at least OUTPUTEVENT_DURATION_MIN seconds (unless the soundfile is too short, in which case the duration will be the soundfile's duration). If None is given (the default), no minimum duration is enforced.</p><p><b>OUTPUTEVENT_DURATION_MAX</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a maximum duration for all selected corpus segments. When this variable is a float, the length of each segment's playback cannot be more than OUTPUTEVENT_DURATION_MAX seconds. If None is given (the default), no maximum duration is enforced.</p></div>
+
+
+
+
+
+
+
+<div id="ConcatenationOutputFiles" class="subgroup"><h4>Concatenation Output Files</h4>
+<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.</p>
+
+<p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file. This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation.</p><p><b>CSOUND_SCORE_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) writes a simple textfile in the csound score format.</p><p><b>BACH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/bach_roll.txt&rsquo;</span>) Gathered syntax for concatenation selections that you can load into a bach.roll. See maxmsp/bach/main.maxpat for usage.</p><p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>OUTPUT_LABEL_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/outputlabels.txt&rsquo;</span>) Audacity-style labels showing the selected corpus sounds and how they overlap.</p><p><b>LISP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.lisp.txt&rsquo;</span>) a textfile containing selected corpus events as a lisp-style list.</p><p><b>DICT_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.json&rsquo;</span>) a textfile containing selected corpus events in json format.</p><p><b>MAXMSP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.maxmsp.json&rsquo;</span>) a textfile containing a list of selected corpus events. Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.</p></div>
+
+
+
+
+
+
+
+
+<div id="OtherOutputFiles" class="subgroup"><h4>Other Output Files</h4>
+<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location of the agConcatenate.py script.</p>
+
+<p><b>HTML_LOG_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/log.html&rsquo;</span>) a log file with lots of information from the concatenation algorithm.</p><p><b>TARGET_SEGMENT_LABELS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/targetlabels.txt&rsquo;</span>) Audacity-style labels showing how the target sound was segmented.</p><p><b>TARGET_SEGMENTATION_GRAPH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) like TARGET_SEGMENT_LABELS_FILEPATH, this variable creates a file to show information about target segmentation. Here however, the output is a jpg graph of the onset and offset times and the target&rsquo;s power. This output requires you to install python&rsquo;s module matplotlib.</p><p><b>TARGET_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) saves the loaded target descriptors to a json dictionary.</p><p><b>TARGET_PLOT_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) creates a plot of each target descriptor used in concatenation. Doesn&rsquo;t create plots for averaged descriptors (&ldquo;-seg&rdquo;), only time varying descriptors.</p><p><b>DATA_FROM_SEGMENTATION_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) This file lists all of the extra data of selected events during concatenation. This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment. This is useful if you want to tag each corpus segment with text based information for use later.</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div id="PrintingInteraction" class="subgroup"><h4>Printing/Interaction</h4>
+<p><b>SEARCH_PATHS</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) a list of strings, each of which is a path to a directory where soundfile are located. These paths extend the list of search paths that AudioGuide examines when searching for target and corpus soundfiles. The default is an empty list, which doesn&rsquo;t do anything.</p><p><b>VERBOSITY</b> (type=<span style="color:red">int</span>, default=<span style="color:green">2</span>) affects the amount of information AudioGuide prints to the terminal. A value of 0 yields nothing. A value of 1 prints a minimal amount of information. A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.</p><p><b>PRINT_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus selection after concatenation. If false (the default) will add this information to the log file, if used.</p><p><b>PRINT_SIM_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus overlapping selection after concatenation. If false (the default) will add this information to the log file, if used.</p>
+
+</div>
+
+</div><!--end other options-->
+
+
+
+
+
+
+
+
+
+
+
+<div id="CsoundOutput" class="subgroup"><h3>Csound Output</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=WoLNX2XWemQ&t=251s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
+<p>AudioGuide concatenations are rendered with csound by default. The resulting audiofile is also played back at the command line by default.</p>
+
+<p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file. This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation.</p><p><b>CSOUND_SCORE_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) writes a simple textfile in the csound score format.</p><p><b>CSOUND_SR</b> (type=<span style="color:red">int</span>, default=<span style="color:green">48000</span>) The sample rate used for csound rendering. Csound will interpolate the sample rates of all corpus files to this rate. It will be the sr of csound&rsquo;s output soundfile.</p><p><b>CSOUND_BITS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">16</span>) The bitrate of the csound output soundfile. Valid values are 16, 24, and 32.</p><p><b>CSOUND_KSMPS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">128</span>) The ksmps value used for csound rendering. See csound&rsquo;s documentation for more information.</p><p><b>CSOUND_NORMALIZE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True normalize csound's output soundfile after rendering.</p><p><b>CSOUND_NORMALIZE_PEAK_DB</b> (type=<span style="color:red">float</span>, default=<span style="color:green">-3</span>) If CSOUND_NORMALIZE is True, normalization of this peak dB will take place.</p><p><b>CSOUND_PLAY_RENDERED_FILE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, AudioGuide will play the rendered csound file at the command line at the end of the concatenative algorithm.</p><p><b>CSOUND_STRETCH_CORPUS_TO_TARGET_DUR</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Affects the durations of concatenated sound events rendered by csound.</p><ul><li><b>None</b> - Playback speed unchanged.<li><b>pv</b> - Uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segments.<li><b>transpose</b> - Uses the speed of playback to change duration to match corresponding target segments. Note that, in this case, any other transposition information generated by the selection algorithm is overwritten (e.g. csf(pitchfilter=), csf(transmethod=).</ul><p><b>CSOUND_CHANNEL_RENDER_METHOD</b> (type=<span style="color:red">string</span>, default=<span style="color:green">corpusmax</span>) Tells AudioGuide how assign the channel of corpus segments in the csound output soundfile. The default is &ldquo;corpusmax&rdquo;.</p><ul><li><b>corpusmax</b> - Creates an output soundfile with the same number of channels as the maxmimum of all corpus files (corpus files may have different channel counts).<li><b>stereo</b> - Mixes all corpus sounds into a 2-channel soundfile.<li><b>targetoutputmix</b> - Makes a simple stereo output where the target is in channel 1 and the corpus sounds are in channel 2.<li><b>oneChannelPerVoice</b> - Tells AudioGuide to put selected sounds from each item of the CORPUS list into a separate channel. The number of output channels will therefore equal the length of the CORPUS list variable.<li><b>oneChannelPerOverlap</b> - Tells AudioGuide to put overlapping selected sounds into different channels so that only one sound is happening in a given channel at any one time. The number of channels will be equal the maximum number of overlapping sounds in the concatenation.<li><b>oneChannelPerInstrument</b> - Tells AudioGuide to put selected sounds from each instrument into a separate channel. This only works when using INSTRUMENTS.</ul></div>
+
+
+
+
+
+
+<div id="AafOutput" class="subgroup"><h3>Logic/Pro Tools Output</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=rHQI-jXd6iU&t=0s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
+<p>AudioGuide concatenations can be written to .aaf files and opened in Logic/Pro Tools. See examples/11-logicOutput.py</p>
+
+<p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>AAF_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) If True, adds the target soundfile to the Advanced Authoring Format output.</p></div>
+
+
+
+
+
+
+<div id="BachOutput" class="group"><h3>Bach Output</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=WoLNX2XWemQ&t=1006s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
 <p>Audioguide automatically creates an output file for every concatenation that may be loaded into a bach.roll in Max/MSP. The path for the bach output file, which is output/bach_roll.txt by default, is controlable by the BACH_FILEPATH variable. You may visualize, explore, and playback concatenated sounds with the patch maxmsp/bach/bach_playback.maxpat. You may also add descriptor data to Bach slots; see BACH_SLOTS_MAPPING below for details.</p>
 
 <p>The options below give a few controls over how the output of a concatenation can be translated into a bach.roll input:</p>
 
-<p><b>BACH_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, the target soundfile will be included as the first voice in bach_roll.txt.</p><p><b>BACH_TARGET_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">F</span>) The clef used for the target sound.</p><p><b>BACH_CORPUS_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">FG</span>) The clef used for corpus sounds.</p></div>
+<p><b>BACH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/bach_roll.txt&rsquo;</span>) Gathered syntax for concatenation selections that you can load into a bach.roll. See maxmsp/bach/main.maxpat for usage.</p><p><b>BACH_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, the target soundfile will be included as the first voice in bach_roll.txt.</p><p><b>BACH_TARGET_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">F</span>) The clef used for the target sound.</p><p><b>BACH_CORPUS_STAFF</b> (type=<span style="color:red">string</span>, default=<span style="color:green">FG</span>) The clef used for corpus sounds.</p></div>
 
 
 
@@ -790,7 +888,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
  
 
-<div id="INSTRUMENTSPitch" class="subgroup"><h3>Handling Pitch</h3>
+<div id="INSTRUMENTSPitch" class="subgroup"><h4>Handling Pitch</h4>
 <p>The pitches that make it into the bach.roll come from selected corpus segment's MIDIPitch. You can change how midi pitch is evalutated with the csf(midiPitchMethod) keyword. By default, it is 'composite', which first searches for a midi pitch written into the filename of each corpus sound. If no pitch is found, midi pitch is taken from f0-seg. Generally, it is best to use sample databases with pitches in the filenames, as f0-seg is not very reliable. For unpitched sounds, or databases without pitches written into the filenames, you can customize the pitch data by picking a different csf(midiPitchMethod).</p>
 
 
@@ -803,7 +901,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 
-<div id="INSTRUMENTSDynamics" class="subgroup"><h3>Handling Dynamics/Volume</h3>
+<div id="INSTRUMENTSDynamics" class="subgroup"><h4>Handling Dynamics/Volume</h4>
 <p>Audioguide puts two different kinds of dynamic information into the bachroll.</p>
 
 <p>The first is in each note's midi velocity. Here, audioguide gives a note's playback volume such so that soundfiles in the bach score can be played back at the same volume heard in audioguide's soundfile output. This value comes from each csf(scaleDb). This means that if you use scaleDb='filenamedyn', you will get the same amplitude scalars in bach's velocity as you audioguide uses internally. This value is dB is also included in slot 13 (see below).</p>
@@ -823,7 +921,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 
-<div id="INSTRUMENTSTime" class="subgroup"><h3>Handling Time</h3>
+<div id="INSTRUMENTSTime" class="subgroup"><h4>Handling Time</h4>
 <p>Audioguide provides methods in the instruments interface for controlling how instr()s behave in time.</p>
 
 <p>minspeed and polyphony_minspeed are the most basic, brute-force controls, dictating the minimum time in seconds between sucessive onsets for an instrument.</p>
@@ -862,7 +960,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 
 
-<div id="INSTRUMENTSSlots" class="subgroup"><h3>Slot Data</h3>
+<div id="INSTRUMENTSSlots" class="subgroup"><h4>Slot Data</h4>
 Data from the concatenative process is automatically added to the BACH_FILEPATH textfile and can be accessed via Bach's slots infrastructure. The table below summarizes the data that AudioGuide puts into different Bach slots by default.
 
 <table class="table-striped table-condensed">
@@ -898,100 +996,6 @@ BACH_SLOTS_MAPPING = {1: 'instr_technique', 2: 'fullpath', 3: 'sfskiptime', 10: 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div id="OtherOptions" class="group"><h3>Other Options</h3>
-
-<div id="DescriptorComputationParameters" class="subgroup"><h4>Descriptor Computation Parameters</h4>
-<p><b>DESCRIPTOR_FORCE_ANALYSIS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True, AudioGuide is forced to remake all analysis file, even if previously made.</p><p><b>DESCRIPTOR_WIN_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.04096</span>) the FFT window size of descriptor analysis in seconds. Note that this value gets automatically rounded to the nearest power-of-two size based on IRCAMDESCRIPTOR_RESAMPLE_RATE. 0.04096 seconds = 512 @ 12.5kHz (the default resample rate).</p><p><b>DESCRIPTOR_HOP_SIZE_SEC</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.01024</span>) the FFT window overlaps of descriptor analysis in seconds. Note that this value gets automatically rounded to the nearest power-of-two size based on IRCAMDESCRIPTOR_RESAMPLE_RATE. Important, as it effectively sets of temporal resolution of AudioGuide. Performance is best when DESCRIPTOR_HOP_SIZE_SEC/DESCRIPTOR_WIN_SIZE_SEC is a whole number.</p><p><b>IRCAMDESCRIPTOR_RESAMPLE_RATE</b> (type=<span style="color:red">int</span>, default=<span style="color:green">12500</span>) The internal resample rate of the IRCAM analysis binary. Important, as it sets the frequency resolution of spectral sound descriptors.</p><p><b>IRCAMDESCRIPTOR_WINDOW_TYPE</b> (type=<span style="color:red">string</span>, default=<span style="color:green">&lsquo;blackman&rsquo;</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_NUMB_MFCCS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">13</span>) sets the number of MFCCs to make. When you use the descriptor 'mfccs' if will automatcially be expanded into mfccs1-N where N is IRCAMDESCRIPTOR_NUMB_MFCCS.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) see ircamdescriptor documentation for details.</p><p><b>IRCAMDESCRIPTOR_F0_MIN_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">20</span>) minimum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_MAX_FREQUENCY</b> (type=<span style="color:red">float</span>, default=<span style="color:green">5000</span>) maximum possible f0 frequency.</p><p><b>IRCAMDESCRIPTOR_F0_AMP_THRESHOLD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1</span>) Thresholding of the spectrum in F0 detection.</p><p><b>DESCRIPTOR_DATABASE_SIZE_LIMIT</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1</span>) The maximum size of the analysis database in gigabytes (audioguide/data) that will trigger AudioGuide to delete the oldest analysis files.</p><p><b>DESCRIPTOR_DATABASE_AGE_LIMIT</b> (type=<span style="color:red">float</span>, default=<span style="color:green">7</span>) The minimum age in days of analysis files in the analysis database (audioguide/data) that AudioGuide will delete if the size of the database is over DESCRIPTOR_DATABASE_SIZE_LIMIT gb.</p>
-</div>
-
-
-
-
-
-
-
-
-
-<div id="Concatenation" class="subgroup"><h4>Concatenation</h4>
-<p><b>ROTATE_VOICES</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False]</span>) if True, AudioGuide will rotate through the list of corpus entries during concatenation. This means that, when selecting corpus segment one, AudioGuide will only search sound segments from the first item of the CORPUS variable. Selection 2 will only search the second, and so on. Corpus rotation is modular around the length of the CORPUS variable. If the corpus only has one item, True will have no effect.</p><p><b>VOICE_PATTERN</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) if an empty list, this does nothing. However, if the user gives a list of strings, AudioGuide will rotate through this list of each concatenative selection and only use corpus segments who&rsquo;s filepath match this string. Matching can use parts of the filename, not necessarily the whole path and it is not case sensitive.</p><p><b>DYNAMIC_TO_DECIBEL</b> (type=<span style="color:red">dict</span>, default=<span style="color:green">{'pp': -50, 'p': -40, 'mp': -34, 'mf': -24, 'f': -20, 'ff': -10}</span>) This variable specifies the default decebel values for dynamic strings used by csf(scaleDb='filenamedyn').</p><p><b>FILENAMESTRING_TO_DYNAMICS</b> (type=<span style="color:red">dict</span>, default=<span style="color:green">{}</span>) User-defined strings for matching soundfile names with dynamics as in DYNAMIC_TO_DECIBEL. E.g. {'really loud': 'ff', 'loudish': 'f'}. Any filenames which match one these partial strings will be assigned the given dynamic, and then the decebel scalar found in DYNAMIC_TO_DECIBEL will be used if scaleDb='filenamedyn'.</p><p><b>OUTPUT_GAIN_DB</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) adds a uniform gain in dB to all selected corpus units. Affects the subtractive envelope calculations and descriptor mixtures as well as csound rendering.</p><p><b>RANDOM_SEED</b> (type=<span style="color:red">int/None</span>, default=<span style="color:green">None</span>) sets the pseudo-random seed for random unit selection. By default a value of None will use the system&rsquo;s timestamp. Setting an integer will create repeatable random results.</p></div>
-
-
-
-
-<div id="Post-ConcatenationEventManipulation" class="subgroup"><h4>Post-Concatenation Event Manipulation</h4>
-<p>These options change selected corpus events <i>after</i> concatenative selection, meaning that they do not affect similarity calculations, but are applied afterwards. At the moment, all of these parameters affect the temporality of the corpus sounds. These parameters affect all output files - csound, midi, json, etc.</p>
-
-<p><b>OUTPUTEVENT_ALIGN_PEAKS</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True aligns the peak times of corpus segments to match those of the target segments. Thus, every corpus segment selected to represent a target segment will be moved in time such that corpus segment's peak amplitude is aligned with the target segment's.</p><p><b>OUTPUTEVENT_QUANTIZE_TIME_METHOD</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) controls the quantisation of the start times of events selected during concatenation. Note that any quantisation takes place after the application of OUTPUTEVENT_TIME_STRETCH and OUTPUTEVENT_TIME_ADD, as detailed below. This variable has the following possible settings:</p><ul><li><b>None</b> - no quantisation takes place (the default).<li><b>&lsquo;snapToGrid&rsquo;</b> - conform the start times of events to a grid spaced in OUTPUTEVENT_QUANTIZE_TIME_INTERVAL second slices.<li><b>&lsquo;medianAggregate&rsquo;</b> - change each event&rsquo;s start time to the median start time of events in slices of OUTPUTEVENT_QUANTIZE_TIME_INTERVAL seconds.</ul><p><b>OUTPUTEVENT_QUANTIZE_TIME_INTERVAL</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.25</span>) defines the temporal interval in seconds for quantisation. If OUTPUTEVENT_QUANTIZE_TIME_METHOD = None, this doesn&rsquo;t do anything.</p><p><b>OUTPUTEVENT_TIME_STRETCH</b> (type=<span style="color:red">float</span>, default=<span style="color:green">1.</span>) stretch the temporality of selected units. A value of 2 will stretch all events offsets by a factor of 2. Does not affect corpus segment durations.</p><p><b>OUTPUTEVENT_TIME_ADD</b> (type=<span style="color:red">float</span>, default=<span style="color:green">0.</span>) offset the start time of selected events by a value in seconds.</p><p><b>OUTPUTEVENT_DURATION_SELECT</b> (type=<span style="color:red">string</span>, default=<span style="color:green">cps</span>) if 'cps', AudioGuide will play each selected corpus sample according to its duration. if 'tgt', AudioGuide will use the duration of the target segment a corpus segment was matched to to determine its playback duration. 'tgt' may result in clipped corpus sounds.</p><p><b>OUTPUTEVENT_DURATION_MIN</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a minimum duration for all selected corpus segments. When this variable is a float, the length of each segment's playback will be at least OUTPUTEVENT_DURATION_MIN seconds (unless the soundfile is too short, in which case the duration will be the soundfile's duration). If None is given (the default), no minimum duration is enforced.</p><p><b>OUTPUTEVENT_DURATION_MAX</b> (type=<span style="color:red">float/None</span>, default=<span style="color:green">None</span>) Sets a maximum duration for all selected corpus segments. When this variable is a float, the length of each segment's playback cannot be more than OUTPUTEVENT_DURATION_MAX seconds. If None is given (the default), no maximum duration is enforced.</p></div>
-
-
-
-
-
-
-
-<div id="ConcatenationOutputFiles" class="subgroup"><h4>Concatenation Output Files</h4>
-<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.</p>
-
-<p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file. This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation.</p><p><b>CSOUND_SCORE_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) writes a simple textfile in the csound score format.</p><p><b>BACH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/bach_roll.txt&rsquo;</span>) Gathered syntax for concatenation selections that you can load into a bach.roll. See maxmsp/bach/main.maxpat for usage.</p><p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>OUTPUT_LABEL_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/outputlabels.txt&rsquo;</span>) Audacity-style labels showing the selected corpus sounds and how they overlap.</p><p><b>LISP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.lisp.txt&rsquo;</span>) a textfile containing selected corpus events as a lisp-style list.</p><p><b>DICT_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.json&rsquo;</span>) a textfile containing selected corpus events in json format.</p><p><b>MAXMSP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.maxmsp.json&rsquo;</span>) a textfile containing a list of selected corpus events. Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.</p></div>
-
-
-
-
-
-
-
-
-<div id="OtherOutputFiles" class="subgroup"><h4>Other Output Files</h4>
-<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.</p>
-
-<p><b>HTML_LOG_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/log.html&rsquo;</span>) a log file with lots of information from the concatenation algorithm.</p><p><b>TARGET_SEGMENT_LABELS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/targetlabels.txt&rsquo;</span>) Audacity-style labels showing how the target sound was segmented.</p><p><b>TARGET_SEGMENTATION_GRAPH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) like TARGET_SEGMENT_LABELS_FILEPATH, this variable creates a file to show information about target segmentation. Here however, the output is a jpg graph of the onset and offset times and the target&rsquo;s power. This output requires you to install python&rsquo;s module matplotlib.</p><p><b>TARGET_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) saves the loaded target descriptors to a json dictionary.</p><p><b>TARGET_PLOT_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) creates a plot of each target descriptor used in concatenation. Doesn&rsquo;t create plots for averaged descriptors (&ldquo;-seg&rdquo;), only time varying descriptors.</p><p><b>DATA_FROM_SEGMENTATION_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) This file lists all of the extra data of selected events during concatenation. This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment. This is useful if you want to tag each corpus segment with text based information for use later.</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div id="PrintingInteraction" class="subgroup"><h4>Printing/Interaction</h4>
-<p><b>SEARCH_PATHS</b> (type=<span style="color:red">list</span>, default=<span style="color:green">[]</span>) a list of strings, each of which is a path to a directory where soundfile are located. These paths extend the list of search paths that AudioGuide examines when searching for target and corpus soundfiles. The default is an empty list, which doesn&rsquo;t do anything.</p><p><b>VERBOSITY</b> (type=<span style="color:red">int</span>, default=<span style="color:green">2</span>) affects the amount of information AudioGuide prints to the terminal. A value of 0 yields nothing. A value of 1 prints a minimal amount of information. A value of 2 (the default) prints refreshing progress bars to indicate the progress of the algorithms.</p><p><b>PRINT_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus selection after concatenation. If false (the default) will add this information to the log file, if used.</p><p><b>PRINT_SIM_SELECTION_HISTO</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) if True will print robust information about corpus overlapping selection after concatenation. If false (the default) will add this information to the log file, if used.</p>
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<div id="CsoundRendering" class="subgroup"><h4>Csound Rendering</h4>
-<p><b>CSOUND_SR</b> (type=<span style="color:red">int</span>, default=<span style="color:green">48000</span>) The sample rate used for csound rendering. Csound will interpolate the sample rates of all corpus files to this rate. It will be the sr of csound&rsquo;s output soundfile.</p><p><b>CSOUND_BITS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">16</span>) The bitrate of the csound output soundfile. Valid values are 16, 24, and 32.</p><p><b>CSOUND_KSMPS</b> (type=<span style="color:red">int</span>, default=<span style="color:green">128</span>) The ksmps value used for csound rendering. See csound&rsquo;s documentation for more information.</p><p><b>CSOUND_NORMALIZE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">False</span>) If True normalize csound's output soundfile after rendering.</p><p><b>CSOUND_NORMALIZE_PEAK_DB</b> (type=<span style="color:red">float</span>, default=<span style="color:green">-3</span>) If CSOUND_NORMALIZE is True, normalization of this peak dB will take place.</p><p><b>CSOUND_PLAY_RENDERED_FILE</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) if True, AudioGuide will play the rendered csound file at the command line at the end of the concatenative algorithm.</p><p><b>CSOUND_STRETCH_CORPUS_TO_TARGET_DUR</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Affects the durations of concatenated sound events rendered by csound.</p><ul><li><b>None</b> - Playback speed unchanged.<li><b>pv</b> - Uses a phase vocoder to stretch corpus sounds to match the duration of the corresponding target segments.<li><b>transpose</b> - Uses the speed of playback to change duration to match corresponding target segments. Note that, in this case, any other transposition information generated by the selection algorithm is overwritten (e.g. csf(pitchfilter=), csf(transmethod=).</ul><p><b>CSOUND_CHANNEL_RENDER_METHOD</b> (type=<span style="color:red">string</span>, default=<span style="color:green">corpusmax</span>) Tells AudioGuide how assign the channel of corpus segments in the csound output soundfile. The default is &ldquo;corpusmax&rdquo;.</p><ul><li><b>corpusmax</b> - Creates an output soundfile with the same number of channels as the maxmimum of all corpus files (corpus files may have different channel counts).<li><b>stereo</b> - Mixes all corpus sounds into a 2-channel soundfile.<li><b>targetoutputmix</b> - Makes a simple stereo output where the target is in channel 1 and the corpus sounds are in channel 2.<li><b>oneChannelPerVoice</b> - Tells AudioGuide to put selected sounds from each item of the CORPUS list into a separate channel. The number of output channels will therefore equal the length of the CORPUS list variable.<li><b>oneChannelPerOverlap</b> - Tells AudioGuide to put overlapping selected sounds into different channels so that only one sound is happening in a given channel at any one time. The number of channels will be equal the maximum number of overlapping sounds in the concatenation.<li><b>oneChannelPerInstrument</b> - Tells AudioGuide to put selected sounds from each instrument into a separate channel. This only works when using INSTRUMENTS.</ul></div>
-
-</div><!--end other options-->
 </section> <!--end conctaet script-->
 
 
@@ -1158,10 +1162,21 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 		 <li><a href="#Descriptorsandthedobject">Descriptors and the d() object</a></li>
 		 <li><a href="#SEARCHvariable">SEARCH variable and spass() object</a></li>
 		 <li><a href="#TheSUPERIMPOSEvariabls">The SUPERIMPOSE variable and si() object</a></li>
-		 
 
+		 <li><a href="#OtherOptions">Other Options</a>
+			 <ul class="nav nav-stacked">
+				 <li><a href="#DescriptorComputationParameters">Descriptor Computation Parameters</a></li>
+				 <li><a href="#Concatenation">Concatenation</a></li>
+				 <li><a href="#Post-ConcatenationEventManipulation">Post-Concatenation Event Manipulation</a></li>
+				 <li><a href="#ConcatenationOutputFiles">Concatenation Output Files</a></li>
+				 <li><a href="#OtherOutputFiles">Other Output Files</a></li>
+				 <li><a href="#PrintingInteraction">Printing/Interaction</a></li>
+			 </ul>
+		 </li>
 
-		 <li><a href="#UsingBachForPlayback">Using Bach for Playback</a></li>
+		 <li><a href="#CsoundOutput">Csound Output</a></li>
+		 <li><a href="#AafOutput">Logic/Pro Tools Output</a></li>
+		 <li><a href="#BachOutput">Max/MSP Bach Output</a></li>
 		 <li><a href="#TheINSTRUMENTSVariable">Using Bach to Create Notated Scores</a></li>
 			 <ul class="nav nav-stacked">
 				 <li><a href="#scoreVariable">The score() object</a></li>
@@ -1171,17 +1186,9 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 				 <li><a href="#INSTRUMENTSSlots">Slot Data</a></li>
 			 </ul>
 		 </li>
-		 <li><a href="#OtherOptions">Other Options</a>
-			 <ul class="nav nav-stacked">
-				 <li><a href="#DescriptorComputationParameters">Descriptor Computation Parameters</a></li>
-				 <li><a href="#Concatenation">Concatenation</a></li>
-				 <li><a href="#Post-ConcatenationEventManipulation">Post-Concatenation Event Manipulation</a></li>
-				 <li><a href="#ConcatenationOutputFiles">Concatenation Output Files</a></li>
-				 <li><a href="#OtherOutputFiles">Other Output Files</a></li>
-				 <li><a href="#PrintingInteraction">Printing/Interaction</a></li>
-				 <li><a href="#CsoundRendering">Csound Rendering</a></li>
-			 </ul>
-		 </li>
+
+
+
 	</ul>
  </li>
  <li><a href="#DescriptorRetrieval">Descriptor Retrieval with agGetSfDescriptors.py</a></li>
