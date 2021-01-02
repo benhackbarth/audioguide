@@ -67,27 +67,18 @@ class parseOptionsV2:
 	def set_option(self, optionname, optionvalue, init=False):
 		'''records options and tracks changes in options for interative mode'''
 		# package expansion
-		if optionname == 'SEARCH':
-			for spass in optionvalue:
-				spass.descriptor_list = anallinkage.descriptListPackageExpansion(spass.descriptor_list, 13)
-				if spass.submethod in ['closest','closest_percent','farthest','farthest_percent',]:
-					for idx in range(len(spass.parse_choiceargs)):
-						spass.parse_choiceargs[idx] = anallinkage.descriptListPackageExpansion(spass.parse_choiceargs[idx], 13)
-		elif optionname == 'EXPERIMENTAL':
-			for k, v in optionvalue.items():
-				if isinstance(v, spass):
-					optionvalue = anallinkage.descriptListPackageExpansion(optionvalue, self.numbMfccs)
+		optionvalue = anallinkage.parseOptionPackages(optionname, optionvalue)
 		# replace "none" with None
 		if isinstance(optionvalue, str) and optionvalue.lower() == 'none': optionvalue = None
 		# complete paths for output files
 		if optionname.find('_FILEPATH') != -1 and optionvalue != None: optionvalue = util.verifyOutputPath(optionvalue, self.audioguide_directory)
-		# test it
+		# test datatypes
 		tests.testOption(optionname, optionvalue)
 		# see if it has changed
 		if not hasattr(self, optionname) or optionvalue != getattr(self, optionname):
 			self.poll_options_changes.append(tests.OptionChangeToProgramRun[optionname])
-		if not init and hasattr(self, optionname) and optionvalue != getattr(self, optionname):
-			print("CHANGED", optionname)
+#		if not init and hasattr(self, optionname) and optionvalue != getattr(self, optionname):
+#			print("CHANGED", optionname)
 		# set the option
 		setattr(self, optionname, optionvalue)
 	#############################

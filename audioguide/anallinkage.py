@@ -193,18 +193,6 @@ EnergyEnvelope  = 1
 		if self.p != None: 
 			self.p.log("ANALYSIS CONFIG: using analysis window of %.3f (%i samples)"%(self.winLengthSec, closestWinSize))
 			self.p.log("ANALYSIS CONFIG: using analysis overlap of %.3f (%i samples)"%(self.hopLengthSec, closestHopSize))
-	#############################
-	def expandDescriptorPackages(self, ops):
-		for spass in ops.SEARCH:
-			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, self.numbMfccs)
-			if spass.submethod in ['closest','closest_percent','farthest','farthest_percent',]:
-				for idx in range(len(spass.parse_choiceargs)):
-					spass.parse_choiceargs[idx] = descriptListPackageExpansion(spass.parse_choiceargs[idx], self.numbMfccs)
-		# add EXPERIMENTAL spass entries 
-		from audioguide.userclasses import SearchPassOptionsEntry as spassObj
-		for k, v in ops.EXPERIMENTAL.items():
-			if isinstance(v, spassObj):
-				v.descriptor_list = descriptListPackageExpansion(v.descriptor_list, self.numbMfccs)
 	########################################################
 	def setupDescriptors(self, ops):
 		####################################################
@@ -469,6 +457,21 @@ EnergyEnvelope  = 1
 #############################
 ## PACKAGES OF DESCRIPTORS ##
 #############################
+def parseOptionPackages(optionname, optionvalue, numbMfccs=13):
+	if optionname == 'SEARCH':
+		for spass in optionvalue:
+			spass.descriptor_list = descriptListPackageExpansion(spass.descriptor_list, numbMfccs)
+			if spass.submethod in ['closest','closest_percent','farthest','farthest_percent',]:
+				for idx in range(len(spass.parse_choiceargs)):
+					spass.parse_choiceargs[idx] = descriptListPackageExpansion(spass.parse_choiceargs[idx], numbMfccs)
+	elif optionname == 'EXPERIMENTAL':
+		for k, v in optionvalue.items():
+			if isinstance(v, spass):
+				optionvalue = descriptListPackageExpansion(optionvalue, numbMfccs)
+	return optionvalue
+
+
+
 def descriptListPackageExpansion(initialListOfDescriptorObjs, numbMfccs):
 	from userclasses import SingleDescriptor as d
 	newListOfDescriptorObjs = []

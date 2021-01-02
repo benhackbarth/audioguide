@@ -31,15 +31,18 @@ ag.execute()
 
 if options.INTERACTIVE:
 	import time
-	print("ready..")
+	print("Ready..")
 	try:
 		while True:
 			time.sleep(0.1)
+			if not os.path.exists(opspath):
+				print("\nYour options file disappeared!\n")
+				sys.exit(0)
 			mtime_cur = os.path.getmtime(opspath)
 			if mtime_cur != ops_mtime:
 				ops_mtime = ag.parse_options_file(opspath)
 				ag.execute()
-				print("done. ready..")
+				print("Done. Ready..")
 			ops_mtime = mtime_cur
 	except KeyboardInterrupt:
 		sys.exit(0)

@@ -16,8 +16,7 @@ from audioguide.userclasses import SingleDescriptor as d
 
 
 ################################################################################
-## below are the same options as example 1, except written as a python        ##
-## dictionary instead of as a textfile. note the classes imported from        ##
+## below are the same options as example 1. note the classes imported from    ##
 ## audioguide.userclasses.                                                    ##
 ################################################################################
 ag = audioguide.main()
