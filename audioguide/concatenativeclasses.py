@@ -68,6 +68,8 @@ class parseOptionsV2:
 		'''records options and tracks changes in options for interative mode'''
 		# package expansion
 		optionvalue = anallinkage.parseOptionPackages(optionname, optionvalue)
+		# add internal search paths
+		if optionname == 'SEARCH_PATHS': optionvalue = self.get_internal_search_paths() + optionvalue
 		# replace "none" with None
 		if isinstance(optionvalue, str) and optionvalue.lower() == 'none': optionvalue = None
 		# complete paths for output files
@@ -96,8 +98,11 @@ class parseOptionsV2:
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
 		self.ops_file_path = os.path.dirname(opsfile)
-		if self.ops_file_path != None and self.ops_file_path not in self.SEARCH_PATHS: self.SEARCH_PATHS.append( self.ops_file_path )
 		return usrOptions
+	#############################
+	def get_internal_search_paths(self):
+		if self.ops_file_path != None: return [self.audioguide_directory, self.ops_file_path]
+		else: return [self.audioguide_directory]
 	#############################
 	def poll_options(self):
 		''''''
