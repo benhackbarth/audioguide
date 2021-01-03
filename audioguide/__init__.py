@@ -46,6 +46,7 @@ class main:
 	def execute(self, print_steps=False):
 		'''execute runs all parts of the concatenative code depending on what options have changed'''
 		initanal, target, corpus, norm, concate, output = self.ops.poll_options()
+		files = {}
 		if initanal:
 			if print_steps: print("1. initializing analysis interface")
 			self.initialize_analysis_interface()
