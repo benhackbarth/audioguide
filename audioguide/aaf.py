@@ -20,15 +20,17 @@ class output:
 		self.f = aaf2.open(aaf_filepath, "w")
 		self.aaf_sr = aaf_sr
 		self.filepath_to_mob = {}
-		self.cnt = 0
+		self.trackcnt = 0
+		self.comp_mob = self.f.create.CompositionMob("Composition")
+		self.f.content.mobs.append(self.comp_mob)
+
 
 	def _add_track(self, seq, name):
-		comp_mob = self.f.create.CompositionMob("track %i"%self.cnt)
-		self.f.content.mobs.append(comp_mob)
-		timeline_slot = comp_mob.create_timeline_slot("%i" % self.aaf_sr)
+		timeline_slot = self.comp_mob.create_timeline_slot("%i" % self.aaf_sr)
+		timeline_slot['PhysicalTrackNumber'].value = self.trackcnt
 		timeline_slot.name = name
 		timeline_slot.segment = seq	
-		self.cnt += 1
+		self.trackcnt += 1
 		
 	def addSoundfileResource(self, cpsfullpath, infodict):
 		'''each target/corpus soundfile used in the concatenation must be passed to this function to register the filepath, sr, format, duration, etc'''
