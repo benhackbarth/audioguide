@@ -763,6 +763,14 @@ class SuperimposeTracker():
 		self.peakAlignEnvelope = peakAlignEnvelope
 		self.histogram = {'select': [], 'skip': {}}
 	########################################
+	def setup_subtract(self, opssubtract, tgtsegs, cpssegs):
+		if opssubtract == 'automedian':
+			self.subtract_scalar = np.median([obj.desc.get('power-seg') for obj in tgtsegs]) / np.median([obj.desc.get('power-seg') for obj in cpssegs])
+		elif opssubtract == 'automax':
+			self.subtract_scalar = np.max([obj.desc.get('power-seg') for obj in tgtsegs]) / np.max([obj.desc.get('power-seg') for obj in cpssegs])
+		else:
+			self.subtract_scalar = opssubtract
+	########################################
 	def test(self, type, time, min, max):
 		pick = 'ok' # 'ok', 'notok', 'force'
 		if min != None and self.cnt[type][time] < min: pick = 'force'

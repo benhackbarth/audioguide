@@ -188,6 +188,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		self.instruments = musicalwriting.instruments(self.ops.INSTRUMENTS, self.ops.CORPUS, self.tgt.lengthInFrames, self.cps.postLimitSegmentNormList, self.AnalInterface.hopLengthSec, self.p)
 
 		superimp = concatenativeclasses.SuperimposeTracker(self.tgt.lengthInFrames, len(self.tgt.segs), self.ops.SUPERIMPOSE.overlapAmpThresh, self.ops.SUPERIMPOSE.peakAlign, self.ops.SUPERIMPOSE.peakAlignEnvelope, len(self.ops.CORPUS), self.ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, self.p)
+		superimp.setup_subtract(self.ops.SUPERIMPOSE.subtractScale, self.tgt.segs, self.cps.postLimitSegmentNormList)
+
 		self.cps.setupConcate(self.tgt, self.AnalInterface)
 		self.outputEvents = []
 
@@ -284,7 +286,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				## subtract power and update onset detection ##
 				###################$###########################
 				if self.ops.SUPERIMPOSE.calcMethod != None:
-					tgtseg.desc.mixture_subtract(selectCpsseg, sourceAmpScale*self.ops.SUPERIMPOSE.subtractScale, minLen, verbose=True)
+					tgtseg.desc.mixture_subtract(selectCpsseg, sourceAmpScale*superimp.subtract_scalar, minLen, verbose=True)
 				#####################################
 				## mix chosen sample's descriptors ##
 				#####################################
