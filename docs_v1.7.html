@@ -531,6 +531,8 @@ CORPUS = [csf('lachenmann.aiff'), csf('piano/', wholeFile=True)]
 
 
 <h2 id="Normalization">Normalization</h2>
+<p>-> <a href="https://www.youtube.com/watch?v=UYElwMFF6Ug&t=18m34s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
+
 <p>Target segments and corpus segments in AudioGuide are normalized with d() object keywords, documented in the section below.</p>
 
 Normalization is important when measuring the similarity between two different data sets (target sound segments and corpus sound segments) - it is essentially a way of mapping the two data sets onto each other. It is often the case that the target soundfile is less "expressive" than the corpus - i.e. that the variation in the target sound's descriptors are less robust that the variation of the descriptors found across the corpus. </p>
@@ -608,8 +610,8 @@ Use the d() object to specify a descriptor, how it is weighted, and how it is no
 
 
 
-
 <div id="SEARCHvariable" class="group"><h3>SEARCH variable and spass() object</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=UYElwMFF6Ug&t=653s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
 <p>The SEARCH variable tells AudioGuide how to pick corpus segments to match target segments. The SEARCH variable is a list of spass() objects which is evaluated in order for each segment in the target soundfile. Multiple search operations are chained together -- the output of each spass() becomes the input of the following spass().</p> 
 
 <pre class="language-python"><code class="language-python">SEARCH = [
@@ -716,13 +718,14 @@ spass('closest', d('mfccs')), # now find the best matching segment according to 
 
 
 <div id="TheSUPERIMPOSEvariabls" class="group"><h3>The SUPERIMPOSE variable and si() object</h3>
+<p>-> <a href="https://www.youtube.com/watch?v=V3MgfbaDi9I&t=288s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
 Use the si() object for specifying how corpus segments may be superimposed during concatenation.
 
 <script src="https://gist.github.com/benhackbarth/55094b21330b6cb11e8203a8bb152a95.js"></script>
 
  
 <ul>
-<li><b>minSegment</b> - The minimum number of corpus segments that must be chosen to match a target segment.<li><b>maxSegment</b> - The maximum number of corpus segments that must be chosen to match a target segment.<li><b>minFrame</b> - The minimum number of corpus segments that must be chosen to begin at any single moment in time.<li><b>maxFrame</b> - The maximum number of corpus segments that must be chosen to begin at any single moment in time.<li><b>minOverlap</b> - The minimum number of overlapping corpus segments at any single moment in time. Note that an &lsquo;overlap&rsquo; is determined according to an amplitude threshold -- see overlapAmpThresh.<li><b>maxOverlap</b> - The maximum number of overlapping corpus segments at any single moment in time. Note that an &lsquo;overlap&rsquo; is determined according to an amplitude threshold -- see overlapAmpThresh.<li><b>searchOrder</b> - (&lsquo;power&rsquo; or &lsquo;time&rsquo;) The default is &lsquo;time&rsquo;, which indicated to match corpus segments to target segments in the temporal order of the target (i.e., first searched segment is the first segment in time). &lsquo;power&rsquo; indicates to first sort the target segments from loudest to softest, then search for corpus matches.<li><b>calcMethod</b> - A None/string which denotes how to calculate overlapping corpus sounds. None does nothing -- each corpus selection is unaware of previous selections. &lsquo;subtract&rsquo; subtracts the energy of a selected corpus sound from the target&rsquo;s amplitude so that future selections factor in the amplitude of past selections. &lsquo;mixture&rsquo; subtracts the amplitude and then attempts to mix the descriptors of simultaneous sounds together. Note that some descriptors are not algorithmically mixable, such as f0, zeroCross.</ul>
+<li><b>minSegment</b> - The minimum number of corpus segments that must be chosen to match a target segment.<li><b>maxSegment</b> - The maximum number of corpus segments that must be chosen to match a target segment.<li><b>minFrame</b> - The minimum number of corpus segments that must be chosen to begin at any single moment in time.<li><b>maxFrame</b> - The maximum number of corpus segments that must be chosen to begin at any single moment in time.<li><b>minOverlap</b> - The minimum number of overlapping corpus segments at any single moment in time. Note that an &lsquo;overlap&rsquo; is determined according to an amplitude threshold -- see overlapAmpThresh.<li><b>maxOverlap</b> - The maximum number of overlapping corpus segments at any single moment in time. Note that an &lsquo;overlap&rsquo; is determined according to an amplitude threshold -- see overlapAmpThresh.<li><b>searchOrder</b> - (&lsquo;power&rsquo; or &lsquo;time&rsquo;) The default is &lsquo;time&rsquo;, which indicated to match corpus segments to target segments in the temporal order of the target (i.e., first searched segment is the first segment in time). &lsquo;power&rsquo; indicates to first sort the target segments from loudest to softest, then search for corpus matches.<li><b>calcMethod</b> - A None/string which denotes how to audioguide should account for selected corpus sounds that overlap. By default, it is 'mixture'. Note that not all descriptors can be algorithnmically mixed, e.g. f0, zeroCross. More information in <a href='https://www.youtube.com/watch?v=V3MgfbaDi9I&t=1026s'>this tutorial video clip</a>.<ul><li><b>None</b> - No accounting for previously selected corpus sounds. Each selected sound is unaware of previous selections.<li><b>&lsquo;subtract&rsquo;</b> - subtracts a selected corpus sound's amplitude from the target segment's amplitude.<li><b>&lsquo;mixture&rsquo;</b> - performs 'subtract', then attempts to mix descriptors of previously selected corpus sound together inform the next corpus selection.</ul><li><b>subtractScale</b> - A float/int/string which denotes how much of a corpus sound's amplitude to subtract from the target. By default it is 1; a value of 0.5 will scale corpus semgment amplitudes by 0,5 before subtracting them from the target. This variable is only meaningful if si(calcMethod='subtract') or si(calcMethod='mixture'). More information in <a href='https://www.youtube.com/watch?v=V3MgfbaDi9I&t=1026s'>this tutorial video clip</a>.<ul><li><b>float/int</b> - Scale the amplitude of corpus sounds by this number when subtracting them from the target.<li><b>&lsquo;automedian&rsquo;</b> - use the median of target and corpus segment amplitudes to determine the amount to scale subtraction.<li><b>&lsquo;automax&rsquo;</b> - use the maximum of target and corpus segment amplitudes to determine the amount to scale subtraction.</ul></ul>
 </div>
 
 
