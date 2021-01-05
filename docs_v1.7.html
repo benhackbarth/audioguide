@@ -831,7 +831,7 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 <p>-> <a href="https://www.youtube.com/watch?v=rHQI-jXd6iU&t=0s">Watch a related discussion from the AudioGuide Tutorial</a>.</p>
 <p>AudioGuide concatenations can be written to .aaf files and opened in Logic/Pro Tools. See examples/11-logicOutput.py</p>
 
-<p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>AAF_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) If True, adds the target soundfile to the Advanced Authoring Format output.</p></div>
+<p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>AAF_INCLUDE_TARGET</b> (type=<span style="color:red">bool</span>, default=<span style="color:green">True</span>) If True, adds the target soundfile to the Advanced Authoring Format output.</p><p><b>AAF_CPSTRACK_METHOD</b> (type=<span style="color:red">string</span>, default=<span style="color:green">'cpsidx'</span>) A string specifying how to write selected corpus sounds into Advanced Authoring Format tracks. By default it is 'cpsidx'</p><ul><li><b>cpsidx</b> - Puts corpus sounds into AAF tracks according to their idx in the CORPUS list and their channel count.<li><b>minimum</b> - Mixes all corpus sounds into a minimal number of AAF tracks.</ul></div>
 
 
 

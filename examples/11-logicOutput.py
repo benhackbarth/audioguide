@@ -39,7 +39,13 @@ spass('closest', d('mfccs'))
 SUPERIMPOSE = si(maxSegment=3)
 
 
+CSOUND_CSD_FILEPATH = None # don't render csound
 
 AAF_FILEPATH = 'output/output.aaf' # our AAF output filepath
+
 AAF_INCLUDE_TARGET = True # this will include the target sound in the aaf file
-CSOUND_CSD_FILEPATH = None # don't render csound
+
+AAF_CPSTRACK_METHOD = 'cpsidx' # how cps tracks are written to the AAF file, also try 'minimum'
+
+
+

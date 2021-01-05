@@ -157,9 +157,7 @@ UserVar_types = {
 
 # AAF
 'AAF_INCLUDE_TARGET': ['True or False'],
-
-
-
+'AAF_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
@@ -257,6 +255,7 @@ OptionChangeToProgramRun = {
 
 "AAF_FILEPATH": "output",
 "AAF_INCLUDE_TARGET": "output",
+"AAF_CPSTRACK_METHOD": "output",
 
 "DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",
 "DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",
@@ -286,40 +285,3 @@ OptionChangeToProgramRun = {
 
 for k in UserVar_types:
 	assert k in OptionChangeToProgramRun
-
-def UpdatedOpsTestForChanges(currentops, newops):
-	changed = []
-	setops = {}
-	for k, v in newops.items():
-		if v == getattr(currentops, k): continue
-		changed.append(OptionChangeToProgramRun[k])
-		setops[k] = v
-	REINIT = False
-	EVAL_TARGET = False
-	EVAL_CORPUS = False
-	EVAL_NORM = False
-	EVAL_CONCATE = False
-	EVAL_OUTPUT = False
-	if 'reinit' in changed:
-		return True, True, True, True, True, True
-	else:
-		if 'target' in changed:
-			EVAL_TARGET = True
-			EVAL_NORM = True
-			EVAL_CONCATE = True
-			EVAL_OUTPUT = True			
-		if 'corpus' in changed:
-			EVAL_CORPUS = True
-			EVAL_NORM = True
-			EVAL_CONCATE = True
-			EVAL_OUTPUT = True			
-		if 'norm' in changed:
-			EVAL_NORM = True
-			EVAL_CONCATE = True
-			EVAL_OUTPUT = True			
-		if 'concate' in changed:
-			EVAL_CONCATE = True
-			EVAL_OUTPUT = True			
-		if 'output' in changed:
-			EVAL_OUTPUT = True			
-	return REINIT, EVAL_TARGET, EVAL_CORPUS, EVAL_NORM, EVAL_CONCATE, EVAL_OUTPUT, setops

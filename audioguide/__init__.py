@@ -388,7 +388,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
-			this_aaf.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'])
+			this_aaf.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.AAF_CPSTRACK_METHOD)
 			this_aaf.done()
 			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
 			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )

@@ -20,17 +20,19 @@ class output:
 		self.f = aaf2.open(aaf_filepath, "w")
 		self.aaf_sr = aaf_sr
 		self.filepath_to_mob = {}
-		self.trackcnt = 0
+		self.trackcnt = {'tgt': 0, 'cps': 0}
+		self.alltrackcnt = 0
 		self.comp_mob = self.f.create.CompositionMob("Composition")
 		self.f.content.mobs.append(self.comp_mob)
 
 
-	def _add_track(self, seq, name):
+	def _add_track(self, seq, name, type='cps'):
 		timeline_slot = self.comp_mob.create_timeline_slot("%i" % self.aaf_sr)
-		timeline_slot['PhysicalTrackNumber'].value = self.trackcnt
+		timeline_slot['PhysicalTrackNumber'].value = self.alltrackcnt
 		timeline_slot.name = name
 		timeline_slot.segment = seq	
-		self.trackcnt += 1
+		self.trackcnt[type] += 1
+		self.alltrackcnt += 1
 		
 	def addSoundfileResource(self, cpsfullpath, infodict):
 		'''each target/corpus soundfile used in the concatenation must be passed to this function to register the filepath, sr, format, duration, etc'''
@@ -44,47 +46,58 @@ class output:
 	def makeTgtTrack(self, tgtobj):
 		sequence = self.f.create.Sequence(media_kind="sound")
 		sequence.components.append(self.filepath_to_mob[tgtobj.filename].create_source_clip(slot_id=1, start=int(tgtobj.startSec*self.aaf_sr), length=int((tgtobj.endSec-tgtobj.startSec)*self.aaf_sr))) # sound
-		self._add_track(sequence, 'target')
+		self._add_track(sequence, 'target', type='tgt')
 	
 	
-	def makeCpsTracks(self, eventlist, vcToCorpusName):
+	def makeCpsTracks(self, eventlist, vcToCorpusName, aaf_track_method):
 		grand_old_dict = {}
 		for e in eventlist:
-			if e.voiceID not in grand_old_dict: grand_old_dict[e.voiceID] = {}
-			if e.sfchnls not in grand_old_dict[e.voiceID]: grand_old_dict[e.voiceID][e.sfchnls] = []
-			grand_old_dict[e.voiceID][e.sfchnls].append((int(e.timeInScore*self.aaf_sr), int((e.timeInScore+e.duration)*self.aaf_sr), int(e.sfSkip*self.aaf_sr), e.filename))
-		# organize all selected notes into tracks with no overlapping sound segments and with unique channel counts
-		all_tracks = []
-		for voice in grand_old_dict:
-			track_string = util.cpsPathToTrackName(vcToCorpusName[voice])
-			for chn_cnout in grand_old_dict[voice]:
-				tracks = [[]]
-				for startidx, stopidx, skipidx, fullpath in grand_old_dict[voice][chn_cnout]:
-					track_find_idx = 0
-					while True:
-						if len(tracks[track_find_idx]) == 0 or tracks[track_find_idx][-1][1] < startidx: break
-						track_find_idx += 1
-						if track_find_idx > len(tracks)-1: tracks.append([])
-					tracks[track_find_idx].append((startidx, stopidx, skipidx, fullpath))
-				all_tracks.append(("%s %ich"%(track_string, chn_cnout), tracks))
+			if aaf_track_method == 'cpsidx': 
+				sortkey = (e.voiceID, e.sfchnls)
+				trackname = "%s %ich"%(util.cpsPathToTrackName(vcToCorpusName[e.voiceID]), e.sfchnls)
+			elif aaf_track_method == 'minimum':
+				sortkey = (e.sfchnls)
+				trackname = "cps %ich"%(e.sfchnls)
+			if not sortkey in grand_old_dict: grand_old_dict[sortkey] = [trackname, []]
+			grand_old_dict[sortkey][1].append((e.powerSeg, int(e.timeInScore*self.aaf_sr), int((e.timeInScore+e.duration)*self.aaf_sr), int(e.sfSkip*self.aaf_sr), e.filename))
 
-		for trackstring, tracks in all_tracks:
-			for tidx, t in enumerate(tracks):
+		ordering = list(grand_old_dict.keys())
+		ordering.sort()
+
+		for sortkey in ordering:
+			track_assign = {}
+			grand_old_dict[sortkey][1].sort(reverse=True) # loudest sounds first
+			for power, startidx, stopidx, skipidx, fullpath in grand_old_dict[sortkey][1]:
+				tidx = 0
+				while True:
+					if tidx not in track_assign: track_assign[tidx] = []
+					if True in [startidx <= stop and start <= stopidx for start, stop, skip, fpath in track_assign[tidx]]: tidx += 1
+					else: break
+				track_assign[tidx].append((startidx, stopidx, skipidx, fullpath))
+
+			track_assign = [(k, v) for k, v in track_assign.items()]
+			track_assign.sort()
+			for tidx, t in track_assign:
 				# make a track
 				sequence = self.f.create.Sequence(media_kind="sound")
 				idx_cnt = 0
-				for e in t:
+				for e in sorted(t, key=lambda x: x[0]):
 					if e[0] > idx_cnt: # add silence
 						sequence.components.append(self.f.create.Filler("sound", e[0]-idx_cnt)) # silence
 					# add sound clip
 					sequence.components.append(self.filepath_to_mob[e[3]].create_source_clip(slot_id=1, start=e[2], length=e[1]-e[0])) # sound
 					idx_cnt = e[1]
-				self._add_track(sequence, trackstring)
+				self._add_track(sequence, grand_old_dict[sortkey][0])
 
 
-	def done(self):
+
+	def done(self, verbose=True):
 		'''close the aaf file'''
 		self.f.close()
+		if verbose and self.trackcnt['tgt'] == 0:
+			print("Wrote %i corpus tracks to the AAF output"%(self.trackcnt['cps']))
+		elif verbose:
+			print("Wrote target track and %i corpus tracks to the AAF output"%(self.trackcnt['cps']))
 	
 
 
