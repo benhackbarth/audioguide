@@ -48,7 +48,7 @@ class distanceCalculations:
 	def setCorpus(self, cpssegs):
 		self.corpusObjs = cpssegs
 	##############################
-	def executeSearch(self, tgtseg, tgtSeek, seach_pass_objs, superimposeObj, randomizeAmpForSimSelection):	
+	def executeSearch(self, tgtseg, tgtSeek, seach_pass_objs, superimposeObj):	
 		self.searchMinMax = []
 		self.logTextOutput = ''
 		self.lengthAtPasses = ['%i'%len(self.corpusObjs)] # start with initial size for printing
@@ -83,7 +83,7 @@ class distanceCalculations:
 				elif spassobj.submethod in ['closest', 'closest_percent', 'farthest', 'farthest_percent']:
 					if parseTest: dlist = spassobj.parse_choiceargs[0]
 					else: dlist = spassobj.parse_choiceargs[1]
-					mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, dlist, spassobj.submethod, True, superimposeObj, randomizeAmpForSimSelection)
+					mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, dlist, spassobj.submethod, True, superimposeObj)
 					newList = self.selectFromSortedList(spassobj.submethod, spassobj.percent)
 
 			################################
@@ -142,7 +142,7 @@ class distanceCalculations:
 			## search segmented and timevarying feature distances ##
 			########################################################		
 			elif spassobj.method in ['closest', 'farthest', 'closest_percent', 'farthest_percent']:
-				mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, spassobj.descriptor_list, spassobj.method, spassobj.complete_results, superimposeObj, randomizeAmpForSimSelection)
+				mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, spassobj.descriptor_list, spassobj.method, spassobj.complete_results, superimposeObj)
 				
 				# clip corpus list to reflect search results and scope
 				newList = self.selectFromSortedList(spassobj.method, spassobj.percent)
@@ -186,7 +186,7 @@ class distanceCalculations:
 		array_len = min(tgt_len, cps_len)
 		return tgtstart, array_len
 	##############################
-	def getFeatureDifferences(self, tgtseg, tgtSeek, descriptor_list, spassMethod, complete_results, superimposeObj, randomizeAmpForSimSelection):
+	def getFeatureDifferences(self, tgtseg, tgtSeek, descriptor_list, spassMethod, complete_results, superimposeObj):
 		min_accum = sys.maxsize
 		for c in self.corpusObjs:
 			#print c.filename, c.scaleDistance
@@ -197,9 +197,6 @@ class distanceCalculations:
 				for d in descriptor_list:
 					tgtvals, cpsvals = getValuesForSimCalc( tgtseg, tgt_start, array_len, c, d, superimposeObj )
 					if d.seg:
-						# SPECIAL EXCEPTION IF MANIPULATING POWER FOR SIMULTANEOUS LAYERING:
-						if d.name == 'power-seg' and randomizeAmpForSimSelection and self.segmentDensityAmpScalers[0]!= self.segmentDensityAmpScalers[1]:
-							tgtvals *= random.uniform(self.segmentDensityAmpScalers[0], self.segmentDensityAmpScalers[1])							
 						dist = ((tgtvals-cpsvals)**2)*(d.weight*c.scaleDistance)
 						#print "\t", dist
 						c.sim_accum += dist

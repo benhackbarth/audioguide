@@ -265,7 +265,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				################################################
 				## search and see if we find a winning sample ##
 				################################################
-				returnBool = distanceCalculations.executeSearch(tgtseg, tgtseg.seek, self.ops.SEARCH, self.ops.SUPERIMPOSE, self.ops.RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION)
+				returnBool = distanceCalculations.executeSearch(tgtseg, tgtseg.seek, self.ops.SEARCH, self.ops.SUPERIMPOSE)
 				if not returnBool: # nothing valid, so skip to new frame...
 					superimp.skip('no corpus sounds made it through the search passes', None, timeInSec)
 					tgtseg.seek += self.ops.SUPERIMPOSE.incr

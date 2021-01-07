@@ -126,7 +126,6 @@ UserVar_types = {
 'RANDOM_SEED': ['None', 'a number'],
 'OUTPUT_GAIN_DB': ['a number'],
 'ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS': ['True or False'],
-'RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION': ['True or False'],
 
 #######  POST-CONCATENATION EVENT MANIPULATION  #######
 'OUTPUTEVENT_ALIGN_PEAKS': ['True or False'],
@@ -230,7 +229,6 @@ OptionChangeToProgramRun = {
 "CLUSTER_MAPPING": "norm",
 
 "ALWAYS_MAKE_COMPLETE_MATCHING_RESULTS": "concate",
-"RANDOMIZE_AMPLITUDE_FOR_SIM_SELECTION": "concate",
 "OUTPUT_GAIN_DB": "concate",
 "RANDOM_SEED": "concate",
 
