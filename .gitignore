@@ -5,6 +5,7 @@ corpi/*
 targets/*
 www/*
 *.bbprojectd
+*.reapeaks
 *.pyc
 layering_demo/*
 audioguide/data*
