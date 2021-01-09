@@ -16,6 +16,7 @@ AudioGuide differs from other programs for concatenative synthesis in several no
 * AudioGuide can create a variety of different output files:
     * a csound score that is automatically rendered at the end of the concatenative process
     * an .aaf file you can import into Logic/Pro Tools
-    * a file you can load into bach.roll in Max/MSP
+     * a .rpp file you can open in Reaper
+   * a file you can load into bach.roll in Max/MSP
     * a json file you can use in Max/MSP (or somewhere else)
 
