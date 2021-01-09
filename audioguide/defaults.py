@@ -12,6 +12,7 @@ DICT_OUTPUT_FILEPATH = 'output/output.json'
 MAXMSP_OUTPUT_FILEPATH = 'output/output.maxmsp.json'
 BACH_FILEPATH = 'output/bachroll.txt'
 AAF_FILEPATH = None # 'output/test.aaf'
+RPP_FILEPATH = None # 'output/test.rpp'
 TARGET_DESCRIPTORS_FILEPATH = None # 'output/targetdescriptors.json'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH = None
@@ -70,6 +71,10 @@ BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env',
 ###########  AAF   ########
 AAF_INCLUDE_TARGET = False
 AAF_CPSTRACK_METHOD = 'cpsidx'
+
+###########  RPP   ########
+RPP_INCLUDE_TARGET = False
+RPP_CPSTRACK_METHOD = 'cpsidx'
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################
 DESCRIPTOR_DATABASE_SIZE_LIMIT = 1

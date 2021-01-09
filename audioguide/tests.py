@@ -104,6 +104,7 @@ UserVar_types = {
 'CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH': ['None', 'a string'],
 'BACH_FILEPATH': ['None', 'a string'],
 'AAF_FILEPATH': ['None', 'a string'],
+'RPP_FILEPATH': ['None', 'a string'],
 
 
 
@@ -157,6 +158,10 @@ UserVar_types = {
 # AAF
 'AAF_INCLUDE_TARGET': ['True or False'],
 'AAF_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
+
+# RPP
+'RPP_INCLUDE_TARGET': ['True or False'],
+'RPP_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
@@ -254,6 +259,10 @@ OptionChangeToProgramRun = {
 "AAF_FILEPATH": "output",
 "AAF_INCLUDE_TARGET": "output",
 "AAF_CPSTRACK_METHOD": "output",
+
+"RPP_FILEPATH": "output",
+"RPP_INCLUDE_TARGET": "output",
+"RPP_CPSTRACK_METHOD": "output",
 
 "DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",
 "DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",

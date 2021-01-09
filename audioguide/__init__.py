@@ -394,6 +394,20 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
 
 
+		################
+		## RPP output ##
+		################
+		if self.ops.RPP_FILEPATH != None:
+			import audioguide.reaper as rpp
+			this_rpp = rpp.output(self.ops.RPP_FILEPATH)
+			if self.ops.RPP_INCLUDE_TARGET:
+				this_rpp.makeTgtTrack(self.tgt)
+			this_rpp.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.RPP_CPSTRACK_METHOD)
+			this_rpp.write()
+			dict_of_files_written['RPP_FILEPATH'] = self.ops.RPP_FILEPATH
+			self.p.log( "Wrote rpp file %s\n"%self.ops.RPP_FILEPATH )
+
+
 
 		######################
 		## dict output file ##
