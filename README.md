@@ -1,6 +1,4 @@
-#AudioGuide
-
-AudioGuide is a program for concatenative synthesis developed by Ben Hackbarth, Norbert Schnell, Philippe Esling, and Diemo Schwarz.  It is written in python, however, do not need to know python to use AudioGuide - the user supplies simple options files that are written in python's syntax to interact with the program.
+AudioGuide is a program for concatenative synthesis developed by Ben Hackbarth, Norbert Schnell, Philippe Esling, and Diemo Schwarz.  It is written in python, however, one does not need to code in python to use AudioGuide - the user supplies simple options files that are written in python's syntax to interact with the program.
 
 AudioGuide differs from other programs for concatenative synthesis in several notable ways:
 
