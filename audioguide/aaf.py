@@ -17,7 +17,8 @@ except ImportError:
 
 class output:
 	def __init__(self, aaf_filepath, aaf_sr=44100):
-		self.f = aaf2.open(aaf_filepath, "w")
+		self.path = aaf_filepath
+		self.f = aaf2.open(self.path, "w")
 		self.aaf_sr = aaf_sr
 		self.filepath_to_mob = {}
 		self.trackcnt = {'tgt': 0, 'cps': 0}
@@ -91,7 +92,7 @@ class output:
 
 
 
-	def done(self, verbose=True):
+	def done(self, autolaunchbool, verbose=True):
 		'''close the aaf file'''
 		self.f.close()
 		if verbose and self.trackcnt['tgt'] == 0:
@@ -99,7 +100,12 @@ class output:
 		elif verbose:
 			print("Wrote target track and %i corpus tracks to the AAF output"%(self.trackcnt['cps']))
 	
-
-
+		if autolaunchbool:
+			import subprocess
+			command = ['open', self.path]
+			try:
+				p = subprocess.Popen(command)
+			except OSError:
+				print('commandline', 'Command line call failed: \n\n"%s"'%' '.join(command))
 
 

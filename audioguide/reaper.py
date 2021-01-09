@@ -10,7 +10,8 @@ import audioguide.util as util
 
 class output:
 	def __init__(self, rpp_filepath):
-		self.f = open(rpp_filepath, "w")
+		self.path = rpp_filepath
+		self.f = open(self.path, "w")
 		self.tracks = []
 
 
@@ -47,7 +48,7 @@ class output:
 			track_assign.sort()
 			for tidx, t in track_assign: self.tracks.append([grand_old_dict[sortkey][0], t, 'cps'])
 
-	def write(self, verbose=True):
+	def write(self, autolaunchbool, verbose=True):
 		'''write and close the rpp file
 		according to https://github.com/ReaTeam/Doc/blob/master/State%20Chunk%20Definitions'''
 		all_tracks_str = ''
@@ -82,5 +83,10 @@ class output:
 		elif verbose:
 			print("Wrote target track and %i corpus tracks to the RPP reaper output"%(len(self.tracks)-1))
 	
-
-
+		if autolaunchbool:
+			import subprocess
+			command = ['open', self.path]
+			try:
+				p = subprocess.Popen(command)
+			except OSError:
+				print('commandline', 'Command line call failed: \n\n"%s"'%' '.join(command))

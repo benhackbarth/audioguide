@@ -158,10 +158,12 @@ UserVar_types = {
 # AAF
 'AAF_INCLUDE_TARGET': ['True or False'],
 'AAF_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
+'AAF_AUTOLAUNCH': ['True or False'],
 
 # RPP
 'RPP_INCLUDE_TARGET': ['True or False'],
 'RPP_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
+'RPP_AUTOLAUNCH': ['True or False'],
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
@@ -259,10 +261,12 @@ OptionChangeToProgramRun = {
 "AAF_FILEPATH": "output",
 "AAF_INCLUDE_TARGET": "output",
 "AAF_CPSTRACK_METHOD": "output",
+"AAF_AUTOLAUNCH": "output",
 
 "RPP_FILEPATH": "output",
 "RPP_INCLUDE_TARGET": "output",
 "RPP_CPSTRACK_METHOD": "output",
+"RPP_AUTOLAUNCH": "output",
 
 "DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",
 "DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",

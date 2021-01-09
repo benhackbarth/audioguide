@@ -389,7 +389,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
 			this_aaf.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.AAF_CPSTRACK_METHOD)
-			this_aaf.done()
+			this_aaf.done(self.ops.AAF_AUTOLAUNCH)
 			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
 			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
 
@@ -403,7 +403,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			if self.ops.RPP_INCLUDE_TARGET:
 				this_rpp.makeTgtTrack(self.tgt)
 			this_rpp.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.RPP_CPSTRACK_METHOD)
-			this_rpp.write()
+			this_rpp.write(self.ops.RPP_AUTOLAUNCH)
 			dict_of_files_written['RPP_FILEPATH'] = self.ops.RPP_FILEPATH
 			self.p.log( "Wrote rpp file %s\n"%self.ops.RPP_FILEPATH )
 

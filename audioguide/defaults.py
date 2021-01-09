@@ -71,10 +71,12 @@ BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env',
 ###########  AAF   ########
 AAF_INCLUDE_TARGET = False
 AAF_CPSTRACK_METHOD = 'cpsidx'
+AAF_AUTOLAUNCH = False
 
 ###########  RPP   ########
 RPP_INCLUDE_TARGET = False
 RPP_CPSTRACK_METHOD = 'cpsidx'
+RPP_AUTOLAUNCH = False
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################
 DESCRIPTOR_DATABASE_SIZE_LIMIT = 1
