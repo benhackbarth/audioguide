@@ -5,15 +5,12 @@
 import os
 import audioguide.util as util
 
+'''Creates an aaf output file for logic / pro tools.'''
 
 try:
 	import aaf2
 except ImportError:
 	util.missing_module('aaf2')
-
-
-
-'''Creates an aaf output file for logic / pro tools.'''
 
 class output:
 	def __init__(self, aaf_filepath, aaf_sr=44100):
@@ -25,8 +22,7 @@ class output:
 		self.alltrackcnt = 0
 		self.comp_mob = self.f.create.CompositionMob("Composition")
 		self.f.content.mobs.append(self.comp_mob)
-
-
+	###########################################
 	def _add_track(self, seq, name, type='cps'):
 		timeline_slot = self.comp_mob.create_timeline_slot("%i" % self.aaf_sr)
 		timeline_slot['PhysicalTrackNumber'].value = self.alltrackcnt
@@ -34,7 +30,7 @@ class output:
 		timeline_slot.segment = seq	
 		self.trackcnt[type] += 1
 		self.alltrackcnt += 1
-		
+	###########################################
 	def addSoundfileResource(self, cpsfullpath, infodict):
 		'''each target/corpus soundfile used in the concatenation must be passed to this function to register the filepath, sr, format, duration, etc'''
 		sf_format = os.path.splitext(cpsfullpath)[1][1:].lower()
@@ -42,14 +38,12 @@ class output:
 		meta = {'streams': [{'index': 0, 'codec_type': 'audio', 'sample_rate': '%i'%(infodict['sr']), 'channels': infodict['channels'], 'duration_ts': infodict['lengthsamples']}], 'format': {'filename': cpsfullpath, 'format_name': sf_format}}
 		master_mob, source_mob, tape_mob = self.f.content.link_external_wav(meta)
 		self.filepath_to_mob[cpsfullpath] = master_mob
-
-
+	###########################################
 	def makeTgtTrack(self, tgtobj):
 		sequence = self.f.create.Sequence(media_kind="sound")
 		sequence.components.append(self.filepath_to_mob[tgtobj.filename].create_source_clip(slot_id=1, start=int(tgtobj.startSec*self.aaf_sr), length=int((tgtobj.endSec-tgtobj.startSec)*self.aaf_sr))) # sound
 		self._add_track(sequence, 'target', type='tgt')
-	
-	
+	###########################################
 	def makeCpsTracks(self, sorted_cps_tracks):
 		for trackname, trackeventdicts, tracksource in sorted_cps_tracks:
 			# make a track
@@ -66,8 +60,7 @@ class output:
 				sequence.components.append(self.filepath_to_mob[d['file']].create_source_clip(slot_id=1, start=skipsr, length=durationsr)) # sound
 				idx_cnt = stopsr
 			self._add_track(sequence, trackname)
-
-
+	###########################################
 	def done(self, autolaunchbool, verbose=True):
 		'''close the aaf file'''
 		self.f.close()
