@@ -6,51 +6,50 @@ import os
 import audioguide.util as util
 
 
-'''Creates an rpp output file for reaper.'''
+'''Creates a rpp output file for reaper.'''
 
 class output:
 	def __init__(self, rpp_filepath):
 		self.path = rpp_filepath
-		self.f = open(self.path, "w")
 		self.tracks = []
 
 
 	def makeTgtTrack(self, tgtobj):
-		self.tracks.append(['target', [{"file": tgtobj.filename, 'name': tgtobj.whole.printName, 'time': 0, "skip": tgtobj.startSec, "duration": tgtobj.endSec-tgtobj.startSec, "amp": util.dbToAmp(tgtobj.envDb), "fadein": tgtobj.whole.envAttackSec, 'fadeout': tgtobj.whole.envDecaySec, 'transposition': 0}], 'tgt'])
+		self.tracks.append(['target', [{"file": tgtobj.filename, 'name': tgtobj.whole.printName, 'time': 0, "skip": tgtobj.startSec, "duration": tgtobj.endSec-tgtobj.startSec, "ampscale": util.dbToAmp(tgtobj.envDb), "fadein": tgtobj.whole.envAttackSec, 'fadeout': tgtobj.whole.envDecaySec, 'transposition': 0}], 'tgt'])
 	
-	def makeCpsTracks(self, eventlist, vcToCorpusName, aaf_track_method):
+	def makeCpsTracks(self, eventlist, vcToCorpusName, rpp_track_method):
 		grand_old_dict = {}
 		for e in eventlist:
-			if aaf_track_method == 'cpsidx': 
+			if rpp_track_method == 'cpsidx': 
 				sortkey = (e.voiceID, e.sfchnls)
 				trackname = "%s %ich"%(util.cpsPathToTrackName(vcToCorpusName[e.voiceID]), e.sfchnls)
-			elif aaf_track_method == 'minimum':
+			elif rpp_track_method == 'minimum':
 				sortkey = (e.sfchnls)
 				trackname = "cps %ich"%(e.sfchnls)
 			if not sortkey in grand_old_dict: grand_old_dict[sortkey] = [trackname, []]
-			grand_old_dict[sortkey][1].append((e.powerSeg, e.timeInScore, e.timeInScore+e.duration, e.sfSkip, e.filename, e.envDb, e.envAttackSec, e.envDecaySec, e.transposition, e.printName))
-
+			grand_old_dict[sortkey][1].append({'file': e.filename, 'name': e.printName, 'time': e.timeInScore, 'stop': e.timeInScore+e.duration, "skip": e.sfSkip, "duration": e.duration, "amp": e.powerSeg, "ampscale": util.dbToAmp(e.envDb), "fadein": e.envAttackSec, 'fadeout': e.envDecaySec, 'transposition': e.transposition})
 		ordering = list(grand_old_dict.keys())
 		ordering.sort()
 
 		for sortkey in ordering:
 			track_assign = {}
-			grand_old_dict[sortkey][1].sort(reverse=True) # loudest sounds first
-			for power, startidx, stopidx, skipidx, fullpath, envdb, attacksec, decaysec, transposition, printname in grand_old_dict[sortkey][1]:
+			sorteddicts = sorted(grand_old_dict[sortkey][1], key=lambda k: k['amp'], reverse=True) # loudest sounds first
+
+			for segmentdict in sorteddicts:
 				tidx = 0
 				while True:
 					if tidx not in track_assign: track_assign[tidx] = []
-					if True in [startidx <= dicty['stop'] and dicty['time'] <= stopidx for dicty in track_assign[tidx]]: tidx += 1
+					if True in [segmentdict['time'] <= dicty['stop'] and dicty['time'] <= segmentdict['stop'] for dicty in track_assign[tidx]]: tidx += 1
 					else: break
-				track_assign[tidx].append({"file": fullpath, 'name': printname, 'time': startidx, 'stop': stopidx, "skip": skipidx, "duration": stopidx-startidx, "amp": util.dbToAmp(envdb), "fadein": attacksec, 'fadeout': decaysec, 'transposition': transposition})
-
+				track_assign[tidx].append(segmentdict)
 			track_assign = [(k, v) for k, v in track_assign.items()]
 			track_assign.sort()
 			for tidx, t in track_assign: self.tracks.append([grand_old_dict[sortkey][0], t, 'cps'])
 
-	def write(self, autolaunchbool, verbose=True):
+	def write(self, autolaunchbool, verbose=True, rpp_header='REAPER_PROJECT 0.1 "6.11/x64" 1591355987'):
 		'''write and close the rpp file
 		according to https://github.com/ReaTeam/Doc/blob/master/State%20Chunk%20Definitions'''
+		f = open(self.path, "w")
 		all_tracks_str = ''
 		for trackname, trackitems, trackorigin in self.tracks:
 			track_str = ''
@@ -69,14 +68,14 @@ class output:
         FILE "%s"
       >
      >
-'''%(d['time'], d['name'], d['duration'], d['skip'], d['amp'], d['amp'], d['fadein'], d['fadeout'], d['transposition'], d['file'])
+'''%(d['time'], d['name'], d['duration'], d['skip'], d['ampscale'], d['ampscale'], d['fadein'], d['fadeout'], d['transposition'], d['file'])
 			all_tracks_str += '''  <TRACK 
    NAME "%s"
 %s  >
 '''%(trackname, track_str)
-		self.f.write('''<REAPER_PROJECT 0.1 "6.11/x64" 1591355987
-%s>'''%(all_tracks_str))
-		self.f.close()
+		f.write('''<%s
+%s>'''%(rpp_header, all_tracks_str))
+		f.close()
 
 		if verbose and 'tgt' not in [t[2] for t in self.tracks]:
 			print("Wrote %i corpus tracks to the RPP reaper output"%(len(self.tracks)))
