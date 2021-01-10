@@ -1,3 +1,12 @@
+##################
+## Version 1.71 ##
+##################
+• Audioguide now supports writing reaper .rpp files. See examples/11-dawOutput.py for details.
+
+• Added options for automatically launching .rpp and .aaf files after they are written. See AAF_AUTOLAUNCH and RPP_AUTOLAUNCH.
+
+
+
 #################
 ## Version 1.7 ##
 #################
@@ -5,7 +14,7 @@
 https://www.youtube.com/channel/UCGvNi_pIEvWuiF_w3ZK8jOQ
 http://www.benhackbarth.com/audioGuide/tutorial.html
 
-• AudioGuide concatenations can now be written to .aaf files and opened in Logic/Pro Tools. See examples/11-logicOutput.py or https://www.youtube.com/watch?v=rHQI-jXd6iU
+• AudioGuide concatenations can now be written to .aaf files and opened in Logic/Pro Tools. See examples/11-dawOutput.py or https://www.youtube.com/watch?v=rHQI-jXd6iU
 
 • Nadir Babouri created an AudioGuide package for the Atom Text Editor. See https://github.com/nadirB/audioguide-snippets
 
