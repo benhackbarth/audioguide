@@ -388,7 +388,9 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
-			this_aaf.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.AAF_CPSTRACK_METHOD)
+
+			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
+			this_aaf.makeCpsTracks(sorted_cps_tracks)
 			this_aaf.done(self.ops.AAF_AUTOLAUNCH)
 			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
 			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
@@ -402,7 +404,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			this_rpp = rpp.output(self.ops.RPP_FILEPATH)
 			if self.ops.RPP_INCLUDE_TARGET:
 				this_rpp.makeTgtTrack(self.tgt)
-			this_rpp.makeCpsTracks(self.outputEvents, self.cps.data['vcToCorpusName'], self.ops.RPP_CPSTRACK_METHOD)
+			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
+			this_rpp.tracks.extend(sorted_cps_tracks)
 			this_rpp.write(self.ops.RPP_AUTOLAUNCH)
 			dict_of_files_written['RPP_FILEPATH'] = self.ops.RPP_FILEPATH
 			self.p.log( "Wrote rpp file %s\n"%self.ops.RPP_FILEPATH )

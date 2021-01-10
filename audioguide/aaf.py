@@ -50,46 +50,22 @@ class output:
 		self._add_track(sequence, 'target', type='tgt')
 	
 	
-	def makeCpsTracks(self, eventlist, vcToCorpusName, aaf_track_method):
-		grand_old_dict = {}
-		for e in eventlist:
-			if aaf_track_method == 'cpsidx': 
-				sortkey = (e.voiceID, e.sfchnls)
-				trackname = "%s %ich"%(util.cpsPathToTrackName(vcToCorpusName[e.voiceID]), e.sfchnls)
-			elif aaf_track_method == 'minimum':
-				sortkey = (e.sfchnls)
-				trackname = "cps %ich"%(e.sfchnls)
-			if not sortkey in grand_old_dict: grand_old_dict[sortkey] = [trackname, []]
-			grand_old_dict[sortkey][1].append((e.powerSeg, int(e.timeInScore*self.aaf_sr), int((e.timeInScore+e.duration)*self.aaf_sr), int(e.sfSkip*self.aaf_sr), e.filename))
-
-		ordering = list(grand_old_dict.keys())
-		ordering.sort()
-
-		for sortkey in ordering:
-			track_assign = {}
-			grand_old_dict[sortkey][1].sort(reverse=True) # loudest sounds first
-			for power, startidx, stopidx, skipidx, fullpath in grand_old_dict[sortkey][1]:
-				tidx = 0
-				while True:
-					if tidx not in track_assign: track_assign[tidx] = []
-					if True in [startidx <= stop and start <= stopidx for start, stop, skip, fpath in track_assign[tidx]]: tidx += 1
-					else: break
-				track_assign[tidx].append((startidx, stopidx, skipidx, fullpath))
-
-			track_assign = [(k, v) for k, v in track_assign.items()]
-			track_assign.sort()
-			for tidx, t in track_assign:
-				# make a track
-				sequence = self.f.create.Sequence(media_kind="sound")
-				idx_cnt = 0
-				for e in sorted(t, key=lambda x: x[0]):
-					if e[0] > idx_cnt: # add silence
-						sequence.components.append(self.f.create.Filler("sound", e[0]-idx_cnt)) # silence
-					# add sound clip
-					sequence.components.append(self.filepath_to_mob[e[3]].create_source_clip(slot_id=1, start=e[2], length=e[1]-e[0])) # sound
-					idx_cnt = e[1]
-				self._add_track(sequence, grand_old_dict[sortkey][0])
-
+	def makeCpsTracks(self, sorted_cps_tracks):
+		for trackname, trackeventdicts, tracksource in sorted_cps_tracks:
+			# make a track
+			sequence = self.f.create.Sequence(media_kind="sound")
+			idx_cnt = 0
+			for d in sorted(trackeventdicts, key=lambda x: x['time']):
+				timesr = int(d['time']*self.aaf_sr)
+				stopsr = int(d['stop']*self.aaf_sr)
+				durationsr = int(d['duration']*self.aaf_sr)
+				skipsr = int(d['skip']*self.aaf_sr)
+				if timesr > idx_cnt: # add silence
+					sequence.components.append(self.f.create.Filler("sound", timesr-idx_cnt)) # silence
+				# add sound clip
+				sequence.components.append(self.filepath_to_mob[d['file']].create_source_clip(slot_id=1, start=skipsr, length=durationsr)) # sound
+				idx_cnt = stopsr
+			self._add_track(sequence, trackname)
 
 
 	def done(self, autolaunchbool, verbose=True):

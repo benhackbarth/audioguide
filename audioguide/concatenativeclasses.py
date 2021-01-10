@@ -936,6 +936,46 @@ class outputEvent:
 
 
 
+
+
+
+
+def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName):
+	grand_old_dict = {}
+	output = []
+	for e in eventlist:
+		if track_method == 'cpsidx': 
+			sortkey = (e.voiceID, e.sfchnls)
+			trackname = "%s %ich"%(util.cpsPathToTrackName(vcToCorpusName[e.voiceID]), e.sfchnls)
+		elif track_method == 'minimum':
+			sortkey = (e.sfchnls)
+			trackname = "cps %ich"%(e.sfchnls)
+		if not sortkey in grand_old_dict: grand_old_dict[sortkey] = [trackname, []]
+		grand_old_dict[sortkey][1].append(e)
+	ordering = list(grand_old_dict.keys())
+	ordering.sort()
+	for sortkey in ordering:
+		track_assign = {}
+		sorted_eobjs = sorted(grand_old_dict[sortkey][1], key=lambda k: k.powerSeg, reverse=True) # loudest sounds first
+		for e in sorted_eobjs:
+			tidx = 0
+			while True:
+				if tidx not in track_assign: track_assign[tidx] = []
+				if True in [e.timeInScore <= te.timeInScore+te.duration and te.timeInScore <= e.timeInScore+e.duration for te in track_assign[tidx]]:
+					tidx += 1
+				else: break
+			track_assign[tidx].append(e)
+		track_assign = [(k, v) for k, v in track_assign.items()]
+		track_assign.sort()
+		for tidx, t in track_assign:
+			events_as_dicts = [{'file': e.filename, 'name': e.printName, 'time': e.timeInScore, 'stop': e.timeInScore+e.duration, "skip": e.sfSkip, "duration": e.duration, "amp": e.powerSeg, "ampscale": util.dbToAmp(e.envDb), "fadein": e.envAttackSec, 'fadeout': e.envDecaySec, 'transposition': e.transposition} for e in t]
+			output.append([grand_old_dict[sortkey][0], events_as_dicts, 'cps'])
+	return output
+		
+
+
+
+
 def quantizeTime(outputEvents, method, interval, p):
 	if method == None:
 		'''Does nothing'''
