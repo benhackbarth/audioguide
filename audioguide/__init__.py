@@ -19,7 +19,7 @@ import audioguide.userinterface as userinterface
 import audioguide.concatenativeclasses as concatenativeclasses
 import audioguide.anallinkage as anallinkage
 import audioguide.descriptordata as descriptordata
-import audioguide.musicalwriting as musicalwriting
+import audioguide.fileoutput.musicalwriting as musicalwriting
 import audioguide.simcalc as simcalc
 import audioguide.tests as tests
 import audioguide.dimscaling as dimscaling
@@ -380,7 +380,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## AAF output ##
 		################
 		if self.ops.AAF_FILEPATH != None:
-			import audioguide.aaf as aaf
+			import audioguide.fileoutput.aaf as aaf
 			this_aaf = aaf.output(self.ops.AAF_FILEPATH)
 			if self.ops.AAF_INCLUDE_TARGET:
 				this_aaf.addSoundfileResource(self.tgt.filename, self.AnalInterface.rawData[self.tgt.filename]['info'])
@@ -400,7 +400,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## RPP output ##
 		################
 		if self.ops.RPP_FILEPATH != None:
-			import audioguide.reaper as rpp
+			import audioguide.fileoutput.reaper as rpp
 			this_rpp = rpp.output(self.ops.RPP_FILEPATH)
 			if self.ops.RPP_INCLUDE_TARGET:
 				this_rpp.makeTgtTrack(self.tgt)
@@ -506,7 +506,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## csound CSD output file ##
 		############################
 		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None:
-			from audioguide import csoundinterface as csd
+			from audioguide.fileoutput import csoundinterface as csd
 			maxOverlaps = np.max([oe.simSelects for oe in self.outputEvents])
 			csSco = 'i2  0.  %f  %f  "%s"  %f  %i\n\n'%(self.tgt.endSec-self.tgt.startSec, self.tgt.whole.envDb, self.tgt.filename, self.tgt.startSec, int(self.ops.CSOUND_CHANNEL_RENDER_METHOD == 'targetoutputmix'))
 	
@@ -530,7 +530,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## csound simple score output ##
 		################################
 		if self.ops.CSOUND_SCORE_FILEPATH != None:
-			from audioguide import csoundinterface as csd
+			from audioguide.fileoutput import csoundinterface as csd
 			csSco = csd.instru2helpstring()+'\n'
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
 			fh = open(self.ops.CSOUND_SCORE_FILEPATH, 'w')

@@ -5,7 +5,7 @@
 
 import sys, re, os
 import audioguide.util as util
-import audioguide.html5output as html5output
+import audioguide.fileoutput.html5output as html5output
 
 
 if sys.version_info < (3, 0):
