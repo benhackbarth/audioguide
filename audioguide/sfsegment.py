@@ -196,8 +196,8 @@ class target: # the target
 		self.decompose = userOptsTargetObject.decompose
 		if self.decompose != {}:
 			if self.startSec == None: self.startSec = 0
-			import audioguide.signaldecompose as signaldecompose
-			newtargetpath, origtargetduration = signaldecompose.decomposeTargetSf(self.filename, self.startSec, self.endSec, self.decompose)
+			import audioguide.fileoutput.signaldecompose as signaldecompose
+			newtargetpath, origtargetduration = signaldecompose.decomposeTargetSf(self.filename, self.startSec, self.endSec, self.decompose, directory=os.path.split(__file__)[0])
 			self.decompose['origfilename'] = self.filename
 			self.decompose['origduration'] = origtargetduration
 			self.filename = newtargetpath

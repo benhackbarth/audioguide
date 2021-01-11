@@ -12,9 +12,10 @@ import audioguide.util as util
 
 
 
-def decomposeTargetSf(filename, startsec, endsec, params):
+def decomposeTargetSf(filename, startsec, endsec, params, directory=None):
 	# create directory if needed
-	descomposedir = os.path.join(os.path.dirname(__file__), 'data_decomposedtargets')
+	assert directory != None
+	descomposedir = os.path.join(directory, 'data_decomposedtargets')
 	if not os.path.exists(descomposedir): os.makedirs(descomposedir)
 
 	assert 'type' in params and params['type'] in ['NMF', 'HPSS']

@@ -50,9 +50,9 @@ AAF_CPSTRACK_METHOD = 'cpsidx' # how cps tracks are written to the AAF file, als
 
 
 # let's also create a reaper output rpp file
-RPP_FILEPATH = 'output/output.rpp' # our AAF output filepath
-RPP_INCLUDE_TARGET = True # this will include the target sound in the aaf file
-RPP_CPSTRACK_METHOD = 'cpsidx' # how cps tracks are written to the AAF file, also try 'minimum'
+RPP_FILEPATH = 'output/output.rpp' # our RPP output filepath
+RPP_INCLUDE_TARGET = True # this will include the target sound in the RPP file
+RPP_CPSTRACK_METHOD = 'cpsidx' # how cps tracks are written to the RPP file, also try 'minimum'
 
 # auto launch will attempt to automatically open the rpp file after it is written. this will open the file with OSX's default program given its file extension.
 RPP_AUTOLAUNCH = True
