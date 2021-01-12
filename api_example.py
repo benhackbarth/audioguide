@@ -21,7 +21,7 @@ from audioguide.userclasses import SingleDescriptor as d
 ################################################################################
 ag = audioguide.main()
 ag.set_option('TARGET', tsf('examples/cage.aiff', thresh=-25, offsetRise=1.5))
-ag.set_option('CORPUS', [csf('examples/lachenmann.aiff')])
+ag.set_option('CORPUS', [csf('examples/lachenmann.aiff', limit='centroid-seg < 50%')])
 ag.set_option('SEARCH', [spass('closest', d('centroid'))])
 ag.set_option('SUPERIMPOSE', si(maxSegment=5))
 ag.set_option('VERBOSITY', 0)
@@ -39,7 +39,7 @@ ag.set_option('BACH_FILEPATH', None)
 
 # ag.execute runs the concatenative algorithm and writes the output files.
 files = ag.execute(print_steps=True)
-print("\nWrote output files:")
+print("Wrote output files:")
 for k, v in files.items(): print("\t%s -> %s"%(k, v))
 
 
@@ -52,14 +52,14 @@ ag.set_option('SEARCH', [spass('closest', d('flatnesses'))])
 ag.set_option('CSOUND_RENDER_FILEPATH', 'output/output2.aiff')
 
 files = ag.execute(print_steps=True)
-print("\nWrote output files:")
+print("Wrote output files:")
 for k, v in files.items(): print("\t%s -> %s"%(k, v))
 
 # once you have run ag.execute(), you can access selected sound data with ag.outputEvents list, each output event is an object
 print("%i SELECTED EVENTS"%(len(ag.outputEvents)))
 
 for eobj in ag.outputEvents:
-	print('\tevent: %.2f %s'%(eobj.timeInScore, eobj.filename))
+	print('\tevent: %.2f %s@%f'%(eobj.timeInScore, eobj.filename, eobj.sfSkip))
 	#other attributes
 #	for attr in ['cpsduration', 'duration', 'dynamicFromFilename', 'effDurSec', 'envAttackSec', 'envDb', 'envDecaySec', 'envSlope', 'midi', 'peaktimeSec', 'powerSeg', 'rmsSeg', 'selectedInstrumentIdx', 'selection_cnt', 'sfSkip', 'sfchnls', 'simSelects', 'stretchcode', 'tgtsegdur', 'tgtsegnumb', 'tgtsegpeak', 'tgtsegstart', 'transposition', 'voiceID']:
 #		print('\t', attr, ':', getattr(eobj, attr))
