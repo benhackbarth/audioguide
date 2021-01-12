@@ -458,7 +458,6 @@ class corpus:
 		self.evaluatePreConcateLimitations()
 		self.evaluateCorpusPitchFilters()
 		self.finalizeSegmentNormList()
-		
 		p.percentageBarClose(txt="Read %i/%i segments (%.0f%%, %.2f min.)"%(self.data['postLimitSegmentCount'], len(self.preLimitSegmentList), self.data['postLimitSegmentCount']/float(len(self.preLimitSegmentList))*100., self.data['totalLengthInSeconds']/60.))
 
 		self.printConcateLimitations(p)
@@ -526,7 +525,7 @@ class corpus:
 				p.pprint('LIMITS')
 				for cpsLimitObj in limitList:
 					cpsLimitObj.printRejects(self, p)
-				print('\n')
+				p.pprint('\n')
 	############################################################################
 	def nameTest(self, name, prefixList): # return only same with a certain starting prefix
 		test = True
@@ -980,8 +979,8 @@ def quantizeTime(outputEvents, method, interval, p):
 	if method == None:
 		'''Does nothing'''
 		return
-		
-	p.pprint('Quantizing selected events into slices of %.2f seconds according to %s\n'%(interval, method))
+	if p != None:
+		p.pprint('Quantizing selected events into slices of %.2f seconds according to %s\n'%(interval, method))
 	
 	if method == 'snapToGrid':
 		'''Quantize each note's start time to the nearest value
