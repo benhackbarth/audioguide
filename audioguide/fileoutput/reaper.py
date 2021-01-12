@@ -12,8 +12,8 @@ class output:
 		self.path = rpp_filepath
 		self.tracks = []
 	###########################################
-	def makeTgtTrack(self, tgtobj):
-		self.tracks.append(['target', [{"file": tgtobj.filename, 'name': tgtobj.whole.printName, 'time': 0, "skip": tgtobj.startSec, "duration": tgtobj.endSec-tgtobj.startSec, "ampscale": util.dbToAmp(tgtobj.envDb), "fadein": tgtobj.whole.envAttackSec, 'fadeout': tgtobj.whole.envDecaySec, 'transposition': 0}], 'tgt'])
+	def add_tracks(self, tracks):
+		self.tracks.extend(tracks)
 	###########################################
 	def write(self, autolaunchbool, verbose=True, rpp_header='REAPER_PROJECT 0.1 "6.11/x64" 1591355987'):
 		'''write and close the rpp file
@@ -28,10 +28,11 @@ class output:
 		f.write('''<%s\n%s>'''%(rpp_header, all_tracks_str))
 		f.close()
 		# print
-		if verbose and 'tgt' not in [t[2] for t in self.tracks]:
-			print("Wrote %i corpus tracks to the RPP reaper output"%(len(self.tracks)))
+		tgt_track_count = len([t for t in self.tracks if t[0].find('target') != -1])
+		if verbose and tgt_track_count == 0:
+			print("Wrote %i corpus tracks to %s"%(len(self.tracks), self.path))
 		elif verbose:
-			print("Wrote target track and %i corpus tracks to the RPP reaper output"%(len(self.tracks)-1))
+			print("Wrote %i target tracks and %i corpus tracks to %s"%(tgt_track_count, len(self.tracks)-tgt_track_count, self.path))
 		# autolaunch?
 		if autolaunchbool:
 			import subprocess

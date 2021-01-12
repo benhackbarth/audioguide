@@ -382,15 +382,16 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		if self.ops.AAF_FILEPATH != None:
 			import audioguide.fileoutput.aaf as aaf
 			this_aaf = aaf.output(self.ops.AAF_FILEPATH)
+			# add target ?
 			if self.ops.AAF_INCLUDE_TARGET:
 				this_aaf.addSoundfileResource(self.tgt.filename, self.AnalInterface.rawData[self.tgt.filename]['info'])
-				this_aaf.makeTgtTrack(self.tgt)
-			
+				sorted_tgt_tracks = concatenativeclasses.sortTargetSegmentsIntoTracks(self.tgt.segs, "minimum")
+				this_aaf.add_tracks(sorted_tgt_tracks)
+			# add selected corpus sound
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
-
 			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
-			this_aaf.makeCpsTracks(sorted_cps_tracks)
+			this_aaf.add_tracks(sorted_cps_tracks)
 			this_aaf.done(self.ops.AAF_AUTOLAUNCH)
 			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
 			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
@@ -402,10 +403,11 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		if self.ops.RPP_FILEPATH != None:
 			import audioguide.fileoutput.reaper as rpp
 			this_rpp = rpp.output(self.ops.RPP_FILEPATH)
+			# add target?
 			if self.ops.RPP_INCLUDE_TARGET:
-				this_rpp.makeTgtTrack(self.tgt)
-			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
-			this_rpp.tracks.extend(sorted_cps_tracks)
+				this_rpp.add_tracks(concatenativeclasses.sortTargetSegmentsIntoTracks(self.tgt.segs, "minimum"))
+			# add selected corpus sounds
+			this_rpp.add_tracks(concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName']))
 			this_rpp.write(self.ops.RPP_AUTOLAUNCH)
 			dict_of_files_written['RPP_FILEPATH'] = self.ops.RPP_FILEPATH
 			self.p.log( "Wrote rpp file %s\n"%self.ops.RPP_FILEPATH )

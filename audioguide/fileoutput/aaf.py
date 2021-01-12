@@ -18,18 +18,10 @@ class output:
 		self.f = aaf2.open(self.path, "w")
 		self.aaf_sr = aaf_sr
 		self.filepath_to_mob = {}
-		self.trackcnt = {'tgt': 0, 'cps': 0}
 		self.alltrackcnt = 0
+		self.tracknames = []
 		self.comp_mob = self.f.create.CompositionMob("Composition")
 		self.f.content.mobs.append(self.comp_mob)
-	###########################################
-	def _add_track(self, seq, name, type='cps'):
-		timeline_slot = self.comp_mob.create_timeline_slot("%i" % self.aaf_sr)
-		timeline_slot['PhysicalTrackNumber'].value = self.alltrackcnt
-		timeline_slot.name = name
-		timeline_slot.segment = seq	
-		self.trackcnt[type] += 1
-		self.alltrackcnt += 1
 	###########################################
 	def addSoundfileResource(self, cpsfullpath, infodict):
 		'''each target/corpus soundfile used in the concatenation must be passed to this function to register the filepath, sr, format, duration, etc'''
@@ -39,13 +31,8 @@ class output:
 		master_mob, source_mob, tape_mob = self.f.content.link_external_wav(meta)
 		self.filepath_to_mob[cpsfullpath] = master_mob
 	###########################################
-	def makeTgtTrack(self, tgtobj):
-		sequence = self.f.create.Sequence(media_kind="sound")
-		sequence.components.append(self.filepath_to_mob[tgtobj.filename].create_source_clip(slot_id=1, start=int(tgtobj.startSec*self.aaf_sr), length=int((tgtobj.endSec-tgtobj.startSec)*self.aaf_sr))) # sound
-		self._add_track(sequence, 'target', type='tgt')
-	###########################################
-	def makeCpsTracks(self, sorted_cps_tracks):
-		for trackname, trackeventdicts, tracksource in sorted_cps_tracks:
+	def add_tracks(self, sorted_tracks):
+		for trackname, trackeventdicts, tracksource in sorted_tracks:
 			# make a track
 			sequence = self.f.create.Sequence(media_kind="sound")
 			idx_cnt = 0
@@ -59,15 +46,21 @@ class output:
 				# add sound clip
 				sequence.components.append(self.filepath_to_mob[d['file']].create_source_clip(slot_id=1, start=skipsr, length=durationsr)) # sound
 				idx_cnt = stopsr
-			self._add_track(sequence, trackname)
+			timeline_slot = self.comp_mob.create_timeline_slot("%i" % self.aaf_sr)
+			timeline_slot['PhysicalTrackNumber'].value = self.alltrackcnt
+			timeline_slot.name = trackname
+			timeline_slot.segment = sequence
+			self.alltrackcnt += 1
+			self.tracknames.append(trackname)
 	###########################################
 	def done(self, autolaunchbool, verbose=True):
 		'''close the aaf file'''
 		self.f.close()
-		if verbose and self.trackcnt['tgt'] == 0:
-			print("Wrote %i corpus tracks to the AAF output"%(self.trackcnt['cps']))
+		tgt_track_count = len([tn for tn in self.tracknames if tn == 'target'])
+		if verbose and tgt_track_count == 0:
+			print("Wrote %i corpus tracks to %s"%(self.alltrackcnt, self.path))
 		elif verbose:
-			print("Wrote target track and %i corpus tracks to the AAF output"%(self.trackcnt['cps']))
+			print("Wrote %i target tracks and %i corpus tracks to %s"%(tgt_track_count, self.alltrackcnt-tgt_track_count, self.path))
 	
 		if autolaunchbool:
 			import subprocess

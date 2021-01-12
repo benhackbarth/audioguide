@@ -47,3 +47,6 @@ spass('closest', d('mfccs'))
 ]
 
 SUPERIMPOSE = si(maxSegment=2)
+
+RPP_FILEPATH = 'output/output.rpp' # our RPP output filepath
+RPP_INCLUDE_TARGET = True # this will include the target sound in the RPP file

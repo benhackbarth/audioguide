@@ -328,6 +328,7 @@ class target: # the target
 		if 'origduration' in self.decompose:
 			for s in self.segs:
 				s.decomposeSfSkip = s.segmentStartSec
+				s.decomposeStreamIdx = int(s.segmentStartSec/self.decompose['origduration'])
 				s.segmentStartSec = s.segmentStartSec % self.decompose['origduration']
 				s.segmentEndSec = s.segmentStartSec + s.segmentDurationSec
 				s.segmentStartFrame = AnalInterface.getSegmentStartInFrames(s.filename, s.segmentStartSec, s.segmentEndSec, s.lengthInFrames)

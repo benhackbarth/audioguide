@@ -939,6 +939,28 @@ class outputEvent:
 
 
 
+
+def sortTargetSegmentsIntoTracks(tgtsegs, track_method):
+	if not hasattr(tgtsegs[0], 'decomposeStreamIdx'):
+		events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.segmentStartSec, "duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in tgtsegs]
+		return [['target', events_as_dicts, 'tgt']]
+
+	else: # target signal decomposition
+		output_tracks = []
+		track_assign = {}
+		for ts in tgtsegs:
+			if ts.decomposeStreamIdx not in track_assign: track_assign[ts.decomposeStreamIdx] = []
+			track_assign[ts.decomposeStreamIdx].append(ts)
+		track_assign = [(k, v) for k, v in track_assign.items()]
+		track_assign.sort()
+		for tidx, t in track_assign:
+			events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.segmentStartSec, "duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in t]
+			output_tracks.append(['target stream#%i'%(tidx), events_as_dicts, 'tgt'])
+		return output_tracks
+		
+
+
+
 def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName):
 	grand_old_dict = {}
 	output = []
