@@ -10,7 +10,7 @@ import audioguide.util as util
 try:
 	import aaf2
 except ImportError:
-	util.missing_module('aaf2')
+	util.missing_module('pyaaf2')
 
 class output:
 	def __init__(self, aaf_filepath, aaf_sr=44100):
