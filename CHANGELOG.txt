@@ -5,6 +5,8 @@
 
 • Added options for automatically launching .rpp and .aaf files after they are written. See AAF_AUTOLAUNCH and RPP_AUTOLAUNCH.
 
+• Aaf and rpp output files now write the target soundfile in segments. These file formats also now support target signal decomposition - the segmented, decomposed target soundfile will be written to multiple tracks. See the reaper output in examples/08-polyphony.py.
+
 
 
 #################
