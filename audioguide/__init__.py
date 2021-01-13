@@ -387,7 +387,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				this_aaf.addSoundfileResource(self.tgt.filename, self.AnalInterface.rawData[self.tgt.filename]['info'])
 				sorted_tgt_tracks = concatenativeclasses.sortTargetSegmentsIntoTracks(self.tgt.segs, "minimum")
 				this_aaf.add_tracks(sorted_tgt_tracks)
-			# add selected corpus sound
+			# add selected corpus sounds
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
 			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
