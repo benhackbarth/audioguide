@@ -954,7 +954,7 @@ def sortTargetSegmentsIntoTracks(tgtsegs, track_method):
 		track_assign = [(k, v) for k, v in track_assign.items()]
 		track_assign.sort()
 		for tidx, t in track_assign:
-			events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.segmentStartSec, "duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in t]
+			events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.decomposeSfSkip, "duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in t]
 			output_tracks.append(['target stream#%i'%(tidx), events_as_dicts, 'tgt'])
 		return output_tracks
 		
