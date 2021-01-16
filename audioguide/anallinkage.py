@@ -443,7 +443,10 @@ EnergyEnvelope  = 1
 		json.dump(self.dataRegistry, fh)
 		fh.close()
 		# move into place
-		os.rename(dataRegistryPathTmp, self.dataRegistryPath)
+		#os.rename(dataRegistryPathTmp, self.dataRegistryPath) <- yikes, this doesn't work across different volumes!
+		import shutil
+		shutil.copy(dataRegistryPathTmp, self.dataRegistryPath)
+		os.remove(dataRegistryPathTmp)
 ########################################################
 ########################################################
 
