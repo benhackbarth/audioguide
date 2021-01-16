@@ -30,7 +30,7 @@
 
 
 
-TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2, decompose={'type': 'NMF', 'streams': 5, 'fftsize': 1024, 'hopsize': 256})
+TARGET = tsf('bone.aiff', thresh=-26, offsetRise=3, decompose={'type': 'NMF', 'streams': 7, 'fftsize': 1024, 'hopsize': 256})
 
 # to separate a target into pitched/noise components, use HPSS (time-series harmonic-percussive separation):
 #TARGET = tsf('bone.aiff', thresh=-26, offsetRise=2, decompose={'type': 'HPSS', 'fftsize': 1024, 'hopsize': 256})
