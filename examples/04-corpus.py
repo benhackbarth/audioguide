@@ -1,3 +1,12 @@
+################################################################################
+## To run this example, first ensure that lachenmann.aiff has been segmented  ##
+## with agSegmentSf.py. Then execute the following command in the terminal:   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/04-corpus.py                             ##
+##                                                                            ##
+################################################################################
+
+
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 SEARCH = [spass('closest', d('mfccs'))]
 SUPERIMPOSE = si(maxSegment=1)

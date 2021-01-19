@@ -1,3 +1,11 @@
+################################################################################
+## To run this example, first ensure that lachenmann.aiff bas heen segmented  ##
+## with agSegmentSf.py. Then execute the following command in the terminal:   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/09-searchParser.py                       ##
+##                                                                            ##
+################################################################################
+
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=2)
 
 CORPUS = [

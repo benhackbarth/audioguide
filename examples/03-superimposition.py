@@ -1,3 +1,13 @@
+################################################################################
+## To run this example, first ensure that lachenmann.aiff and heat sink.aiff  ##
+## have been segmented with agSegmentSf.py. Then execute the following        ##
+## command in the terminal:                                                   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/03-superimposition.py                    ##
+##                                                                            ##
+################################################################################
+
+
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
 
 CORPUS = [

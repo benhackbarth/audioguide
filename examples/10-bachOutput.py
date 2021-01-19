@@ -1,4 +1,13 @@
 ################################################################################
+## To run this example, first ensure that lachenmann.aiff and heat sink.aiff  ##
+## have been segmented with agSegmentSf.py. Then execute the following        ##
+## command in the terminal:                                                   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/10-bachOutput.py                         ##
+##                                                                            ##
+################################################################################
+
+################################################################################
 ## Audioguide automatically creates an output file for every concatenation    ##
 ## that may be loaded into a bach.roll in Max/MSP. The path for the bach      ##
 ## output file, which is output/bach_roll.txt by default, is controlable by   ##
@@ -18,7 +27,6 @@ TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5) # add midiPitchMethod=60 t
 CORPUS = [
 csf('heat sink.aiff', onsetLen='50%', offsetLen='50%'), 
 csf('lachenmann.aiff'), #, midiPitchMethod={'type': 'remap', 'method': 'centroid-seg', 'low': 40, 'high': 70}
-csf('/Users/ben/Documents/sfdb/violin/mutedpizz', wholeFile=True),
 ]
 
 SEARCH = [

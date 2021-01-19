@@ -1,4 +1,13 @@
 ################################################################################
+## To run this example, first ensure that lachenmann.aiff and heat sink.aiff  ##
+## have been segmented with agSegmentSf.py. Then execute the following        ##
+## command in the terminal:                                                   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/11-dawOutput.py                          ##
+##                                                                            ##
+################################################################################
+
+################################################################################
 ## As of version 1.71, audioGuide can create RPP files for reaper. This is    ##
 ## done by setting a filepath for the RPP_FILEPATH variable.                  ##
 ################################################################################

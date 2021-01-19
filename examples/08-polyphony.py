@@ -1,4 +1,11 @@
-## this example is experimental and subject to change
+################################################################################
+## To run this example, first ensure that lachenmann.aiff and heat sink.aiff  ##
+## have been segmented with agSegmentSf.py. Then execute the following        ##
+## command in the terminal:                                                   ##
+##                                                                            ##
+## python3 agConcatenate.py examples/08-polyphony.py                          ##
+##                                                                            ##
+################################################################################
 
 ################################################################################
 ## NOTE You must install librosa and scipy for the following example to work. ##

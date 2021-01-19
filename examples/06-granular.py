@@ -1,8 +1,15 @@
-################################################################################
-## Start by creating a granular segmentation of heat sink.aiff by running     ##
-## the script 'agGranulateSf.py examples/heat\ sink.aiff -o 0.025 -g 0.075'.  ##
-## This will create short grains which work well with this script.            ##
-################################################################################
+###########################################################################
+## To run this example, you first need to segment the soundfile          ##
+## heat sink.aiff into grains by running the following command:          ##
+##                                                                       ##
+## python3 agGranulateSf.py examples/lachenmann.aiff                     ##
+##                                                                       ##
+## Then run concatenation script specifying this file as the options     ##
+## file for agConcatenate.py:                                            ##
+##                                                                       ##
+## python3 agConcatenate.py examples/06-granular.py                      ##
+##                                                                       ##
+###########################################################################
 
 
 TARGET = tsf('cage.aiff', thresh=-26, offsetRise=1.5)
