@@ -7,7 +7,7 @@
 import sys, os, audioguide
 
 from optparse import OptionParser
-parser = OptionParser(usage="usage: %prog [options] soundfile")
+parser = OptionParser(usage="usage: %prog [option flags] soundfile")
 parser.set_defaults(TRIGGER_THRESHOLD=-40)
 parser.set_defaults(RISERATIO=1.3)
 parser.set_defaults(MULTIRISE=False)

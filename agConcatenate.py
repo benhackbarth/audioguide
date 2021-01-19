@@ -8,7 +8,7 @@
 import sys, os, audioguide
 
 from optparse import OptionParser
-parser = OptionParser(usage="usage: %prog [options] optionsfile")
+parser = OptionParser(usage="python3 %prog [-i] optionsfile")
 parser.set_defaults(INTERACTIVE=False)
 parser.add_option("-i", "--interactive", action="store_true", dest="INTERACTIVE", help="This flag turns on intercative mode.")
 (options, args) = parser.parse_args()
