@@ -22,5 +22,7 @@ examples/10-tester.py
 examples/11-testframes.py
 gilbertSpecial.py
 to_do.txt
+agConcatenateFrames.py
+examples/07-concatenateframes.py
 how_to_update.txt
 agVisualize.py
