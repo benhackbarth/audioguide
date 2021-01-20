@@ -1,4 +1,13 @@
 ##################
+## Version 1.72 ##
+##################
+• Better comments in the files in examples/.
+
+• Various bug fixes.
+
+
+
+##################
 ## Version 1.71 ##
 ##################
 • Audioguide now supports writing reaper .rpp files. See examples/11-dawOutput.py for details.
