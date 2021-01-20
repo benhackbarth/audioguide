@@ -13,6 +13,12 @@
 ## python2 -m pip install --user librosa scipy                                ##
 ## or                                                                         ##
 ## python3 -m pip install --user librosa scipy                                ##
+##                                                                            ##
+## ALSO NOTE: as of 20/1/2020 (Biden day), some users have had problems       ##
+## installing librosa on osx. Many are having a problem with pip & llvmlite   ##
+## and have needed to downgrade to python3.6 until it the issue is resolved.  ##
+## Check out this thread for the deets:                                       ##
+## https://github.com/librosa/librosa/issues/1270                             ##
 ################################################################################
 
 ################################################################################
