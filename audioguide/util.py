@@ -300,6 +300,8 @@ def cpsPathToTrackName(fileordir):
 
 
 def parseEquationString(mstr, symbs):
+	# need to sort by reverse order length so that the longest strings are tested first
+	symbs = sorted(symbs, key=len, reverse=True) 
 	for symb in symbs:
 		if mstr.rfind(symb) != -1: # found it!
 			mstr_p = mstr.split(symb)
