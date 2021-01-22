@@ -414,8 +414,7 @@ def makeFtableFromDescriptor(descriptorArray, descriptorName, f2s, csoundSr, cso
 def render(file, totalEvents, printerobj=None):
 	eventCounter = 0
 	if printerobj != None: printerobj.startPercentageBar(upperLabel="RENDERING with CSOUND", total=totalEvents)
-	csoundCommand = ['ulimit -n 2000 ;', 'csound', file]
-	#print('\tRENDER WITH CSOUND --> "' + ' '.join(csoundCommand)+ '"\n')
+	csoundCommand = ['ulimit -n 2000 ;', 'csound', '"%s"'%file]
 	cs = subprocess.Popen(' '.join(csoundCommand), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while True:
 		o = cs.stderr.readline().decode("utf-8")

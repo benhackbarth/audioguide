@@ -830,7 +830,7 @@ class outputEvent:
 		# cps segment stuff
 		self.sfseghandle = sfseghandle
 		self.selection_cnt = selection_cnt
-		self.filename = sfseghandle.concatFileName
+		self.filename = os.path.abspath(sfseghandle.concatFileName)
 		self.printName = sfseghandle.printName
 		self.sfSkip = sfseghandle.segmentStartSec
 		self.cpsduration = sfseghandle.segmentDurationSec
