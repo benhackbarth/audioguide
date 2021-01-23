@@ -100,22 +100,18 @@ class parseOptionsV2:
 		return usrOptions
 	#############################
 	def get_outputfile(self, opsfilename):
-		''' will use abs path if provided.  if
-		relative, it will be placed in the script's 
-		directory, creating directories as needed.
-		also adds self.OUTPUT_FILE_PREFIX before filename'''
+		# split it and add outputfile prefix
 		thispath = getattr(self, opsfilename)
-		# first verify that this is a full path, if not, try to join with audioguide_directory
+		part1, part2 = os.path.split(thispath)
+		thispath = os.path.join(part1, self.OUTPUT_FILE_PREFIX + part2)
+		# verify that this is a full path, if not, try to join with audioguide_directory
 		if not os.path.isabs(thispath):
 			thispath = os.path.join(self.audioguide_directory, thispath)
-			# create directory if needed
-			directory = os.path.split(thispath)[0]
-			if not os.path.exists(directory):
-				os.makedirs(directory)
-		# now split it and add outputfile prefix
-		part1, part2 = os.path.split(thispath)
-		fullpath = os.path.join(part1, self.OUTPUT_FILE_PREFIX + part2)
-		return fullpath
+		# create directory if needed
+		directory = os.path.split(thispath)[0]
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		return thispath
 	#############################
 	def poll_options(self):
 		'''poll program options to see what parts of the code need to be rerun. e.g., if the corpus changed, we will not need to reload the target.'''
