@@ -73,7 +73,7 @@ class main:
 	def initialize_analysis_interface(self, printversion=True):
 		if 'concateMethod' in self.ops.EXPERIMENTAL and self.ops.EXPERIMENTAL['concateMethod'] == 'framebyframe':
 			util.error("CONFIG", "Frame by frame concatenation is only possible with the agConcatenateFrames.py script.")
-		self.p = userinterface.printer(self.ops.VERBOSITY, os.path.dirname(__file__), self.ops.HTML_LOG_FILEPATH)
+		self.p = userinterface.printer(self.ops.VERBOSITY, os.path.dirname(__file__), self.ops.get_outputfile('HTML_LOG_FILEPATH'))
 		if printversion: self.p.printProgramInfo(__version__)
 		self.AnalInterface = self.ops.createAnalInterface(self.p)
 
@@ -108,24 +108,24 @@ class main:
 		## target label file ##
 		#######################
 		if self.ops.TARGET_SEGMENT_LABELS_FILEPATH != None:
-			self.tgt.writeSegmentationFile(self.ops.TARGET_SEGMENT_LABELS_FILEPATH)
-			self.p.log( "TARGET: wrote segmentation label file %s"%self.ops.TARGET_SEGMENT_LABELS_FILEPATH )
+			self.tgt.writeSegmentationFile(self.ops.get_outputfile('TARGET_SEGMENT_LABELS_FILEPATH'))
+			self.p.log( "TARGET: wrote segmentation label file %s"%self.ops.get_outputfile('TARGET_SEGMENT_LABELS_FILEPATH') )
 		#############################
 		## target descriptors file ##
 		#############################
 		if self.ops.TARGET_DESCRIPTORS_FILEPATH != None:
-			self.tgt.whole.desc.writedict(self.ops.TARGET_DESCRIPTORS_FILEPATH, ag.AnalInterface)
-			self.p.log("TARGET: wrote descriptors to %s"%(self.ops.TARGET_DESCRIPTORS_FILEPATH))
+			self.tgt.whole.desc.writedict(self.ops.get_outputfile('TARGET_DESCRIPTORS_FILEPATH'), ag.AnalInterface)
+			self.p.log("TARGET: wrote descriptors to %s"%(self.ops.get_outputfile('TARGET_DESCRIPTORS_FILEPATH')))
 		##############################
 		## target descriptor graphs ##
 		##############################
 		if self.ops.TARGET_PLOT_DESCRIPTORS_FILEPATH != None:
-			self.tgt.plotMetrics(self.ops.TARGET_PLOT_DESCRIPTORS_FILEPATH, self.AnalInterface, self.p)
+			self.tgt.plotMetrics(self.ops.get_outputfile('TARGET_PLOT_DESCRIPTORS_FILEPATH'), self.AnalInterface, self.p)
 		###############################
 		## target segmentation graph ##
 		###############################
 		if self.ops.TARGET_SEGMENTATION_GRAPH_FILEPATH != None:
-			self.tgt.plotSegmentation(self.ops.TARGET_SEGMENTATION_GRAPH_FILEPATH, self.AnalInterface, self.p)
+			self.tgt.plotSegmentation(self.ops.get_outputfile('TARGET_SEGMENTATION_GRAPH_FILEPATH'), self.AnalInterface, self.p)
 
 
 
@@ -372,8 +372,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## BACH output ##
 		#################	
 		if self.ops.BACH_FILEPATH != None:
-			self.instruments.write(self.ops.BACH_FILEPATH, self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
-			dict_of_files_written['BACH_FILEPATH'] = self.ops.BACH_FILEPATH
+			self.instruments.write(self.ops.get_outputfile('BACH_FILEPATH'), self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
+			dict_of_files_written['BACH_FILEPATH'] = self.ops.get_outputfile('BACH_FILEPATH')
 
 
 		################
@@ -381,7 +381,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################
 		if self.ops.AAF_FILEPATH != None:
 			import audioguide.fileoutput.aaf as aaf
-			this_aaf = aaf.output(self.ops.AAF_FILEPATH)
+			this_aaf = aaf.output(self.ops.get_outputfile('AAF_FILEPATH'))
 			# add target ?
 			if self.ops.AAF_INCLUDE_TARGET:
 				this_aaf.addSoundfileResource(self.tgt.filename, self.AnalInterface.rawData[self.tgt.filename]['info'])
@@ -393,8 +393,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
 			this_aaf.add_tracks(sorted_cps_tracks)
 			this_aaf.done(self.ops.AAF_AUTOLAUNCH)
-			dict_of_files_written['AAF_FILEPATH'] = self.ops.AAF_FILEPATH
-			self.p.log( "Wrote aaf file %s\n"%self.ops.AAF_FILEPATH )
+			dict_of_files_written['AAF_FILEPATH'] = self.ops.get_outputfile('AAF_FILEPATH')
+			self.p.log( "Wrote aaf file %s\n"%self.ops.get_outputfile('AAF_FILEPATH') )
 
 
 		################
@@ -402,15 +402,15 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################
 		if self.ops.RPP_FILEPATH != None:
 			import audioguide.fileoutput.reaper as rpp
-			this_rpp = rpp.output(self.ops.RPP_FILEPATH)
+			this_rpp = rpp.output(self.ops.get_outputfile('RPP_FILEPATH'))
 			# add target?
 			if self.ops.RPP_INCLUDE_TARGET:
 				this_rpp.add_tracks(concatenativeclasses.sortTargetSegmentsIntoTracks(self.tgt.segs, "minimum"))
 			# add selected corpus sounds
 			this_rpp.add_tracks(concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName']))
 			this_rpp.write(self.ops.RPP_AUTOLAUNCH)
-			dict_of_files_written['RPP_FILEPATH'] = self.ops.RPP_FILEPATH
-			self.p.log( "Wrote rpp file %s\n"%self.ops.RPP_FILEPATH )
+			dict_of_files_written['RPP_FILEPATH'] = self.ops.get_outputfile('RPP_FILEPATH')
+			self.p.log( "Wrote rpp file %s\n"%self.ops.get_outputfile('RPP_FILEPATH') )
 
 
 
@@ -435,11 +435,11 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			output['corpus_file_list'] = list(set(allusedcpsfiles))
 			output['selectedEvents'] = [oe.makeDictOutput() for oe in self.outputEvents]
 			output['outputparse'] = {'simultaneousSelections': int(max([d['simultaneousSelectionNumber'] for d in output['selectedEvents']])+1), 'classifications': max(self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], 1), 'corpusIds': int(max([d['corpusIdNumber'] for d in output['selectedEvents']])+1)}
-			fh = open(self.ops.DICT_OUTPUT_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('DICT_OUTPUT_FILEPATH'), 'w')
 			json.dump(output, fh)
 			fh.close()
-			dict_of_files_written['DICT_OUTPUT_FILEPATH'] = self.ops.DICT_OUTPUT_FILEPATH
-			self.p.log( "Wrote JSON dict file %s\n"%self.ops.DICT_OUTPUT_FILEPATH )
+			dict_of_files_written['DICT_OUTPUT_FILEPATH'] = self.ops.get_outputfile('DICT_OUTPUT_FILEPATH')
+			self.p.log( "Wrote JSON dict file %s\n"%self.ops.get_outputfile('DICT_OUTPUT_FILEPATH') )
 
 		#####################################
 		## maxmsp list output pour gilbert ##
@@ -449,27 +449,27 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			output['target_file'] = [self.tgt.filename, self.tgt.startSec*1000., self.tgt.endSec*1000.]
 			output['events'] = [oe.makeMaxMspListOutput() for oe in self.outputEvents]
 			output['corpus_files'] = allusedcpsfiles
-			fh = open(self.ops.MAXMSP_OUTPUT_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('MAXMSP_OUTPUT_FILEPATH'), 'w')
 			json.dump(output, fh)
 			fh.close()
-			dict_of_files_written['MAXMSP_OUTPUT_FILEPATH'] = self.ops.MAXMSP_OUTPUT_FILEPATH
-			self.p.log( "Wrote MAX/MSP JSON lists to file %s\n"%self.ops.MAXMSP_OUTPUT_FILEPATH )
+			dict_of_files_written['MAXMSP_OUTPUT_FILEPATH'] = self.ops.get_outputfile('MAXMSP_OUTPUT_FILEPATH')
+			self.p.log( "Wrote MAX/MSP JSON lists to file %s\n"%self.ops.get_outputfile('MAXMSP_OUTPUT_FILEPATH') )
 
 		###################################
 		## superimpose label output file ##
 		###################################
 		if self.ops.OUTPUT_LABEL_FILEPATH != None:
-			fh = open(self.ops.OUTPUT_LABEL_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('OUTPUT_LABEL_FILEPATH'), 'w')
 			fh.write( ''.join([ oe.makeLabelText() for oe in self.outputEvents ]) )
 			fh.close()
-			dict_of_files_written['OUTPUT_LABEL_FILEPATH'] = self.ops.OUTPUT_LABEL_FILEPATH
-			self.p.log( "Wrote superimposition label file %s\n"%self.ops.OUTPUT_LABEL_FILEPATH )
+			dict_of_files_written['OUTPUT_LABEL_FILEPATH'] = self.ops.get_outputfile('OUTPUT_LABEL_FILEPATH')
+			self.p.log( "Wrote superimposition label file %s\n"%self.ops.get_outputfile('OUTPUT_LABEL_FILEPATH') )
 
 		#######################################
 		## corpus segmented features as json ##
 		#######################################
 		if self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH != None:
-			fh = open(self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH'), 'w')
 			alldata = {}
 			for c in self.cps.postLimitSegmentNormList:
 				descs = {}
@@ -479,30 +479,30 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				alldata[(c.filename+'@'+str(c.segmentStartSec))] = descs
 			json.dump(alldata, fh)
 			fh.close()
-			dict_of_files_written['CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH'] = self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH
-			self.p.log( "Wrote corpus segmented features file %s\n"%self.ops.CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH )
+			dict_of_files_written['CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH'] = self.ops.get_outputfile('CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH')
+			self.p.log( "Wrote corpus segmented features file %s\n"%self.ops.get_outputfile('CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH') )
 
 
 		######################
 		## lisp output file ##
 		######################
 		if self.ops.LISP_OUTPUT_FILEPATH != None:
-			fh = open(self.ops.LISP_OUTPUT_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('LISP_OUTPUT_FILEPATH'), 'w')
 			fh.write('(' + ''.join([ oe.makeLispText() for oe in self.outputEvents ]) +')')
 			fh.close()
-			dict_of_files_written['LISP_OUTPUT_FILEPATH'] = self.ops.LISP_OUTPUT_FILEPATH
-			self.p.log( "Wrote lisp output file %s\n"%self.ops.LISP_OUTPUT_FILEPATH )
+			dict_of_files_written['LISP_OUTPUT_FILEPATH'] = self.ops.get_outputfile('LISP_OUTPUT_FILEPATH')
+			self.p.log( "Wrote lisp output file %s\n"%self.ops.get_outputfile('LISP_OUTPUT_FILEPATH') )
 
 		########################################
 		## data from segmentation file output ##
 		########################################
 		if self.ops.DATA_FROM_SEGMENTATION_FILEPATH != None:
-			fh = open(self.ops.DATA_FROM_SEGMENTATION_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('DATA_FROM_SEGMENTATION_FILEPATH'), 'w')
 			for line in [oe.makeSegmentationDataText() for oe in self.outputEvents]:
 				fh.write(line)
 			fh.close()
-			dict_of_files_written['DATA_FROM_SEGMENTATION_FILEPATH'] = self.ops.DATA_FROM_SEGMENTATION_FILEPATH
-			self.p.log( "Wrote data from segmentation file to textfile %s\n"%self.ops.DATA_FROM_SEGMENTATION_FILEPATH )
+			dict_of_files_written['DATA_FROM_SEGMENTATION_FILEPATH'] = self.ops.get_outputfile('DATA_FROM_SEGMENTATION_FILEPATH')
+			self.p.log( "Wrote data from segmentation file to textfile %s\n"%self.ops.get_outputfile('DATA_FROM_SEGMENTATION_FILEPATH') )
 
 		############################
 		## csound CSD output file ##
@@ -518,16 +518,16 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				for oe in self.outputEvents:
 					oe.timeInScore -= minTime
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
-			csd.makeConcatenationCsdFile(self.ops.CSOUND_CSD_FILEPATH, self.ops.CSOUND_RENDER_FILEPATH, self.ops.CSOUND_CHANNEL_RENDER_METHOD, self.ops.CSOUND_SR, self.ops.CSOUND_KSMPS, csSco, self.cps.len, set([oe.sfchnls for oe in self.outputEvents]), maxOverlaps, self.instruments, self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=self.ops.CSOUND_BITS)
-			dict_of_files_written['CSOUND_CSD_FILEPATH'] = self.ops.CSOUND_CSD_FILEPATH
-			self.p.log( "Wrote csound csd file %s\n"%self.ops.CSOUND_CSD_FILEPATH )
+			csd.makeConcatenationCsdFile(self.ops.get_outputfile('CSOUND_CSD_FILEPATH'), self.ops.get_outputfile('CSOUND_RENDER_FILEPATH'), self.ops.CSOUND_CHANNEL_RENDER_METHOD, self.ops.CSOUND_SR, self.ops.CSOUND_KSMPS, csSco, self.cps.len, set([oe.sfchnls for oe in self.outputEvents]), maxOverlaps, self.instruments, self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=self.ops.CSOUND_BITS)
+			dict_of_files_written['CSOUND_CSD_FILEPATH'] = self.ops.get_outputfile('CSOUND_CSD_FILEPATH')
+			self.p.log( "Wrote csound csd file %s\n"%self.ops.get_outputfile('CSOUND_CSD_FILEPATH') )
 			if self.ops.CSOUND_RENDER_FILEPATH != None:
-				csd.render(self.ops.CSOUND_CSD_FILEPATH, len(self.outputEvents), printerobj=self.p)
-				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.CSOUND_RENDER_FILEPATH )
-				dict_of_files_written['CSOUND_RENDER_FILEPATH'] = self.ops.CSOUND_RENDER_FILEPATH
+				csd.render(self.ops.get_outputfile('CSOUND_CSD_FILEPATH'), len(self.outputEvents), printerobj=self.p)
+				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.get_outputfile('CSOUND_RENDER_FILEPATH') )
+				dict_of_files_written['CSOUND_RENDER_FILEPATH'] = self.ops.get_outputfile('CSOUND_RENDER_FILEPATH')
 	
 			if self.ops.CSOUND_NORMALIZE:
-				csd.normalize(self.ops.CSOUND_RENDER_FILEPATH, db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
+				csd.normalize(self.ops.get_outputfile('CSOUND_RENDER_FILEPATH'), db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
 		################################
 		## csound simple score output ##
 		################################
@@ -535,17 +535,17 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			from audioguide.fileoutput import csoundinterface as csd
 			csSco = csd.instru2helpstring()+'\n'
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
-			fh = open(self.ops.CSOUND_SCORE_FILEPATH, 'w')
+			fh = open(self.ops.get_outputfile('CSOUND_SCORE_FILEPATH'), 'w')
 			fh.write(csSco)
 			fh.close()
 		####################
 		## close log file ##
 		####################
 		if self.ops.HTML_LOG_FILEPATH != None:
-			self.p.writehtmllog(self.ops.HTML_LOG_FILEPATH)
-			dict_of_files_written['HTML_LOG_FILEPATH'] = self.ops.HTML_LOG_FILEPATH
+			self.p.writehtmllog(self.ops.get_outputfile('HTML_LOG_FILEPATH'))
+			dict_of_files_written['HTML_LOG_FILEPATH'] = self.ops.get_outputfile('HTML_LOG_FILEPATH')
 	
 		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:
-			csd.playFile( self.ops.CSOUND_RENDER_FILEPATH )
+			csd.playFile( self.ops.get_outputfile('CSOUND_RENDER_FILEPATH') )
 
 		return dict_of_files_written

@@ -227,19 +227,6 @@ def getDirListOnlyExt(path, recur, extensions):
 				break
 		if isValid: validFiles.append(outty)
 	return validFiles
-
-
-def verifyOutputPath(path, scriptPath):
-	''' will use abs path if provided.  if
-	relative, it will be placed in the script's 
-	directory, creating directories as needed'''
-	if os.path.isabs(path): return path
-	relativeJoined = os.path.join(scriptPath, path)
-	# create directory if needed
-	directory = os.path.split(relativeJoined)[0]
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	return relativeJoined
 	
 
 def verifyPath(path, searchPathList):

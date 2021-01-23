@@ -87,6 +87,7 @@ UserVar_types = {
 'SEARCH': ['a list of spass() objects'],
 'INSTRUMENTS': ['None', 'a score() object'],
 ##########  OUTPUT FILES   #######
+'OUTPUT_FILE_PREFIX': ['a string'],
 'CSOUND_CSD_FILEPATH': ['None', 'a string'],
 'CSOUND_SCORE_FILEPATH': ['None', 'a string'],
 'CSOUND_RENDER_FILEPATH': ['None', 'a string'],
@@ -202,6 +203,7 @@ OptionChangeToProgramRun = {
 "INSTRUMENTS": "concate",
 
 
+"OUTPUT_FILE_PREFIX": "output",
 "CSOUND_CSD_FILEPATH": "output",
 "CSOUND_SCORE_FILEPATH": "output",
 "CSOUND_RENDER_FILEPATH": "output",

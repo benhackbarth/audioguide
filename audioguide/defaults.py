@@ -1,4 +1,5 @@
 ##############  OUTPUT FILES  #############
+OUTPUT_FILE_PREFIX = '' # a string
 CSOUND_CSD_FILEPATH = 'output/output.csd'
 CSOUND_SCORE_FILEPATH = None # 'output/output.score.txt'
 CSOUND_RENDER_FILEPATH = 'output/output.aiff'

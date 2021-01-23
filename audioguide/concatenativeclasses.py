@@ -72,8 +72,6 @@ class parseOptionsV2:
 		optionvalue = anallinkage.parseOptionPackages(optionname, optionvalue)
 		# replace "none" with None
 		if isinstance(optionvalue, str) and optionvalue.lower() == 'none': optionvalue = None
-		# complete paths for output files
-		if optionname.find('_FILEPATH') != -1 and optionvalue != None: optionvalue = util.verifyOutputPath(optionvalue, self.audioguide_directory)
 		# test datatypes
 		tests.testOption(optionname, optionvalue)
 		# see if it has changed
@@ -100,6 +98,24 @@ class parseOptionsV2:
 		exec(self.opsfileAsString, locals(), usrOptions)
 		fh.close()
 		return usrOptions
+	#############################
+	def get_outputfile(self, opsfilename):
+		''' will use abs path if provided.  if
+		relative, it will be placed in the script's 
+		directory, creating directories as needed.
+		also adds self.OUTPUT_FILE_PREFIX before filename'''
+		thispath = getattr(self, opsfilename)
+		# first verify that this is a full path, if not, try to join with audioguide_directory
+		if not os.path.isabs(thispath):
+			thispath = os.path.join(self.audioguide_directory, thispath)
+			# create directory if needed
+			directory = os.path.split(thispath)[0]
+			if not os.path.exists(directory):
+				os.makedirs(directory)
+		# now split it and add outputfile prefix
+		part1, part2 = os.path.split(thispath)
+		fullpath = os.path.join(part1, self.OUTPUT_FILE_PREFIX + part2)
+		return fullpath
 	#############################
 	def poll_options(self):
 		'''poll program options to see what parts of the code need to be rerun. e.g., if the corpus changed, we will not need to reload the target.'''
