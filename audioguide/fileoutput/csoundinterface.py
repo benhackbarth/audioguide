@@ -32,7 +32,7 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
--o %s --format=%s %s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=%i 
+-o "%s" --format=%s %s --omacro:channelRenderMethod=0 --omacro:durationStretchMethod=0 --omacro:useTargetAmplitude=%i 
 </CsOptions>
 <CsInstruments>
 sr = %i
@@ -351,7 +351,7 @@ def makeSimpleCsdFile(outputCsdPath, outputSoundfilePath, sr, kr, scoreText):
 	fh = open(outputCsdPath, 'w')
 	fh.write( '''<CsoundSynthesizer>
 <CsOptions>
--o %s --format=%s
+-o "%s" --format=%s
 </CsOptions>
 <CsInstruments>
 sr = %i
