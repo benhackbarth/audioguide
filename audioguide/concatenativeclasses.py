@@ -3,7 +3,8 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys, os, types
+import sys, os, types, datetime
+
 import numpy as np
 import audioguide.util as util
 import audioguide.descriptordata as descriptordata
@@ -77,8 +78,6 @@ class parseOptionsV2:
 		# see if it has changed
 		if not hasattr(self, optionname) or optionvalue != getattr(self, optionname):
 			self.poll_options_changes.append(tests.OptionChangeToProgramRun[optionname])
-#		if not init and hasattr(self, optionname) and optionvalue != getattr(self, optionname):
-#			print("CHANGED", optionname)
 		# set the option
 		setattr(self, optionname, optionvalue)
 	#############################
@@ -100,8 +99,12 @@ class parseOptionsV2:
 		return usrOptions
 	#############################
 	def get_outputfile(self, opsfilename):
-		# split it and add outputfile prefix
 		thispath = getattr(self, opsfilename)
+		if thispath == None: return thispath
+		# test for $TIME
+		if thispath.find('$TIME') != -1:
+			thispath = thispath.replace('$TIME', self.datetime)
+		# split it and add outputfile prefix
 		part1, part2 = os.path.split(thispath)
 		thispath = os.path.join(part1, self.OUTPUT_FILE_PREFIX + part2)
 		# verify that this is a full path, if not, try to join with audioguide_directory
@@ -147,6 +150,8 @@ class parseOptionsV2:
 	#############################
 	def rewind(self):
 		self.poll_options_changes = []
+		self.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+		self.incrementdash = None
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage
