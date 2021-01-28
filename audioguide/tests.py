@@ -108,6 +108,7 @@ UserVar_types = {
 'BACH_FILEPATH': ['None', 'a string'],
 'AAF_FILEPATH': ['None', 'a string'],
 'RPP_FILEPATH': ['None', 'a string'],
+'COPY_OPTIONS_FILEPATH': ['None', 'a string'],
 
 
 
@@ -222,6 +223,7 @@ OptionChangeToProgramRun = {
 "TARGET_DESCRIPTORS_FILEPATH": "output",
 "TARGET_PLOT_DESCRIPTORS_FILEPATH": "output",
 "CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH": "output",
+"COPY_OPTIONS_FILEPATH": "output",
 
 "CORPUS_GLOBAL_ATTRIBUTES": "corpus",
 "VOICE_PATTERN": "concate",

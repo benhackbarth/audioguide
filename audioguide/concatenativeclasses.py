@@ -90,8 +90,8 @@ class parseOptionsV2:
 		from audioguide.userclasses import SuperimpositionOptionsEntry as si
 		from audioguide.userclasses import SingleDescriptor as d
 		usrOptions = {}
-		self.ops_file_path = os.path.dirname(opsfile)
-		self.internal_search_paths.append(self.ops_file_path)
+		self.ops_file_path = opsfile
+		self.internal_search_paths.append(os.path.dirname(opsfile))
 		fh = open(opsfile)
 		self.opsfileAsString = fh.read()
 		exec(self.opsfileAsString, locals(), usrOptions)

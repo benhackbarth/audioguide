@@ -48,3 +48,4 @@ HTML_LOG_FILEPATH = 'output/log.html' # will just write output/log.html and will
 ###################################################################
 #CSOUND_RENDER_FILEPATH = 'output/$TIME/output.wav' # will create the file output/YYYY-MM-DD_hh-mm-ss/output.wav 
 #HTML_LOG_FILEPATH = 'output/$TIME/log.html'
+#COPY_OPTIONS_FILEPATH = 'output/$TIME/options.py' # <- copies the options file you're using so you can remember what you did :)

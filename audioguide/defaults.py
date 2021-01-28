@@ -14,6 +14,7 @@ MAXMSP_OUTPUT_FILEPATH = 'output/output.maxmsp.json'
 BACH_FILEPATH = 'output/bachroll.txt'
 AAF_FILEPATH = None # 'output/test.aaf'
 RPP_FILEPATH = None # 'output/test.rpp'
+COPY_OPTIONS_FILEPATH = None
 TARGET_DESCRIPTORS_FILEPATH = None # 'output/targetdescriptors.json'
 TARGET_PLOT_DESCRIPTORS_FILEPATH = None #'output/targetplot.jpg'
 CORPUS_SEGMENTED_FEATURES_JSON_FILEPATH = None
