@@ -484,8 +484,10 @@ class audioguide_bach_segments:
 		cents = midipitch * 100
 		duration_ms = duration * 1000
 		
-		velocity = int(round(np.interp(peakdb+scaledb, self.velocityMapping_db, self.velocityMapping_vel, left=self.velocityMapping_vel[0]), 0))
+		velocity = int(round(np.interp(peakdb+scaledb, self.velocityMapping_db, self.velocityMapping_vel, left=self.velocityMapping_vel[0], right=self.velocityMapping_vel[-1]), 0))
 
+		print(peakdb, velocity)
+		
 		slot_data = [], [] # everychord, everynote
 		for slotkey, datad in self.slots.items():
 			datum = None
