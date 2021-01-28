@@ -63,6 +63,8 @@ def testVariable(vtype, v):
 		if not False in [isinstance(i, str) for i in v]: return True
 	elif vtype == 'a list of ints or lists':
 		if not False in [isinstance(i, list) or isinstance(i, int) for i in v]: return True
+	elif vtype == 'a list of ints or floats':
+		if not False in [isinstance(i, float) or isinstance(i, int) for i in v]: return True
 	elif vtype == 'a list of spass() objects':
 		if not False in [testInstance(i, spass) for i in v]: return True
 	elif vtype == 'a list of csf() objects':
@@ -154,6 +156,7 @@ UserVar_types = {
 'BACH_INCLUDE_TARGET': ['True or False'],
 'BACH_TARGET_STAFF': ['a string'],
 'BACH_CORPUS_STAFF': ['a string'],
+'BACH_DB_TO_VELOCITY_BREAKPOINTS': ['a list of ints or floats'],
 'BACH_SLOTS_MAPPING': ['a dictionary'],
 
 # AAF
@@ -231,6 +234,7 @@ OptionChangeToProgramRun = {
 "BACH_INCLUDE_TARGET": "output",
 "BACH_TARGET_STAFF": "output",
 "BACH_CORPUS_STAFF": "output",
+"BACH_DB_TO_VELOCITY_BREAKPOINTS": "output",
 "BACH_SLOTS_MAPPING": "output",
 
 "NORMALIZATION_METHOD": "norm",

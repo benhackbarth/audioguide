@@ -117,7 +117,7 @@ class parseOptionsV2:
 		return thispath
 	#############################
 	def poll_options(self):
-		'''poll program options to see what parts of the code need to be rerun. e.g., if the corpus changed, we will not need to reload the target.'''
+		'''poll program options to see what parts of the code need to be rerun. e.g., if the corpus changed, we will not need to reinit or reload the target.'''
 		initanal = False
 		target = False
 		corpus = False
@@ -151,7 +151,6 @@ class parseOptionsV2:
 	def rewind(self):
 		self.poll_options_changes = []
 		self.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-		self.incrementdash = None
 	#############################
 	def createAnalInterface(self, p):
 		import anallinkage

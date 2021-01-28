@@ -92,8 +92,8 @@ class distanceCalculations:
 			elif spassobj.method == 'spectral_pitch_filter':
 
 				newList = []
-				#spass("spectralfilter", peakthreshold=-50, maxpeaks=20, peakminseparation=1, segmentmaxnoisiness=0.5, peakinterpolation=True, pitchtolerance=3),
-				#	segmentmaxnoisiness = if tat.seg nosiness is greater than this value, bypass this filter
+				#spass("spectralfilter", peakthreshold=-50, maxpeaks=20, peakminseparation=1, noisegate=0.5, peakinterpolation=True, pitchtolerance=3, dbtolerance=6),
+				#	noisegate = if tgt.seg noisiness is greater than this value, bypass this filter
 				#	peakminseparation = in semitones!
 				#	peakinterpolation = interpolate peaks for more precise frqs
 				#
@@ -112,7 +112,8 @@ class distanceCalculations:
 						diffs = np.abs(peakfrqs - c.desc['MIDIPitch-seg'].get(None, None))
 						sel_idx = np.argmin(diffs)
 						if diffs[sel_idx] > pitchtolerance: continue
-						c.transMethod = 'semitone %f'%(peakfrqs[sel_idx]-c.desc['MIDIPitch-seg'].get(None, None)) # overrides any other transmethod!
+						c.transMethod = 'semitone %f'%(peakfrqs[sel_idx]-c.desc.get('MIDIPitch-seg')) # overrides any other transmethod!
+						c.scaleSb = peakfrqs[sel_idx]-c.desc.get('power-seg') # overrides any other scaledb!
 						newList.append(c)
 
 			###############################

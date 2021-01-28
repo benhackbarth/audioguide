@@ -372,7 +372,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## BACH output ##
 		#################	
 		if self.ops.BACH_FILEPATH != None:
-			self.instruments.write(self.ops.get_outputfile('BACH_FILEPATH'), self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
+			self.instruments.write(self.ops.get_outputfile('BACH_FILEPATH'), self.tgt.segs, self.cps.data['vcToCorpusName'], self.outputEvents, self.ops.BACH_SLOTS_MAPPING, self.ops.BACH_DB_TO_VELOCITY_BREAKPOINTS, self.ops.BACH_TARGET_STAFF, self.ops.BACH_CORPUS_STAFF, addTarget=self.ops.BACH_INCLUDE_TARGET)
 			dict_of_files_written['BACH_FILEPATH'] = self.ops.get_outputfile('BACH_FILEPATH')
 
 

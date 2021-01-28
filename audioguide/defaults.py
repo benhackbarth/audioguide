@@ -67,6 +67,7 @@ CSOUND_NORMALIZE_PEAK_DB = -3
 BACH_INCLUDE_TARGET = True
 BACH_TARGET_STAFF = 'F'
 BACH_CORPUS_STAFF = 'FG'
+BACH_DB_TO_VELOCITY_BREAKPOINTS = [-80, 0, -0, 127]
 BACH_SLOTS_MAPPING = {1: 'fullpath', 2: 'sfskiptime', 3: 'sfchannels', 4: 'env', 5: 'transposition', 6: 'selectionnumber', 20: 'instr_dynamic', 22: 'instr_articulation', 23: 'instr_notehead', 24: 'instr_annotation', 25: 'instr_technique', 26: 'instr_temporal_mode'}
 
 ###########  AAF   ########

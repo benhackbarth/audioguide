@@ -14,7 +14,7 @@ import audioguide.util as util
 
 
 class notetracker:
-	'''tracks lots of info about notes that have been picked. provides data for testing the viability of future selections.'''
+	'''tracks info about notes that have been picked. provides data for testing the viability of future selections.'''
 	instrument_num_notes = 0
 	noninstrument_num_notes = 0
 	instrdata = {}
@@ -342,8 +342,8 @@ class instruments:
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
 		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.midi, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
 	########################################
-	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, tgtStaffType, cpsStaffType, addTarget=True):
-		bs = audioguide_bach_segments(bachSlotsDict)		
+	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, velocityMapping, tgtStaffType, cpsStaffType, addTarget=True):
+		bs = audioguide_bach_segments(bachSlotsDict, velocityMapping)		
 		#########################
 		## parse target sounds ##
 		#########################
@@ -353,7 +353,7 @@ class instruments:
 				skip = tobj.segmentStartSec
 				if hasattr(tobj, 'decomposeSfSkip'): # hack for signal decomposition
 					skip = tobj.decomposeSfSkip
-				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, skip, tobj.soundfileChns, tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc, 0, tobj.numberSelectedUnits)
+				bs.add_note('target', tobj.segmentStartSec, tobj.segmentDurationSec, tobj.desc.get('MIDIPitch-seg'), tobj.filename, skip, tobj.soundfileChns, util.ampToDb(tobj.power), tobj.envDb, tobj.envAttackSec, tobj.envDecaySec, tobj.desc, 0, tobj.numberSelectedUnits)
 		###############################
 		## add any instrument voices ##
 		###############################
@@ -376,10 +376,10 @@ class instruments:
 		for eobj in outputEvents:
 			LINKED_TO_INSTRUMENT = self.active and eobj.selectedinstrument != None
 			if not LINKED_TO_INSTRUMENT:
-				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects)
+				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.rmsSeg, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects)
 			else:
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
-				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
+				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.rmsSeg, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
 				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_notehead=thiscps['notehead'], instr_annotation=thiscps['annotation'], 
 				)
 		################################
@@ -438,9 +438,13 @@ class instruments:
 ########################################
 ########################################
 class audioguide_bach_segments:
-	def __init__(self, bachSlotsDict):
+	def __init__(self, bachSlotsDict, velocityMapping):
 		self.voices_ordered = []
 		self.voice_to_notes = {}
+
+		self.velocityMapping_db = np.array(velocityMapping[::2])
+		self.velocityMapping_vel = np.array(velocityMapping[1::2])
+
 		self.slots = {}
 		for slotidx, slotkey in bachSlotsDict.items():
 			if   slotkey == 'fullpath': self.slots[slotkey] = {'idx': slotidx, 'range': False, 'type': 'text', 'once': False}
@@ -473,15 +477,15 @@ class audioguide_bach_segments:
 		self.voices_ordered.append({'id': voicename, 'displayname': displayname, 'clef': clef})
 		self.voice_to_notes[voicename] = {}
 	########################################
-	def add_note(self, voicename, time, duration, midipitch, fullpath, sfskiptime, sfchannels, db, attack, decay, descobj, transposition, selectionnumber, instr_dynamic=None, instr_articulation=None, instr_notehead=None, instr_annotation=None, instr_technique=None, instr_temporal_mode=None):
+	def add_note(self, voicename, time, duration, midipitch, fullpath, sfskiptime, sfchannels, peakdb, scaledb, attack, decay, descobj, transposition, selectionnumber, instr_dynamic=None, instr_articulation=None, instr_notehead=None, instr_annotation=None, instr_technique=None, instr_temporal_mode=None):
 		assert voicename in self.voice_to_notes
 		# basic shit
 		time_ms = time * 1000
 		cents = midipitch * 100
 		duration_ms = duration * 1000
-		if db < -60: db = -60
-		velocity = int((util.dbToAmp(db)-util.dbToAmp(-60))/(1-util.dbToAmp(-60)) * 127)
 		
+		velocity = int(round(np.interp(peakdb+scaledb, self.velocityMapping_db, self.velocityMapping_vel, left=self.velocityMapping_vel[0]), 0))
+
 		slot_data = [], [] # everychord, everynote
 		for slotkey, datad in self.slots.items():
 			datum = None
@@ -492,10 +496,10 @@ class audioguide_bach_segments:
 			elif slotkey == 'sfchannels':
 				datum =  int(sfchannels)
 			elif slotkey == 'env':
-				amp = util.dbToAmp(db)
+				scaleamp = util.dbToAmp(scaledb)
 				attack_percent = attack/duration
 				decay_percent = (duration-decay)/duration
-				datum = '[0 0 0] [%.6f %f 0] [%.6f %f 0] [1 0 0]'%(attack_percent, amp, decay_percent, amp)
+				datum = '[0 0 0] [%.6f %f 0] [%.6f %f 0] [1 0 0]'%(attack_percent, scaleamp, decay_percent, scaleamp)
 			elif slotkey == 'transposition':
 				datum = transposition
 			elif slotkey == 'selectionnumber':

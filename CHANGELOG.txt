@@ -1,6 +1,10 @@
 ##################
 ## Version 1.72 ##
 ##################
+• Better documentation of working with output file names. You can now specify output files or directories using the '$TIME' string, which adds the current time stamp to output files so that they are not overwritten each time agConcatenate.py runs. See examples/07-outputfiles.py.
+
+• Velocity is now used in the bach output files and represents the volume of the selected sound (plus any attenuation from scaleDb or envelope). By default, it is mapped from -80dB=0 to -0dB=127. You can customize this mapping with BACH_DB_TO_VELOCITY_BREAKPOINTS.
+
 • Better comments in the files in examples/.
 
 • Various bug fixes.
@@ -33,7 +37,7 @@ http://www.benhackbarth.com/audioGuide/tutorial.html
 #################
 ## Version 1.6 ##
 #################
-• agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rending and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See https://www.youtube.com/watch?v=h0Ee77VoFe0
+• agConcatenate.py can now be run in "interactive mode" by adding the -i flag at runtime. Interactive mode runs agConcatenate.py as normal except that, after rendering and playing the concatenated output, the program stays open and monitors the options file for changes. When the options file is modified and saved, agConcatenate.py will examine the changes and rerun the parts of the program needed to create a new output. This makes it possible to use AudioGuide without having to repeatedly load large corpi. See https://www.youtube.com/watch?v=h0Ee77VoFe0
  
 • A Max/MSP bach.roll output file is now written for each concatenation by default. Check out examples/10-bachOutput.py and maxmsp/bach/ag_playback.maxpat for details. Also see here https://www.youtube.com/watch?v=WoLNX2XWemQ&t=1006s
 

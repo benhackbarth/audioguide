@@ -737,6 +737,19 @@ Use the si() object for specifying how corpus segments may be superimposed durin
 
 
 
+<div id="ConcatenationOutputFiles" class="subgroup"><h4>Concatenation Output Files</h4>
+<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location of the agConcatenate.py script.</p> 
+
+<p>Pro tip: You can also use the special string '$TIME' in any output file path to automatically insert the current time stamp into output filenames. This keeps audioguide from overwriting files from previous agConcatenate.py runs. See examples/07-outputfiles.py for details.</p>
+
+<pre class="language-python"><code class="language-python">CSOUND_RENDER_FILEPATH = 'output/$TIME-output.wav' # will create the file output/YYYY-MM-DD_hh-mm-ss-output.wav with the current time
+</code></pre>
+
+
+<p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound. See additional csound options <a href="#CsoundOutput">here</a>.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file. This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation. See additional csound options <a href="#CsoundOutput">here</a>.</p><p><b>CSOUND_SCORE_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) writes a simple textfile in the csound score format.</p><p><b>BACH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/bach_roll.txt&rsquo;</span>) Gathered syntax for concatenation selections that you can load into a bach.roll. See maxmsp/bach/main.maxpat for usage. See additional bach options <a href="#BachOutput">here</a>.</p><p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools. See additional aaf options <a href="#AafOutput">here</a>.</p><p><b>RPP_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create a .rpp file for loading into Reaper. See additional Reaper options <a href="#RppOutput">here</a>.</p><p><b>HTML_LOG_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/log.html&rsquo;</span>) a log file with lots of information from the concatenation algorithm.</p><p><b>OUTPUT_LABEL_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/outputlabels.txt&rsquo;</span>) Audacity-style labels showing the selected corpus sounds and how they overlap.</p><p><b>LISP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.lisp.txt&rsquo;</span>) a textfile containing selected corpus events as a lisp-style list.</p><p><b>DICT_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.json&rsquo;</span>) a textfile containing selected corpus events in json format.</p><p><b>MAXMSP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.maxmsp.json&rsquo;</span>) a textfile containing a list of selected corpus events. Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.</p><p><b>TARGET_SEGMENT_LABELS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/targetlabels.txt&rsquo;</span>) Audacity-style labels showing how the target sound was segmented.</p><p><b>TARGET_SEGMENTATION_GRAPH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) like TARGET_SEGMENT_LABELS_FILEPATH, this variable creates a file to show information about target segmentation. Here however, the output is a jpg graph of the onset and offset times and the target&rsquo;s power. This output requires you to install python&rsquo;s module matplotlib.</p><p><b>TARGET_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) saves the loaded target descriptors to a json dictionary.</p><p><b>TARGET_PLOT_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) creates a plot of each target descriptor used in concatenation. Doesn&rsquo;t create plots for averaged descriptors (&ldquo;-seg&rdquo;), only time varying descriptors.</p><p><b>DATA_FROM_SEGMENTATION_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) This file lists all of the extra data of selected events during concatenation. This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment. This is useful if you want to tag each corpus segment with text based information for use later.</p>
+
+</div>
+
 
 
 
@@ -975,31 +988,6 @@ BACH_SLOTS_MAPPING = {1: 'instr_technique', 2: 'fullpath', 3: 'sfskiptime', 10: 
 
 
 
-<div id="ConcatenationOutputFiles" class="subgroup"><h4>Concatenation Output Files</h4>
-<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location o the agConcatenate.py script.</p>
-
-<p><b>CSOUND_CSD_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.csd&rsquo;</span>) creates an output csd file for rendering the resulting concatenation with csound.</p><p><b>CSOUND_RENDER_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.aiff&rsquo;</span>) sets the sound output file in the CSOUND_CSD_FILEPATH file. This is the name of csound&rsquo;s output soundfile and will be created at the end of concatenation.</p><p><b>CSOUND_SCORE_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) writes a simple textfile in the csound score format.</p><p><b>BACH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/bach_roll.txt&rsquo;</span>) Gathered syntax for concatenation selections that you can load into a bach.roll. See maxmsp/bach/main.maxpat for usage.</p><p><b>AAF_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) Create an Advanced Authoring Format file for loading into Logic/Pro Tools.</p><p><b>OUTPUT_LABEL_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/outputlabels.txt&rsquo;</span>) Audacity-style labels showing the selected corpus sounds and how they overlap.</p><p><b>LISP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.lisp.txt&rsquo;</span>) a textfile containing selected corpus events as a lisp-style list.</p><p><b>DICT_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.json&rsquo;</span>) a textfile containing selected corpus events in json format.</p><p><b>MAXMSP_OUTPUT_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/output.maxmsp.json&rsquo;</span>) a textfile containing a list of selected corpus events. Data includes starttime in MS, duration in MS, filename, transposition, amplitude, etc.</p></div>
-
-
-
-
-
-
-
-
-<div id="OtherOutputFiles" class="subgroup"><h4>Other Output Files</h4>
-<p>For each of the following _FILEPATH variables, a value of None tells the agConcatenate.py NOT to create an output file. Otherwise a string tells agConcatenate.py to create this output file and also indicates the path of the file to create. Strings may be absolute paths. If a relative path is given, AudioGuide will create the file relative to the location of the agConcatenate.py script.</p>
-
-<p><b>HTML_LOG_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/log.html&rsquo;</span>) a log file with lots of information from the concatenation algorithm.</p><p><b>TARGET_SEGMENT_LABELS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">&lsquo;output/targetlabels.txt&rsquo;</span>) Audacity-style labels showing how the target sound was segmented.</p><p><b>TARGET_SEGMENTATION_GRAPH_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) like TARGET_SEGMENT_LABELS_FILEPATH, this variable creates a file to show information about target segmentation. Here however, the output is a jpg graph of the onset and offset times and the target&rsquo;s power. This output requires you to install python&rsquo;s module matplotlib.</p><p><b>TARGET_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) saves the loaded target descriptors to a json dictionary.</p><p><b>TARGET_PLOT_DESCRIPTORS_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) creates a plot of each target descriptor used in concatenation. Doesn&rsquo;t create plots for averaged descriptors (&ldquo;-seg&rdquo;), only time varying descriptors.</p><p><b>DATA_FROM_SEGMENTATION_FILEPATH</b> (type=<span style="color:red">string/None</span>, default=<span style="color:green">None</span>) This file lists all of the extra data of selected events during concatenation. This data is taken from corpus segmentation files, and includes everything after the startTime and endTime of each segment. This is useful if you want to tag each corpus segment with text based information for use later.</p>
-
-
-</div>
-
-
-
-
-
-
 
 
 <div id="PrintingInteraction" class="subgroup"><h4>Printing/Interaction</h4>
@@ -1191,6 +1179,7 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 		 <li><a href="#SEARCHvariable">SEARCH variable and spass() object</a></li>
 		 <li><a href="#TheSUPERIMPOSEvariabls">The SUPERIMPOSE variable and si() object</a></li>
 
+		 <li><a href="#ConcatenationOutputFiles">agConcatenate.py Output Files</a></li>
 		 <li><a href="#CsoundOutput">Csound Output</a></li>
 		 <li><a href="#AafOutput">Logic/Pro Tools Output</a></li>
 		 <li><a href="#RppOutput">Reaper Output</a></li>
@@ -1210,8 +1199,6 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
 				 <li><a href="#DescriptorComputationParameters">Descriptor Computation Parameters</a></li>
 				 <li><a href="#Concatenation">Concatenation</a></li>
 				 <li><a href="#Post-ConcatenationEventManipulation">Post-Concatenation Event Manipulation</a></li>
-				 <li><a href="#ConcatenationOutputFiles">All Concatenation Output Files</a></li>
-				 <li><a href="#OtherOutputFiles">Other Output Files</a></li>
 				 <li><a href="#PrintingInteraction">Printing/Interaction</a></li>
 			 </ul>
 		 </li>

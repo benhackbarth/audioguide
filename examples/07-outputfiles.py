@@ -39,12 +39,12 @@ CSOUND_CSD_FILEPATH = '/tmp/hideme.csd'
 ## You can also use the special string $TIME in your filenames to ensure that ##
 ## output files do not get overwritten                                        ##
 ################################################################################
-CSOUND_RENDER_FILEPATH = 'output/$TIME-output.wav'
-HTML_LOG_FILEPATH = 'output/$TIME-log.html'
+CSOUND_RENDER_FILEPATH = 'output/$TIME-output.wav' # will create the file output/YYYY-MM-DD_hh-mm-ss-output.wav with the current time
+HTML_LOG_FILEPATH = 'output/log.html' # will just write output/log.html and will get overwritten next time you run agConcatenate.py
 
 
 ###################################################################
 ## You can also use $TIME to create a directory for output files ##
 ###################################################################
-#CSOUND_RENDER_FILEPATH = 'output/$TIME/output.wav'
+#CSOUND_RENDER_FILEPATH = 'output/$TIME/output.wav' # will create the file output/YYYY-MM-DD_hh-mm-ss/output.wav 
 #HTML_LOG_FILEPATH = 'output/$TIME/log.html'
