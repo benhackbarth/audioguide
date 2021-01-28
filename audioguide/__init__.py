@@ -544,6 +544,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		if self.ops.COPY_OPTIONS_FILEPATH != None and self.ops.ops_file_path != None:
 			import shutil
 			shutil.copy(self.ops.ops_file_path, self.ops.get_outputfile('COPY_OPTIONS_FILEPATH'))
+			dict_of_files_written['COPY_OPTIONS_FILEPATH'] = self.ops.get_outputfile('COPY_OPTIONS_FILEPATH')
 
 		####################
 		## close log file ##
