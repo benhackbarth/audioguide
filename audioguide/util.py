@@ -95,10 +95,9 @@ def dbToAmp(db):
 
 
 def frq2Midi(frq):
-	from math import log
+	from math import log2
 	if frq == 0.0: frq = 0.000001
-	return round(12*log(frq/440.0), 2)+69
-
+	return (12*log2(frq/440.0))+69
 
 def interpArray(array, desiredSize, interpMask=None):
 	from numpy import arange, linspace, interp
