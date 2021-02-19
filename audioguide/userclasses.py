@@ -31,7 +31,7 @@ def getClassChecksum(classinstance, also=[]):
 
 
 class TargetOptionsEntry(object):
-	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None, multiriseBool=False, multirisePercentDev=20, multiriseSteps=5, decompose={}):
+	def __init__(self, filename, start=None, end=None, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.1, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None, multiriseBool=False, multirisePercentDev=20, multiriseSteps=5, decompose={}, partials=None):
 		self.filename = filename
 		self.start = start
 		self.end = end
@@ -49,6 +49,7 @@ class TargetOptionsEntry(object):
 		self.multirisePercentDev = multirisePercentDev
 		self.multiriseSteps = multiriseSteps
 		self.decompose = decompose
+		self.partials = partials
 		
 		self._checksum = getClassChecksum(self)
 	# equality test function for interactive mode
@@ -190,11 +191,17 @@ class SearchPassOptionsEntry(object):
 			else:
 				self.descriptor_list += args[3] + args[4] # add other descriptors for loading
 			#print(self.parsetest, self.submethod, self.parsedescriptor, self.parseSymbol, self.parsevalue, self.needMinMax, self.descriptor_list)
+		elif self.method == 'target_partial_filter':
+			self.submethod = None
+			self.needMinMax = False
+			_defaults = {'bypass': False, 'pitchtolerance': 4, 'dbtolerance': 12}
+			self.descriptor_list = []
 		else:
 			self.submethod = None
 			self.needMinMax = False
 			self.descriptor_list = args[1:]
-		_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
+			_defaults = {'percent': None, 'minratio': None, 'maxratio': None, 'complete_results': False, 'number': 10}
+		
 		for k in kwargs:
 			if not k in _defaults:
 				print('options', 'csf object does not have a keyword argument "%s"'%k)

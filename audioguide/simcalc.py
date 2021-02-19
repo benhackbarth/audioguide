@@ -21,6 +21,7 @@ class distanceCalculations:
 		self.p = p
 		self.searchResults = []
 		self.paramScore = []
+		self.f2s = AnalInterface.f2s
 		self.segmentDensityAmpScalers = [None, None]
 		if superimposeObj.minFrame != None:
 			self.segmentDensityAmpScalers[0] = 1/float(superimposeObj.minFrame)
@@ -86,35 +87,38 @@ class distanceCalculations:
 					mind, maxd = self.getFeatureDifferences(tgtseg, tgtSeek, dlist, spassobj.submethod, True, superimposeObj)
 					newList = self.selectFromSortedList(spassobj.submethod, spassobj.percent)
 
-			################################
-			## spectralpeaks pitch filter ##
-			################################
-			elif spassobj.method == 'spectral_pitch_filter':
 
+
+
+			##########################
+			## partial pitch filter ##
+			##########################
+			elif spassobj.method == 'target_partial_filter':
 				newList = []
-				#spass("spectralfilter", peakthreshold=-50, maxpeaks=20, peakminseparation=1, noisegate=0.5, peakinterpolation=True, pitchtolerance=3, dbtolerance=6),
-				#	noisegate = if tgt.seg noisiness is greater than this value, bypass this filter
-				#	peakminseparation = in semitones!
-				#	peakinterpolation = interpolate peaks for more precise frqs
-				#
-
-				peakthreshold = -70
-				maxpeaks = 20
-				pitchtolerance = 3
 				
-				#
-				peakfrqs = np.array(list((set([midi for db, midi in tgtseg.peaks if db >= peakthreshold]))))
-				if len(peakfrqs) == 0:
-					# nothing here!
-					newList = self.corpusObjs
-				else:
-					for c in self.corpusObjs:
-						diffs = np.abs(peakfrqs - c.desc['MIDIPitch-seg'].get(None, None))
-						sel_idx = np.argmin(diffs)
-						if diffs[sel_idx] > pitchtolerance: continue
-						c.transMethod = 'semitone %f'%(peakfrqs[sel_idx]-c.desc.get('MIDIPitch-seg')) # overrides any other transmethod!
-						c.scaleSb = peakfrqs[sel_idx]-c.desc.get('power-seg') # overrides any other scaledb!
+				for c in self.corpusObjs:
+					matches = []
+					c.db = util.ampToDb(c.desc.get('power-seg')) + c.envDb
+					for par in tgtseg.partials:
+						pitchdiff = par['avg_midi'] - c.desc.get('MIDIPitch-seg')
+						dbdiff = par['peak_db'] - c.db
+						abspitchdiff = abs(pitchdiff)
+						absdbdiff = abs(dbdiff)
+						if spassobj.pitchtolerance != None and abspitchdiff > spassobj.pitchtolerance: continue
+						if spassobj.pitchtolerance != None and absdbdiff > spassobj.dbtolerance: continue
+						matches.append([abspitchdiff, absdbdiff, pitchdiff, dbdiff, par])
+					if len(matches) > 0:
+						matches.sort()
+						wabspitchdiff, wabsdbdiff, wpitchdiff, wdbdiff, wpar = matches[0]
+						c.partial_data = {'pobj': wpar, 'pitchdiff': wpitchdiff, 'dbdiff': wdbdiff}
 						newList.append(c)
+					
+					
+					
+					
+					
+					
+					
 
 			###############################
 			## limit descriptor by ratio ##

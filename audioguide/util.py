@@ -95,7 +95,8 @@ def dbToAmp(db):
 
 
 def frq2Midi(frq):
-	from math import log2
+	#from math import log2
+	from numpy import log2
 	if frq == 0.0: frq = 0.000001
 	return (12*log2(frq/440.0))+69
 

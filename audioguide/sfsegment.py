@@ -154,6 +154,7 @@ class corpusSegment(sfsegment):
 		self.restrictOverlaps = restrictOverlaps
 		self.restrictRepetition = restrictRepetition
 		self.sim_accum = 0. # for similarity calculations
+		self.partial_data = None # for spass partial method
 		self.segfileData = segfileData
 		self.classification = 0
 		self.metadata = metadata
@@ -191,7 +192,7 @@ class target: # the target
 		self.filename = os.path.abspath(self.filename)
 		self.startSec = userOptsTargetObject.start
 		self.endSec = userOptsTargetObject.end
-		
+			
 		# check for signal decomposition
 		self.decompose = userOptsTargetObject.decompose
 		if self.decompose != {}:
@@ -201,8 +202,28 @@ class target: # the target
 			self.decompose['origfilename'] = self.filename
 			self.decompose['origduration'] = origtargetduration
 			self.filename = newtargetpath
-	
-
+		# partials
+		self.partials = userOptsTargetObject.partials
+		if self.partials != None:
+			params = {
+			'frame_size': 4096,
+			'win_size': 4096,
+			'hop_size': 1024,
+			'partial_min_duration': 0.05,
+			'partial_limit_midi': (20, 110),
+			'partial_limit_db': (-60, 0),
+			'partial_max_overlaps': 20,
+			'partial_min_confidence': 0, # 0->100
+			'partial_resynthsis_file': '/Users/ben/Desktop/partials/p.wav',
+			'forceAnalysis': False,
+			'use_partials_for_segmentation': False,
+			}
+			params.update(self.partials)
+			self.partials = params
+			self.has_partials = True
+		else:
+			self.has_partials = False
+		# segmentation stuff
 		self.segmentationThresh = userOptsTargetObject.thresh
 		self.segmentationOffsetRise = userOptsTargetObject.offsetRise
 		self.segmentationOffsetThreshAdd = userOptsTargetObject.offsetThreshAdd
@@ -290,6 +311,10 @@ class target: # the target
 				self.segmentationInOnsetFrames.append((startf, endf))
 				self.extraSegmentationData.append('from file')
 			closebartxt = "Read %i segments from file %s"%(len(self.segmentationInFrames), os.path.split(self.segmentationFilepath)[1])
+		######################
+		## partial analysis ##
+		######################
+		if self.has_partials: self.partial_analysis()
 	########################################
 	def stageSegments(self, AnalInterface, ops, p):
 		###################################
@@ -305,6 +330,13 @@ class target: # the target
 			for start, end in self.segmentationInFrames:
 				self.extraSegmentationData.append('%.4f'%(self.whole.desc.get(ops.TARGET_SEGMENT_LABELS_INFO, start=start, stop=end) ))
 		p.startPercentageBar(upperLabel="Evaluating TARGET %s from %.2f-%.2f"%(self.whole.printName, self.whole.segmentStartSec, self.whole.segmentEndSec), total=len(self.segmentationInSec))
+
+
+
+		if self.has_partials and self.partials['use_partials_for_segmentation']:
+			self.partial_analysis_override_segmentation()
+
+
 		for sidx, (startSec, endSec) in enumerate(self.segmentationInSec):
 			p.percentageBarNext(lowerLabel="@%.2f sec - %.2f sec"%(startSec, endSec))
 			segment = targetSegment(self.filename, sidx, startSec, endSec, +0, 0.0001, 0.0001, 1, AnalInterface, self.midiPitchMethod)
@@ -322,6 +354,10 @@ class target: # the target
 		## evaluate midipitch for each target segment ##
 		################################################
 		descriptordata.evaluate_midipitches(self.segs, self.segs[0].midiPitchMethod)
+		######################
+		## partial analysis ##
+		######################
+		if self.has_partials: self.partial_analysis_link_to_tgtsegs()
 		###################################
 		## hack for signal decomposition ##
 		###################################
@@ -332,6 +368,50 @@ class target: # the target
 				s.segmentStartSec = s.segmentStartSec % self.decompose['origduration']
 				s.segmentEndSec = s.segmentStartSec + s.segmentDurationSec
 				s.segmentStartFrame = AnalInterface.getSegmentStartInFrames(s.filename, s.segmentStartSec, s.segmentEndSec, s.lengthInFrames)
+	########################################
+	def partial_analysis(self):
+		import partialanalysis
+		self.pd = partialanalysis.PartialData()
+		self.pd.init_partial_analysis(self.whole.filename, os.path.join(os.path.split(__file__)[0], 'data'), self.partials['frame_size'], self.partials['win_size'], self.partials['hop_size'], mindb=-50, maxpeaks=50, forceAnal=self.partials['forceAnalysis'])
+		self.valid_partials = self.pd.filter_partials(self.partials['partial_min_duration'], self.partials['partial_limit_db'], self.partials['partial_limit_midi'], self.partials['partial_max_overlaps'], self.partials['partial_min_confidence'])
+		if self.partials['partial_resynthsis_file'] != None:
+			self.pd.rendercsoundpartials(self.valid_partials, self.partials['partial_resynthsis_file'])
+	########################################
+	def partial_analysis_override_segmentation(self):
+		self.extraSegmentationData = []
+		self.segmentationInFrames = []
+		self.segmentationInOnsetFrames = []
+		self.segmentationInSec = []
+		f2s = self.pd.loaded_partial_data[self.pd.peakdatapath]['f2s']
+		for par in self.valid_partials:
+			self.segmentationInFrames.append((par['startframe'], par['stopframe']))
+			self.segmentationInOnsetFrames.append((par['startframe'], par['stopframe']))
+			self.segmentationInSec.append((par['startframe']*f2s, min(par['stopframe']*f2s, self.whole.segmentEndSec)))
+			self.seglengths.append(par['lentime'])
+			self.extraSegmentationData.append('partial %i %.3f'%(par['avg_frq'], par['peak_amp']))
+	########################################
+	def partial_analysis_link_to_tgtsegs(self):
+		if self.partials['use_partials_for_segmentation']:
+			for sidx, s in enumerate(self.segs):
+				s.partials = [self.valid_partials[sidx]]
+		else:
+			f2s = self.pd.loaded_partial_data[self.pd.peakdatapath]['f2s']
+			for sidx, s in enumerate(self.segs):
+				s.partials = []
+				sframe, eframe = s.segmentStartSec/f2s, s.segmentEndSec/f2s
+				for par in self.valid_partials:
+					if par['stopframe'] < sframe or par['startframe'] > eframe: continue
+					s.partials.append(par)
+	########################################
+	def partial_analysis_cpsseg_winner(self, selectCpsseg, transposition, sourceAmpScale):
+		if self.has_partials and selectCpsseg.partial_data != None:
+			transposition += selectCpsseg.partial_data['pitchdiff'] # override
+			sourceAmpScale *= util.dbToAmp(selectCpsseg.partial_data['dbdiff']) # override
+			#selectCpsseg.partial_data['pobj']['selections'][selectCpsseg.partial_data['pobj']['sel_slice']] += 1
+			selectCpsseg.partial_data = None
+		return transposition, sourceAmpScale
+	
+	
 	########################################
 	def writeSegmentationFile(self, filename):
 		assert len(self.segmentationInSec) == len(self.extraSegmentationData)

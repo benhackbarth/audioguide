@@ -392,6 +392,73 @@ e
 
 
 
+
+def makePartialRendering(outputCsdPath, outputSoundfilePath, scoreftables, scorenotes):
+	scoreText = ''
+	for ft in scoreftables: scoreText += ' '.join([str(f) for f in ft]) + '\n'
+	for n in scorenotes: scoreText += ' '.join([str(f) for f in n]) + '\n'
+
+	fh = open(outputCsdPath, 'w')
+	fh.write( '''<CsoundSynthesizer>
+<CsOptions>
+-o "%s" --format=%s
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 128
+nchnls = 1
+
+0dbfs = 1
+
+
+instr 1 ; sine player
+	idur = p3
+	idatalength = p4
+	iftablefrq = p5
+	iftableamp = p6
+	icnh = p7
+	;isinetable   ftgenonce   0, 0, 16384, 10, 1
+	
+	
+	areadline  line  0, idur, idatalength
+	
+	afrq  tablei  areadline, iftablefrq
+	aamp  tablei  areadline, iftableamp
+
+	ares oscili aamp, afrq
+	a_declick  linseg  0, 0.01, 1, p3-0.02, 1, 0.01, 0
+
+	out ares*a_declick
+endin
+
+
+instr 2 ; sine player fixed
+	idur = p3
+	iamp = p4
+	ifrq = p5
+	
+	ares oscili iamp, ifrq
+	a_declick  linseg  0, 0.01, 1, p3-0.02, 1, 0.01, 0
+
+	out ares*a_declick
+endin
+
+
+
+
+
+</CsInstruments>
+<CsScore>
+%s
+e
+</CsScore>
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], scoreText) )
+
+
+
+
+
+
 def makeFtableFromDescriptor(descriptorArray, descriptorName, f2s, csoundSr, csoundKr, tabNumb=1):
 	import numpy as np
 	lastval = sys.maxsize

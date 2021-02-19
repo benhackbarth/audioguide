@@ -83,7 +83,7 @@ class main:
 		self.tgt = sfsegment.target(self.ops.TARGET, self.AnalInterface)
 		self.tgt.initAnal(self.AnalInterface, self.ops, self.p)
 		self.tgt.stageSegments(self.AnalInterface, self.ops, self.p)
-
+		
 		if len(self.tgt.segs) == 0:
 			util.error("TARGET FILE", "no segments found!  this is rather strange.  could your target file %s be digital silence??"%(self.tgt.filename))
 		self.p.log("TARGET SEGMENTATION: found %i segments with an average length of %.3f seconds"%(len(self.tgt.segs), np.average(self.tgt.seglengths)))
@@ -291,7 +291,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				## mix chosen sample's descriptors ##
 				#####################################
 				if self.ops.SUPERIMPOSE.calcMethod == "mixture":
-					#tgtseg.mixSelectedSamplesDescriptors(selectCpsseg, sourceAmpScale, tgtseg.seek, self.AnalInterface)
 					tgtseg.desc.mixture_mix(selectCpsseg, sourceAmpScale, tgtseg.seek, self.ops._mixtureDescriptors)
 					tgtseg.has_been_mixed = True
 				#################################
@@ -302,6 +301,9 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				cpsEffDur = selectCpsseg.desc.get('effDurFrames-seg')
 				maxoverlaps = np.max(superimp.cnt['overlap'][tif:tif+minLen])
 				eventTime = (timeInSec*self.ops.OUTPUTEVENT_TIME_STRETCH)+self.ops.OUTPUTEVENT_TIME_ADD
+
+				transposition, sourceAmpScale = self.tgt.partial_analysis_cpsseg_winner(selectCpsseg, transposition, sourceAmpScale)
+
 				oeObj = concatenativeclasses.outputEvent(selectCpsseg, eventTime, util.ampToDb(sourceAmpScale), transposition, superimp.cnt['selectionCount'], tgtseg, maxoverlaps, tgtsegdur, tgtseg.idx, self.ops.CSOUND_STRETCH_CORPUS_TO_TARGET_DUR, self.AnalInterface.f2s(1), self.ops.OUTPUTEVENT_DURATION_SELECT, self.ops.OUTPUTEVENT_DURATION_MIN, self.ops.OUTPUTEVENT_DURATION_MAX, self.ops.OUTPUTEVENT_ALIGN_PEAKS)
 				self.outputEvents.append( oeObj )
 		
