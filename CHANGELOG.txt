@@ -7,7 +7,7 @@
 
 • Better comments in the files in examples/.
 
-• Various bug fixes.
+• Various bug fixes. You can now have csound output files with spaces in the filenames!
 
 
 
