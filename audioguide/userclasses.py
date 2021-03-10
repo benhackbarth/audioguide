@@ -191,6 +191,7 @@ class SearchPassOptionsEntry(object):
 			else:
 				self.descriptor_list += args[3] + args[4] # add other descriptors for loading
 			#print(self.parsetest, self.submethod, self.parsedescriptor, self.parseSymbol, self.parsevalue, self.needMinMax, self.descriptor_list)
+			_defaults = {}
 		elif self.method == 'target_partial_filter':
 			self.submethod = None
 			self.needMinMax = False
