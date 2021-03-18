@@ -24,6 +24,10 @@ def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMe
 	else:
 		util.error("csdrenderer", "No known channel render method '%s'\n"%channelRenderMethod)
 
+
+	sf_format = os.path.splitext(outputSoundfilePath)[1][1:]
+	
+	
 	if bits == 16: bitflag = '-s'
 	elif bits == 24: bitflag = '-3'
 	elif bits == 32: bitflag = '-f'
