@@ -520,11 +520,11 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				for oe in self.outputEvents:
 					oe.timeInScore -= minTime
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
-			csd.makeConcatenationCsdFile(self.ops.get_outputfile('CSOUND_CSD_FILEPATH'), self.ops.get_outputfile('CSOUND_RENDER_FILEPATH'), self.ops.CSOUND_CHANNEL_RENDER_METHOD, self.ops.CSOUND_SR, self.ops.CSOUND_KSMPS, csSco, self.cps.len, set([oe.sfchnls for oe in self.outputEvents]), maxOverlaps, self.instruments, self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=self.ops.CSOUND_BITS)
+			csd.makeConcatenationCsdFile(self.ops.get_outputfile('CSOUND_CSD_FILEPATH', valid_extensions=['.csd']), self.ops.get_outputfile('CSOUND_RENDER_FILEPATH', valid_extensions=['.wav', '.aif', '.aiff']), self.ops.CSOUND_CHANNEL_RENDER_METHOD, self.ops.CSOUND_SR, self.ops.CSOUND_KSMPS, csSco, self.cps.len, set([oe.sfchnls for oe in self.outputEvents]), maxOverlaps, self.instruments, self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], bits=self.ops.CSOUND_BITS)
 			dict_of_files_written['CSOUND_CSD_FILEPATH'] = self.ops.get_outputfile('CSOUND_CSD_FILEPATH')
 			self.p.log( "Wrote csound csd file %s\n"%self.ops.get_outputfile('CSOUND_CSD_FILEPATH') )
 			if self.ops.CSOUND_RENDER_FILEPATH != None:
-				csd.render(self.ops.get_outputfile('CSOUND_CSD_FILEPATH'), len(self.outputEvents), printerobj=self.p)
+				csd.render(self.ops.get_outputfile('CSOUND_CSD_FILEPATH', valid_extensions=['.csd']), len(self.outputEvents), printerobj=self.p)
 				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.get_outputfile('CSOUND_RENDER_FILEPATH') )
 				dict_of_files_written['CSOUND_RENDER_FILEPATH'] = self.ops.get_outputfile('CSOUND_RENDER_FILEPATH')
 	
@@ -552,7 +552,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## close log file ##
 		####################
 		if self.ops.HTML_LOG_FILEPATH != None:
-			self.p.writehtmllog(self.ops.get_outputfile('HTML_LOG_FILEPATH'))
+			self.p.writehtmllog(self.ops.get_outputfile('HTML_LOG_FILEPATH', valid_extensions=['.html']))
 			dict_of_files_written['HTML_LOG_FILEPATH'] = self.ops.get_outputfile('HTML_LOG_FILEPATH')
 	
 		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:

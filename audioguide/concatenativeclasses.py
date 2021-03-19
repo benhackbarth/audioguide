@@ -98,9 +98,9 @@ class parseOptionsV2:
 		fh.close()
 		return usrOptions
 	#############################
-	def get_outputfile(self, opsfilename):
+	def get_outputfile(self, opsfilename, valid_extensions=None):
 		thispath = getattr(self, opsfilename)
-		if thispath == None: return thispath
+		if thispath == None: return None
 		# test for $TIME
 		if thispath.find('$TIME') != -1:
 			thispath = thispath.replace('$TIME', self.datetime)
@@ -114,6 +114,11 @@ class parseOptionsV2:
 		directory = os.path.split(thispath)[0]
 		if not os.path.exists(directory):
 			os.makedirs(directory)
+		# test that this path is using a valid file extension
+		if valid_extensions != None:
+			if os.path.splitext(thispath)[1].lower() not in valid_extensions:
+				util.error('file path', "The output path for %s must have one of the following extensions: %s"%(opsfilename, ', '.join(valid_extensions)))
+				sys.exit()
 		return thispath
 	#############################
 	def poll_options(self):
