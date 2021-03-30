@@ -421,7 +421,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		######################
 		if self.ops.DICT_OUTPUT_FILEPATH != None:
 			output = {}
-			output['opsfilename'] = self.ops.opsfilehead
+			output['opsfilename'] = self.ops.ops_file_path
 			output['opsfiledata'] = self.ops.opsfileAsString
 			# make target segment dict list
 			self.tgt.segs.sort(key=operator.attrgetter('segmentStartSec'))
