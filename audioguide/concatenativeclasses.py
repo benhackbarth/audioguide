@@ -945,6 +945,13 @@ class outputEvent:
 		dicty['peakRmsDb'] = util.ampToDb(self.powerSeg)
 		dicty['midiPitch'] = self.midi
 		dicty['envScaleDb'] = self.envDb
+		
+		# instrument writing stuff
+		if hasattr(self, 'selectedInstrumentIdx'):
+			dicty['selectedInstrumentIdx'] = self.selectedInstrumentIdx
+			dicty['selectedinstrument'] = self.selectedinstrument
+			dicty['segmentationfiledata'] = self.extraDataFromSegmentationFile
+			
 		return dicty
 	####################################	
 	def makeSegmentationDataText(self):
