@@ -24,7 +24,7 @@ if not os.path.exists(file):
 from audioguide.userclasses import TargetOptionsEntry as tsf
 
 optionsDictionary = {
-'TARGET': tsf('examples/cage.aiff'),
+'TARGET': tsf(file),
 'VERBOSITY': 0, # <- turn off printing to the console!
 }
 
