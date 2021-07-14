@@ -31,10 +31,10 @@ class AnalInterface:
 	# when loading a directory, skip files without these extensions; not case sensative
 	validSfExtensions = ['.aiff', '.aif', '.wav', '.au'] 
 	tgtOnsetDescriptors = {'power-odf-7': 1}
-	global descriptToFiles
 
 	def __init__(self, userWinLengthSec=0.12, userHopLengthSec=0.02, userEnergyHopLengthSec=0.005, resampleRate=12500, windowType='blackman', F0MaxAnalysisFreq=3000, F0MinFrequency=200, F0MaxFrequency=1000, F0AmpThreshold=30, numbMfccs=13, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
 		global descriptToFiles
+		self.descriptToFiles = descriptToFiles[:]
 		self.desc_manager = descriptors.descriptor_manager()
 		# establish data directory
 		if dataDirectoryLocation == None:
@@ -71,7 +71,7 @@ class AnalInterface:
 		# set up mfccs
 		self.numbMfccs = numbMfccs
 		for i in range(self.numbMfccs):
-			descriptToFiles.append(("mfcc%i"%i, 'ircamd', False, True,  'MFCC', self.numbMfccs, i))
+			self.descriptToFiles.append(("mfcc%i"%i, 'ircamd', False, True,  'MFCC', self.numbMfccs, i))
 		# other stuff
 		self.forceAnal = forceAnal
 		self.searchPaths = searchPaths
@@ -180,7 +180,7 @@ EnergyEnvelope  = 1
 		# make a list of all possible descriptor objects, needed by agGetDescriptors.py
 		self.allDescriptors = []
 		from userclasses import SingleDescriptor as d
-		for desc in descriptToFiles:
+		for desc in self.descriptToFiles:
 			dobj = d(desc[0])
 			self.allDescriptors.append( dobj )
 			if not dobj.seg: self.allDescriptors.append( d(desc[0]+'-seg') )
@@ -236,7 +236,6 @@ EnergyEnvelope  = 1
 	########################################################
 	########################################################
 	def __createDescriptorsFile__(self, sffile, analdir, npypath, jsonpath, ircam_bin, ircamd_configfile, debug=False):
-		global descriptToFiles
 		STAGING_DIRECTORY = os.path.join(analdir, 'tmp')
 		if not os.path.exists(STAGING_DIRECTORY): os.makedirs(STAGING_DIRECTORY)
 		command = [ircam_bin, sffile, ircamd_configfile]
@@ -268,14 +267,14 @@ EnergyEnvelope  = 1
 		framelength = int(f.readlines()[2].split()[2])
 		f.close()
 		infodict['ircamd'] = {'framelength': framelength, 'filehead': os.path.split(npypath)[1]}
-		
+
 		if debug:
 			print(sffile+'\n')
 			print(infodict)
-			print("Array=", (framelength, len(descriptToFiles)+1))
+			print("Array=", (framelength, len(self.descriptToFiles)+1))
 
 		# set up descriptor matrix
-		ircamd_array = np.empty((framelength, len(descriptToFiles)+1)) # plus one for power, added separately due to separate framerate
+		ircamd_array = np.empty((framelength, len(self.descriptToFiles)+1)) # plus one for power, added separately due to separate framerate
 		# get number of frames of shorttime energy envelope
 		f = open(os.path.join(STAGING_DIRECTORY, 'EnergyEnvelope_ShortTermFeature_space1.info.txt'))
 		energyframelength = int(f.readlines()[2].split()[2])
@@ -286,7 +285,7 @@ EnergyEnvelope  = 1
 		ircamd_array[:,0] = newarray[:,0] # power is first column
 		infodict['lengthsec'] = infodict['lengthsamples']/float(infodict['sr'])
 		
-		for idx, (agId, source, isAmp, isMixable, rawFilename, matrixSize, matrixLocation) in enumerate(descriptToFiles):
+		for idx, (agId, source, isAmp, isMixable, rawFilename, matrixSize, matrixLocation) in enumerate(self.descriptToFiles):
 			filename = os.path.join(STAGING_DIRECTORY, rawFilename+'_ShortTermFeature_space2.raw')
 			myarray = np.fromfile(filename, dtype=np.float, count=-1, sep='')
 			#print source, rawFilename, matrixSize, len(myarray), framelength, matrixSize, framelength*matrixSize

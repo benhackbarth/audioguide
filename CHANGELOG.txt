@@ -1,4 +1,9 @@
 ##################
+## Version 1.73 ##
+##################
+• bug fix in anallinkage.py
+
+##################
 ## Version 1.72 ##
 ##################
 • Better documentation of working with output file names. You can now specify output files or directories using the '$TIME' string, which adds the current time stamp to output files so that they are not overwritten each time agConcatenate.py runs. See examples/07-outputfiles.py.

@@ -631,7 +631,7 @@ class corpus:
 		#
 		# evaulate and set valid voices for instruments...
 		instruments.evaluate_voices(timeInFrames, validVoices)
-		instruments.setup_corpus_tests(timeInFrames)
+		instruments.setup_corpus_tests(timeInFrames, tgtSegIdx)
 
 
 		###############################################
@@ -947,7 +947,7 @@ class outputEvent:
 		dicty['envScaleDb'] = self.envDb
 		
 		# instrument writing stuff
-		if hasattr(self, 'selectedInstrumentIdx'):
+		if hasattr(self, 'selectedInstrument'):
 			dicty['selectedInstrumentIdx'] = self.selectedInstrumentIdx
 			dicty['selectedinstrument'] = self.selectedinstrument
 			dicty['segmentationfiledata'] = self.extraDataFromSegmentationFile

@@ -5,7 +5,7 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.72"
+__version__ = "1.73"
 
 
 
@@ -185,7 +185,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		distanceCalculations = simcalc.distanceCalculations(self.ops.SUPERIMPOSE, self.ops.RANDOM_SEED, self.AnalInterface, self.tgt.segs, self.p)
 		distanceCalculations.setTarget(self.ops.SEARCH, self.tgt.segs)
 
-		self.instruments = musicalwriting.instruments(self.ops.INSTRUMENTS, self.ops.CORPUS, self.tgt.lengthInFrames, self.cps.postLimitSegmentNormList, self.AnalInterface.hopLengthSec, self.p)
+		self.instruments = musicalwriting.instruments(self.ops.INSTRUMENTS, self.ops.CORPUS, self.tgt.segs, self.tgt.lengthInFrames, self.cps.postLimitSegmentNormList, self.AnalInterface.hopLengthSec, self.p)
 
 		superimp = concatenativeclasses.SuperimposeTracker(self.tgt.lengthInFrames, len(self.tgt.segs), self.ops.SUPERIMPOSE.overlapAmpThresh, self.ops.SUPERIMPOSE.peakAlign, self.ops.SUPERIMPOSE.peakAlignEnvelope, len(self.ops.CORPUS), self.ops.RESTRICT_CORPUS_OVERLAP_BY_STRING, self.p)
 		superimp.setup_subtract(self.ops.SUPERIMPOSE.subtractScale, self.tgt.segs, self.cps.postLimitSegmentNormList)

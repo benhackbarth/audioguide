@@ -4,6 +4,54 @@ import audioguide.util as util
 
 
 
+
+
+
+
+
+
+class sequenceTracker:
+	def __init__(self, paramdict, sequencesCanRotate=False, splitchar=' '):
+		self.sequencesCanRotate = sequencesCanRotate
+		self.splitchar = splitchar
+		self.all_token_lists = paramdict['sequences']
+		####
+		self.tracker = []
+		self.all_tokens = []
+		self.starting_tokens = []
+		self.middle_tokens = []
+		self.ending_tokens = []
+		self.non_starting_tokens = []
+		for sl in self.all_token_lists:
+			self.all_tokens.extend(sl)
+			self.starting_tokens.append(sl[0])
+			self.middle_tokens.extend(sl[1:-1])
+			self.ending_tokens.append(sl[-1])
+			self.non_starting_tokens.extend(sl[1:])
+	####################		
+	def register(self, sidx, filename):
+		token = os.path.split(filename)[1].split(self.splitchar)[1]
+		self.tracker.append(token)
+	####################		
+	def query(self, sidx):
+		'''return a list of tests that all tokens must pass'''
+		# not in a pattern or just ended a pattern
+		if len(self.tracker) == 0 or self.tracker[-1] not in self.all_tokens or self.tracker[-1] in self.ending_tokens: 
+			# if rotations are possible, anything is pickable here
+			if self.sequencesCanRotate: return []
+			# otherwise we can only pick for first element of any sequence
+			return ["'%%s' not in %s"%str(self.non_starting_tokens)]
+		# otherwise if we are in a pattern
+		else:
+			currentidx = self.all_tokens.index(self.tracker[-1])
+			return ["'%%s' == '%s'"%str(self.all_tokens[currentidx+1])]
+
+
+
+
+
+
+
 #########################
 ## things to implement ##
 #########################
@@ -19,8 +67,9 @@ class notetracker:
 	noninstrument_num_notes = 0
 	instrdata = {}
 	########################################
-	def __init__(self, hopsize):
+	def __init__(self, hopsize, tgtsegs):
 		self.hopsize = hopsize
+		self.tgtsegs = tgtsegs
 	########################################
 	def addinstrument(self, instr, tgtlength, instrparams, cpsids, cpsparams):
 		#self.instrToIdx[instr] = len(self.instrdata)
@@ -28,6 +77,9 @@ class notetracker:
 		# set up instrument trackers
 		self.instrdata[instr]['selected_notes'] = {}
 		self.instrdata[instr]['overlaps'] = np.zeros(tgtlength, dtype=int)
+		# test for sequence stuff
+		if 'sequences' in instrparams:
+			self.instrdata[instr]['sequencetrack'] = sequenceTracker(instrparams['sequences'])
 		# set up technique trackers
 		for d in cpsparams:
 			if 'technique' not in d or d['technique'] in self.instrdata[instr]['tech']: continue
@@ -36,14 +88,16 @@ class notetracker:
 		for vc in cpsids:
 			self.instrdata[instr]['cps'][vc] = np.zeros(tgtlength, dtype=int)
 	########################################
-	def addnote(self, instr, cpsid, time, duration, midi, db, technique):
+	def addnote(self, instr, cpsid, time, duration, midi, db, technique, tgtsegidx, eobj):
 		if time not in self.instrdata[instr]['selected_notes']: self.instrdata[instr]['selected_notes'][time] = []
 		self.instrdata[instr]['selected_notes'][time].append([duration, midi, db, cpsid])
 		self.instrdata[instr]['overlaps'][time:time+duration] += 1
 		self.instrdata[instr]['cps'][cpsid][time:time+duration] += 1
+		if 'sequencetrack' in self.instrdata[instr]:
+			self.instrdata[instr]['sequencetrack'].register(tgtsegidx, eobj.filename)
 		if technique != None:
 			self.instrdata[instr]['tech'][technique][time:time+duration] += 1
-		self.instrument_num_notes += 1
+		self.instrument_num_notes += 1		
 	########################################
 	def _neighbor_notetimes(self, instr, time, cpsscope=None):
 		'''returns None or notetime for previous and next notes'''
@@ -149,12 +203,12 @@ class notetracker:
 
 ################################################################################
 class instruments:
-	def __init__(self, scoreFromUserOptions, usercorpus, tgtlength, cpsseglist, hopsizesec, p):
+	def __init__(self, scoreFromUserOptions, usercorpus, tgtsegs, tgtlength, cpsseglist, hopsizesec, p):
 		self.active = scoreFromUserOptions != None and len(scoreFromUserOptions.instrumentobjs) != 0
 		if not self.active: return
 		#
 		self.tgtlength = tgtlength
-		self.tracker = notetracker(hopsizesec)
+		self.tracker = notetracker(hopsizesec, tgtsegs)
 		self.hopsizesec = hopsizesec
 		self.instruments = {}
 		self.instrument_names = []
@@ -260,7 +314,7 @@ class instruments:
 				# otherwise add it
 				self.valid_instruments_per_voice[vc].append(i)
 	########################################
-	def setup_corpus_tests(self, tidx):
+	def setup_corpus_tests(self, tidx, tsegidx):
 		if not self.active: return True
 		'''creates a list of boolean tests for corpus segment pitch and dB that must be passed for a sample to be considered for selection'''
 		self.instrument_tests = {}
@@ -268,8 +322,14 @@ class instruments:
 		for i in self.instruments:	
 			# loop through each voice available to each instrument
 			for v in self.instruments[i]['cps']:
+				self.instrument_tests[i, v] = {'pitch': [], 'pitch2': [], 'db2': [], 'seqdata': []}
+
+				# sequence testing
+				if 'sequencetrack' in self.tracker.instrdata[i]:
+					self.instrument_tests[i, v]['seqdata'].extend(self.tracker.instrdata[i]['sequencetrack'].query(tsegidx))
+
+
 				# set up the test dict
-				self.instrument_tests[i, v] = {'pitch': [], 'pitch2': [], 'db2': []}
 				minmaxdict = self.tracker.get_chord_minmax(i, tidx, v)
 				if minmaxdict == None: 
 					# no other notes found here
@@ -290,6 +350,8 @@ class instruments:
 				if self.instruments[i]['cps'][v]['polyphony_max_db_difference'] != None:
 					extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_max_db_difference']-minmaxdict['dbrange']
 					self.instrument_tests[i, v]['db2'].append('%%f >= %f and %%f <= %f'%(minmaxdict['dbmin']-extra_room_in_minrange, minmaxdict['dbmax']+extra_room_in_minrange))
+				
+
 			# interval restriction in time
 			for minp, maxp in self.tracker.get_interval_restrictions(self.instruments, i, v, tidx):
 				for v in self.instruments[i]['cps']:
@@ -319,6 +381,13 @@ class instruments:
 			tests.extend([teststring%(PITCH, PITCH) for teststring in self.instrument_tests[i, cobj.voiceID]['pitch2']])
 			# double dB conditionals			
 			tests.extend([teststring%(DB, DB) for teststring in self.instrument_tests[i, cobj.voiceID]['db2']])
+			# extradata text testing
+			tests.extend([teststring%(os.path.split(cobj.filename)[1].split()[1]) for teststring in self.instrument_tests[i, cobj.voiceID]['seqdata']])
+			##
+#			if len([teststring%(cobj.segfileData.split()[0]) for teststring in self.instrument_tests[i, cobj.voiceID]['seqdata']]) > 0:
+#				mytests = [teststring%(cobj.segfileData.split()[0]) for teststring in self.instrument_tests[i, cobj.voiceID]['seqdata']][0]
+#				print("\t", mytests, eval(mytests))
+			##
 			for t in tests:
 				if not eval(t):
 					add_this_instr = False
@@ -340,7 +409,7 @@ class instruments:
 		thisinstr = self.instruments[eobj.selectedinstrument]
 		# increment shit
 		if thisinstr['cps'][vc]['temporal_mode'] == 'artic': dur = 1
-		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.midi, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'])
+		self.tracker.addnote(eobj.selectedinstrument, eobj.sfseghandle.voiceID, start, dur, eobj.midi, eobj.rmsSeg+eobj.envDb, thisinstr['cps'][vc]['technique'], eobj.tgtsegnumb, eobj)
 	########################################
 	def write(self, outputfile, targetSegs, corpusNameList, outputEvents, bachSlotsDict, velocityMapping, tgtStaffType, cpsStaffType, addTarget=True):
 		bs = audioguide_bach_segments(bachSlotsDict, velocityMapping)		
