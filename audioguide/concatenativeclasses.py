@@ -76,7 +76,8 @@ class parseOptionsV2:
 		# test datatypes
 		tests.testOption(optionname, optionvalue)
 		# see if it has changed
-		if not hasattr(self, optionname) or optionvalue != getattr(self, optionname):
+		print(optionname)
+		if (not hasattr(self, optionname) or optionvalue != getattr(self, optionname)) and not optionname.startswith('_'):
 			self.poll_options_changes.append(tests.OptionChangeToProgramRun[optionname])
 		# set the option
 		setattr(self, optionname, optionvalue)
