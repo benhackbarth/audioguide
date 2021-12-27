@@ -256,7 +256,11 @@ class cpsLimit:
 		p.pprint( self.origString, colour='BOLD')
 		for voiceID, numb in dicty.items():
 			percent = numb*100. / float(cps.data['cspInfo'][voiceID]['segs'])
-			p.printreject(numb, percent, cps.data['cspInfo'][voiceID]['filehead'])
+			if cps.data['cspInfo'][voiceID]['filehead'] == '':
+				printname = cps.data['cspInfo'][voiceID]['name']
+			else:
+				printname = cps.data['cspInfo'][voiceID]['filehead']
+			p.printreject(numb, percent, printname)
 
 
 
