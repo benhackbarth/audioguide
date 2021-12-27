@@ -100,6 +100,12 @@ def frq2Midi(frq):
 	if frq == 0.0: frq = 0.000001
 	return (12*log2(frq/440.0))+69
 
+
+def midi2Frq(midi):
+	return (2 ** ((midi-69)/12.)) * 440.
+
+
+
 def interpArray(array, desiredSize, interpMask=None):
 	from numpy import arange, linspace, interp
 	x = arange(array.size)
