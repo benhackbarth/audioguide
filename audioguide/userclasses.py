@@ -153,7 +153,8 @@ class Instrument(object):
 		#'polyphony_interval_tests': [], # good idea, not implemented yet :(
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
-		# handle pitch across time
+		# handle pitch
+		'pitched': True, # if False, the following will be ignored: cps(pitchfilter) local or global, 'interval_limit_breakpoints', interval_limit_breakpoints
 		#'interval_exclude': [], # 	the difference in semitones between two adjectent notes may not be found in this list
 		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
 		'interval_limit_range_per_sec': None,

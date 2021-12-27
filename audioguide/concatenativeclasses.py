@@ -552,15 +552,18 @@ class corpus:
 	def evaluateCorpusPitchFilters(self):
 		tmplist = []
 		for c in self.postLimitSegmentList:
-			# add this corpus unit if the pitchfilter is not set
-			if c.pitchfilter.valid:
+			if not c.pitchfilter.valid:
+				# pitchfilter is not set, so add this sample
+				tmplist.append(c)
+			elif ('pitched' in c.instrParams and c.instrParams['pitched'] == False):
+				# this sample is designmated as unpitch, so skip any pitchfilter
+				tmplist.append(c)
+			else:
+				# apply filter
 				passedTest, newTrans = c.pitchfilter.test(c.desc.get('MIDIPitch-seg'))
 				if passedTest:
 					c.transMethod = 'semitone %f'%newTrans # overrides any other transmethod!
 					tmplist.append(c)
-			else:
-				# pitchfilter is not set, so add this sample
-				tmplist.append(c)
 		self.postLimitSegmentList = tmplist
 	############################################################################
 	############################################################################

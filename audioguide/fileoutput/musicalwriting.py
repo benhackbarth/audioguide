@@ -179,6 +179,7 @@ class notetracker:
 				timeinterpolate = (tdiff-time)/(nextrestriction[0]-time)
 				intervalextrapolate = (timeinterpolate*(nextrestriction[1]-int))+int
 				results.append([maxp-intervalextrapolate, minp+intervalextrapolate])
+		
 		if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None:
 			min_max_within_a_second = [[], []]
 			timerange = (0.5/self.hopsize)
@@ -355,7 +356,8 @@ class instruments:
 			# interval restriction in time
 			for minp, maxp in self.tracker.get_interval_restrictions(self.instruments, i, v, tidx):
 				for v in self.instruments[i]['cps']:
-					self.instrument_tests[i, v]['pitch2'].append('%%f >= %f and %%f <= %f'%(minp, maxp))
+					if self.instruments[i]['cps'][v]['pitched']:
+						self.instrument_tests[i, v]['pitch2'].append('%%f >= %f and %%f <= %f'%(minp, maxp))
 	########################################
 	def test_corpus_segment(self, tidx, cobj):
 		'''this test happens on the corpus at a segment-by-segment basis'''
