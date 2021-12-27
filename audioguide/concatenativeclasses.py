@@ -76,7 +76,6 @@ class parseOptionsV2:
 		# test datatypes
 		tests.testOption(optionname, optionvalue)
 		# see if it has changed
-		print(optionname)
 		if (not hasattr(self, optionname) or optionvalue != getattr(self, optionname)) and not optionname.startswith('_'):
 			self.poll_options_changes.append(tests.OptionChangeToProgramRun[optionname])
 		# set the option
@@ -262,10 +261,57 @@ class cpsLimit:
 
 
 
-
-
-
-
+class pitchFilterer:
+	'''csf(pitchfilter=) removes segments from a csf() entry based on whether or not each segment matches midipitches specified by the user.  The user supplies a dictionary with a list of pitches.  pitches less than 12 will be treated as pitch classes, i.e. if 0 is given, all pitches modulo 12 which equal 0 will be included.  Corpus segments' pitches may be transposed to fit the given pitches -- the 'tolerance' key specifies a semitone tranposition tolerance.  For instance, pitchfilter={'pitches': [60], 'tolerance': 3} will include all segments whose pitch is +-3 semitones from 60, and audioguide will transpose these pitches to be played back at the neaest pitch found in pitches, in this case 60.  Note that this feature will override any other transposition given in csf(transMethod=).  Also note that a corpus segment's pitch is determined with the segment's MIDIPitch-seg, which can be controled according to csf(midiPitchMethod=)
+	csf('pianosamples', pitchfilter={'pitches': [60, 68, 73]}), # discard any segments that do not match any of the given pitches
+	csf('pianosamples', pitchfilter={'pitches': [60, 68, 73], 'tolerance': 3}), # discard any segments that do not match any of the given pitches +=3 semitones
+	csf('pianosamples', pitchfilter={'pitches': [0, 64], 'tolerance': 3}), # C in any octave and E4 will make it through!
+	csf('pianosamples', pitchfilter={'harmonics': [60], 'tolerance': 3}), # C4 or any of its harmonics will make it through!
+	'''
+	valid = False
+	def __init__(self, pitchfilterdict):
+		self.midipitches = []
+		self.settings = {'midimin': 13, 'midimax': 120, 'tolerance': 0, 'harmonicstretch': 1}
+		self.settings.update(pitchfilterdict)
+		self.hzmax = util.midi2Frq(self.settings['midimax'])
+		# do harmonics
+		if 'harmonics' in pitchfilterdict:
+			for h in pitchfilterdict['harmonics']:
+				# make this a midipitch if it is a string
+				if isinstance(h, str): h = descriptordata.getMidiPitchFromString(h)
+				hhz = util.midi2Frq(h)
+				cnt = hhz
+				while cnt < self.hzmax:
+					self._add_pitch(util.frq2Midi(cnt))
+					cnt += hhz * self.settings['harmonicstretch']
+		# do pitches
+		if 'pitches' in pitchfilterdict:
+			for p in pitchfilterdict['pitches']:
+				# make this a midipitch if it is a string
+				if isinstance(p, str): p = descriptordata.getMidiPitchFromString(p)
+				# parse pitch classes
+				if p < 12:
+					while True:
+						if p > self.settings['midimax']: break
+						if p >= self.settings['midimin']: self._add_pitch(p)
+						p += 12
+				# straight-up pitches
+				else:
+					self._add_pitch(p)
+		self.midipitches = np.array(self.midipitches)
+		self.valid = True
+	##########################
+	def _add_pitch(self, pitch):
+		if pitch not in self.midipitches: self.midipitches.append(pitch)
+	##########################
+	def test(self, pitch):
+		differences = self.midipitches-pitch
+		absdiff = np.abs(differences)
+		# test if outside tolerance
+		if np.min(absdiff) > self.settings['tolerance']: return False, None
+		closestpitchidx = np.argmin(absdiff)
+		return True, differences[closestpitchidx]
+		
 
 
 
@@ -320,6 +366,8 @@ class corpus:
 			for name, val in corpusGlobalAttributesFromOptions.items():
 				if name == 'limit': continue
 				setattr(cobj, name, val)
+			# initialize pitchfilter
+			cobj.pitchfilter = pitchFilterer(cobj.pitchfilter)
 
 			# add local limits
 			totalLimitList = []
@@ -502,29 +550,16 @@ class corpus:
 	############################################################################
 	############################################################################
 	def evaluateCorpusPitchFilters(self):
-		'''csf(pitchfilter=) removes segments from a csf() entry based on whether or not each segment matches midipitches specified by the user.  The user supplies a dictionary with a list of pitches.  pitches less than 12 will be treated as pitch classes, i.e. if 0 is given, all pitches modulo 12 which equal 0 will be included.  Corpus segments' pitches may be transposed to fit the given pitches -- the 'tolerance' key specifies a semitone tranposition tolerance.  For instance, pitchfilter={'pitches': [60], 'tolerance': 3} will include all segments whose pitch is +-3 semitones from 60, and audioguide will transpose these pitches to be played back at the neaest pitch found in pitches, in this case 60.  Note that this feature will override any other transposition given in csf(transMethod=).  Also note that a corpus segment's pitch is determined with the segment's MIDIPitch-seg, which can be controled according to csf(midiPitchMethod=)
-		csf('pianosamples', pitchfilter={'pitches': [60, 68, 73]}), # discard any segments that do not match any of the given pitches
-		csf('pianosamples', pitchfilter={'pitches': [60, 68, 73], 'tolerance': 3}), # discard any segments that do not match any of the given pitches +=3 semitones
-		csf('pianosamples', pitchfilter={'pitches': [0, 64], 'tolerance': 3}), # C in any octave and E4 will make it through!
-		'''
 		tmplist = []
 		for c in self.postLimitSegmentList:
-			#c.pitchfilter = {}
-			#c.pitchfilter = {'pitches': [60, 66, 73], 'tolerance': 3}
-			if c.pitchfilter == {}:
-				tmplist.append(c)
+			# add this corpus unit if the pitchfilter is not set
+			if c.pitchfilter.valid:
+				passedTest, newTrans = c.pitchfilter.test(c.desc.get('MIDIPitch-seg'))
+				if passedTest:
+					c.transMethod = 'semitone %f'%newTrans # overrides any other transmethod!
+					tmplist.append(c)
 			else:
-				midipitch = c.desc.get('MIDIPitch-seg')
-				differences = []
-				for p in c.pitchfilter['pitches']:
-					if p < 12: # it's a pitch class
-						differences.append(p-(midipitch%12))
-					else: # it's a midi pitch
-						differences.append(p-midipitch)
-				absdiff = np.abs(differences)
-				if np.min(absdiff) > c.pitchfilter['tolerance']: continue
-				closestpitchidx = np.argmin(absdiff)
-				c.transMethod = 'semitone %f'%differences[closestpitchidx] # overrides any other transmethod!
+				# pitchfilter is not set, so add this sample
 				tmplist.append(c)
 		self.postLimitSegmentList = tmplist
 	############################################################################

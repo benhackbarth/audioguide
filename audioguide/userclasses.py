@@ -98,11 +98,17 @@ class CorpusOptionsEntry(object):
 		self.instrParams = instrParams
 		# test if limit is a string make it a list
 		if type(self.limit) == type(""): self.limit = [self.limit]
-		# see if pitch filter has pitch strings that need to be converted into floats...
-		if self.pitchfilter != {}:
-			for pidx in range(len(self.pitchfilter['pitches'])):
-				if isinstance(self.pitchfilter['pitches'][pidx], str):
-					self.pitchfilter['pitches'][pidx] = descriptordata.getMidiPitchFromString(self.pitchfilter['pitches'][pidx])
+#		if self.pitchfilter != {}:
+#			if 'maxpitch' not in self.pitchfilter: self.pitchfilter['maxpitch'] = 116
+#			# do harmonics
+#			if 'harmonics' in self.pitchfilter:
+#				for h in self.pitchfilter['harmonics']:
+#					print(h)
+#					sys.exit()
+#			
+#			for pidx in range(len(self.pitchfilter['pitches'])):
+#				if isinstance(self.pitchfilter['pitches'][pidx], str):
+#					self.pitchfilter['pitches'][pidx] = descriptordata.getMidiPitchFromString(self.pitchfilter['pitches'][pidx])
 
 		self._checksum = getClassChecksum(self)
 	# equality test function for interactive mode
