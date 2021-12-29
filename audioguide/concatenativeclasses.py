@@ -303,7 +303,8 @@ class pitchFilterer:
 				else:
 					self._add_pitch(p)
 		self.midipitches = np.array(self.midipitches)
-		self.valid = True
+		if len(self.midipitches) > 0:
+			self.valid = True
 	##########################
 	def _add_pitch(self, pitch):
 		if pitch not in self.midipitches: self.midipitches.append(pitch)
