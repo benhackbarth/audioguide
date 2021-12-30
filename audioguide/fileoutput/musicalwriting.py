@@ -189,13 +189,13 @@ class notetracker:
 				seconddiff = (time-prevnote)*self.hopsize
 				pitchdiff = seconddiff * instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']
 				min_max_possibilities[0].append(d['pitchmin']-pitchdiff)
-				min_max_possibilities[1].append(d['pitchmin']+pitchdiff)
+				min_max_possibilities[1].append(d['pitchmax']+pitchdiff)
 			if nextnote != None:
 				d = self.get_chord_minmax(instr, nextnote, vc)
 				seconddiff = (nextnote-time)*self.hopsize
 				pitchdiff = seconddiff * instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']
 				min_max_possibilities[0].append(d['pitchmin']-pitchdiff)
-				min_max_possibilities[1].append(d['pitchmin']+pitchdiff)
+				min_max_possibilities[1].append(d['pitchmax']+pitchdiff)
 
 			results.append([max(min_max_possibilities[0]), min(min_max_possibilities[1])])
 			#sys.exit()

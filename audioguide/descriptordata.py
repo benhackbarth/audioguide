@@ -573,11 +573,11 @@ def evaluate_midipitches(segmentobjlist, config, notfound=-1):
 		output_pitch_list = np.clip(pitchlist, config['low'], config['high'])
 	# filename string match
 	elif config['type'] == 'file_match':
-		pitchlist = np.array([MIDIPitchByFileName(obj.printName, 'composite', obj, notfound=-1) for obj in segmentobjlist])
+		output_pitch_list = [MIDIPitchByFileName(obj.printName, 'composite', obj, notfound=-1) for obj in segmentobjlist]
 		for k in config:
 			if k == 'type': continue
 			for cidx, c in enumerate(segmentobjlist):
-				if util.matchString(c.printName, k, caseSensative=True): pitchlist[cidx] = config[k]
+				if util.matchString(c.printName, k, caseSensative=True): output_pitch_list[cidx] = config[k]
 	else:
 		util.error("SF SEGMENTS", 'Ya done goofed son.')
 	# assignment..
