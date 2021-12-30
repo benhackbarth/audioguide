@@ -180,21 +180,41 @@ class notetracker:
 				intervalextrapolate = (timeinterpolate*(nextrestriction[1]-int))+int
 				results.append([maxp-intervalextrapolate, minp+intervalextrapolate])
 		
-		if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None:
-			min_max_within_a_second = [[], []]
-			timerange = (0.5/self.hopsize)
-			for notetime in self.instrdata[instr]['selected_notes'].keys():
-				#if cpsscope != None and self.instrdata[instr]['selected_notes'][notetime][0][3] not in cpsscope: continue
-				if notetime >= time-timerange and notetime <= time+timerange:
-					d = self.get_chord_minmax(instr, notetime, vc)
-					min_max_within_a_second[0].append(d['pitchmin'])
-					min_max_within_a_second[1].append(d['pitchmax'])
-			if len(min_max_within_a_second[0]) > 0:
-				minp = min(min_max_within_a_second[0])
-				maxp = max(min_max_within_a_second[1])
-				extra_room = instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']-(maxp-minp)
-				results.append([minp-extra_room, maxp+extra_room])
+		# interval_limit_range_per_sec
+		if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None and len(self.instrdata[instr]['selected_notes']) > 0:
+			prevnote, nextnote = self._neighbor_notetimes(instr, time)
+			min_max_possibilities = [[], []]
+			if prevnote != None:
+				d = self.get_chord_minmax(instr, prevnote, vc)
+				seconddiff = (time-prevnote)*self.hopsize
+				pitchdiff = seconddiff * instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']
+				min_max_possibilities[0].append(d['pitchmin']-pitchdiff)
+				min_max_possibilities[1].append(d['pitchmin']+pitchdiff)
+			if nextnote != None:
+				d = self.get_chord_minmax(instr, nextnote, vc)
+				seconddiff = (nextnote-time)*self.hopsize
+				pitchdiff = seconddiff * instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']
+				min_max_possibilities[0].append(d['pitchmin']-pitchdiff)
+				min_max_possibilities[1].append(d['pitchmin']+pitchdiff)
 
+			results.append([max(min_max_possibilities[0]), min(min_max_possibilities[1])])
+			#sys.exit()
+			
+	#	if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None:
+#			min_max_within_a_second = [[], []]
+#			timerange = (0.5/self.hopsize)
+#			for notetime in self.instrdata[instr]['selected_notes'].keys():
+#				#if cpsscope != None and self.instrdata[instr]['selected_notes'][notetime][0][3] not in cpsscope: continue
+#				if notetime >= time-timerange and notetime <= time+timerange:
+#					d = self.get_chord_minmax(instr, notetime, vc)
+#					min_max_within_a_second[0].append(d['pitchmin'])
+#					min_max_within_a_second[1].append(d['pitchmax'])
+#			if len(min_max_within_a_second[0]) > 0:
+#				minp = min(min_max_within_a_second[0])
+#				maxp = max(min_max_within_a_second[1])
+#				extra_room = instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']-(maxp-minp)
+#				results.append([minp-extra_room, maxp+extra_room])
+#		print("\n\n", instr, vc, time, results, self.instrdata[instr]['selected_notes'], "\n\n")
 		return results		
 
 
@@ -208,6 +228,22 @@ class instruments:
 		self.active = scoreFromUserOptions != None and len(scoreFromUserOptions.instrumentobjs) != 0
 		if not self.active: return
 		#
+		# test configuration
+		#    make sure that instruments listed have a corresponding tag in the corpus; otherwise die
+		allCorpusInstrTags = []
+		for c in usercorpus:
+			if type(c.instrTag) == type(""): allCorpusInstrTags.append(c.instrTag)
+			else: allCorpusInstrTags.extend(c.instrTag)
+		unusedInstruments = []
+		for si in scoreFromUserOptions.instrumentobjs:
+			if si.name not in allCorpusInstrTags:
+				unusedInstruments.append(si.name)
+		if len(unusedInstruments) > 0:
+			util.error("INSTRUMENT", "Several instruments defined in score() are not tagged to any of your csfs(). These include %s. To link instruments to csf() resources, set the csf keyword 'instrTag' to the name of the desired instrument."%', '.join(unusedInstruments), exitcode=1)
+		#
+		self.setup_internalshit(scoreFromUserOptions, usercorpus, tgtsegs, tgtlength, cpsseglist, hopsizesec, p)
+	########################################
+	def setup_internalshit(self, scoreFromUserOptions, usercorpus, tgtsegs, tgtlength, cpsseglist, hopsizesec, p):
 		self.tgtlength = tgtlength
 		self.tracker = notetracker(hopsizesec, tgtsegs)
 		self.hopsizesec = hopsizesec
@@ -266,7 +302,6 @@ class instruments:
 					for idx, c in enumerate(thiscps_powersort):
 						dynidx = int((idx/float(len(thiscps_powersort)-1))*(len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01))
 						self.instruments[k]['cps'][voiceID]['cobj_to_dyn'][c] = self.instruments[k]['cps'][voiceID]['dynamics'][dynidx]
-
 		self.scoreparams = scoreFromUserOptions.params
 	########################################
 	def _s2f(self, timesec):
