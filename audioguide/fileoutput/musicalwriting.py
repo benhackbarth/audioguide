@@ -215,6 +215,7 @@ class instruments:
 		allCorpusInstrTags = []
 		for c in usercorpus:
 			if type(c.instrTag) == type(""): allCorpusInstrTags.append(c.instrTag)
+			elif c.instrTag == None: pass
 			else: allCorpusInstrTags.extend(c.instrTag)
 		unusedInstruments = []
 		for si in scoreFromUserOptions.instrumentobjs:
