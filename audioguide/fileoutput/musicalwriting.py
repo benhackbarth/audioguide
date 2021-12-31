@@ -196,25 +196,7 @@ class notetracker:
 				pitchdiff = seconddiff * instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']
 				min_max_possibilities[0].append(d['pitchmin']-pitchdiff)
 				min_max_possibilities[1].append(d['pitchmax']+pitchdiff)
-
 			results.append([max(min_max_possibilities[0]), min(min_max_possibilities[1])])
-			#sys.exit()
-			
-	#	if instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec'] != None:
-#			min_max_within_a_second = [[], []]
-#			timerange = (0.5/self.hopsize)
-#			for notetime in self.instrdata[instr]['selected_notes'].keys():
-#				#if cpsscope != None and self.instrdata[instr]['selected_notes'][notetime][0][3] not in cpsscope: continue
-#				if notetime >= time-timerange and notetime <= time+timerange:
-#					d = self.get_chord_minmax(instr, notetime, vc)
-#					min_max_within_a_second[0].append(d['pitchmin'])
-#					min_max_within_a_second[1].append(d['pitchmax'])
-#			if len(min_max_within_a_second[0]) > 0:
-#				minp = min(min_max_within_a_second[0])
-#				maxp = max(min_max_within_a_second[1])
-#				extra_room = instrumentsobj[instr]['cps'][vc]['interval_limit_range_per_sec']-(maxp-minp)
-#				results.append([minp-extra_room, maxp+extra_room])
-#		print("\n\n", instr, vc, time, results, self.instrdata[instr]['selected_notes'], "\n\n")
 		return results		
 
 
