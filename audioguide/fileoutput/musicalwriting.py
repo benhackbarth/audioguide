@@ -282,6 +282,7 @@ class instruments:
 					ranks = [c.amprank_real * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in cpsseglist if c.voiceID == voiceID]
 				# add dynamics
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)}
+				#print("instrument dynamics:", voiceID, self.instruments[k]['cps'][voiceID]['dynamics'], [ranks[cidx] for cidx, c in enumerate(thiscps)], [self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)])
 		self.scoreparams = scoreFromUserOptions.params
 	########################################
 	def _s2f(self, timesec):

@@ -166,14 +166,14 @@ $('body').scrollspy({
 	<div class="row">
 <!--Main Content -->
 <div class="col-xs-9 bs-docs-mainbar">
-<p align="center"><h1>AudioGuide1.73 Manual</h1>
+<p align="center"><h1>AudioGuide1.74 Manual</h1>
 By Ben Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno.<br>
 Copyright Ben Hackbarth, 2011-2020.</p><br>
 
 
 
 <section id="Installation" class="group"><h2>Installation</h2>
-For the moment AudioGuide1.73 only works on OS X. On more current versions of OS X it should run out of the box with python2 or python3. Here is a complete list of the resources that AudioGuide1.73 requires on your computer:
+For the moment AudioGuide1.74 only works on OS X. On more current versions of OS X it should run out of the box with python2 or python3. Here is a complete list of the resources that AudioGuide1.74 requires on your computer:
 <ul>
 <li><b>numpy (python >= 2.7 has numpy pre-installed I think)</b> - Numpy is a numerical computation plugin for Python. Upgrading to the latest python2.7 should automatically install numpy. If you don&rsquo;t have it, you can download the source code or a binary installer <a href="http://sourceforge.net/projects/numpy/files/NumPy/">here</a>. Or run "sudo easy_install pip" then "python -m pip install numpy"<li><b>csound6</b> - Needed if you would like AudioGuide to automatically render concatenations (which you probably do). Download an installer from <a href="http://csound.github.io/download.html">here</a>.</ul>
 </section>
@@ -201,7 +201,7 @@ The reason that segmentation and concatenation are separated into discrete steps
 
 
 <section id="CorpusSegmentation" class="group"><h2>Corpus Segmentation</h2>
-There are several tools in AudioGuide1.73 to segment long soundfiles into smaller chucks for use in concatenation. The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py. agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis. Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
+There are several tools in AudioGuide1.74 to segment long soundfiles into smaller chucks for use in concatenation. The sections below detail two such scripts, agSegmentSf.py and agGranulateSf.py. agSegmentSf.py segments soundfiles into chunks based on the rise and fall of the file's amplitude; agGranulateSf.py makes overlapping grains suitabile for traditional granular synthesis. Keep in mind that you do not <i>need</i> to use AudioGuide scripts if you do not want to -- alternatively you can:
 <ul>
 <li> Use whole soundfiles as corpus segments. If you only want to use folders of sounds that have been pre-segmented into individual files, you can skip this section and proceed to the <a href="#Concatenating">concatenation</a> section (However make sure tell AudioGuide not to search for segmentation textfiles by setting the corpus attribute wholeFile=True. See <a href="#ManipulatingHowDirectoriesAreRead">Manipulating How Directories Are Read</a> for more info.).
 <li> Create segmentation files by hand. You can do this in Audacity with its 'Labels' feature. Create a label track and indicate the start and end times of desired sound segments. Then "Export Labels..." and give the outputfile the same name as the soundfile + '.txt'. So, 'examples/lachenmann.aiff' would need a label file named 'examples/lachenmann.aiff.txt'.
@@ -215,7 +215,7 @@ There are several tools in AudioGuide1.73 to segment long soundfiles into smalle
 The script you use to segment your corpus files according to it's acoustic features is called &lsquo;agSegmentSf.py&rsquo;. AgSegmentSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.73 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.74 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agSegmentSf.py examples/lachenmann.aiff
 </code></pre>
@@ -225,7 +225,7 @@ AudioGuide will think for a second, and then output the following data detailing
 
 <pre class="language-none"><code class="language-none">---------------------- AUDIOGUIDE SEGMENT SOUNDFILE ----------------------
 
-Evaluating /Users/ben/Documents/AudioGuide1.73/examples/lachenmann.aiff from 0.00-64.65
+Evaluating /Users/ben/Documents/AudioGuide1.74/examples/lachenmann.aiff from 0.00-64.65
 
 AN ONSET HAPPENS when
 The amplitude crosses the Relative Onset Trigger Threshold: -40.00 (-t option)
@@ -238,10 +238,10 @@ AN OFFSET HAPPENS when
 
 
 Found 144 segments
-Wrote file /Users/ben/Documents/AudioGuide1.73/examples/lachenmann.aiff.txt
+Wrote file /Users/ben/Documents/AudioGuide1.74/examples/lachenmann.aiff.txt
 </code></pre>
 
-As a result of running this python script, AudioGuide1.73 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.74 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 
 
@@ -284,7 +284,7 @@ The textfiles created by agSegmentSf.py use a segmentation labeling format ident
 A script you can use to segment your corpus files for use with granular synthesis is called &lsquo;agGranulateSf.py&rsquo;. Like agSegmentSf.py, agGranulateSf.py creates textfiles which denote the start and stop times of sound segments in a multi-segment audiofile. Unlike agSegmentSf.py, this script chops up a soundfile into evenly size grains and provides a mechanism for adjusting grain overlap.
 </ul>
 
-To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.73 folder and run the following command:
+To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.74 folder and run the following command:
 
 <pre class="language-none"><code class="language-none">python agGranulateSf.py examples/lachenmann.aiff
 </code></pre>
@@ -292,7 +292,7 @@ To segment a corpus file, &lsquo;cd&rsquo; into the AudioGuide1.73 folder and ru
 There are similar flags to the agSegment script, as we only want to use grains where there is audio present. Thus the -t, -a, and -d remain. Grain length in second is specified with the -g flag and grain overlap is specified with -o.
 <ul> <li id="flag--g"><b>-g &#60;value&#62;</b> (<span style="color:green">greater than zero</span>; the default is <span style="color:green">0.1</span>) - This flag sets the length of generated grains in seconds. Target and Corpus generated with agGranulate will be this length.</li><li id="flag--o"><b>-o &#60;value&#62;</b> (<span style="color:green">greater than zero, less than -g</span>; the default is <span style="color:green">0.05</span>) - This flag sets the distance between sucessive grain overlaps in seconds. If this value is 0.05 a new grain will begin every 0.05 seconds. If -g is 0.3, the overlap of grains will be 6.</li><li id="flag--t"><b>-t &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-40</span>) - This flag gives the onset trigger threshold value in dB. When the soundfile's amplitude rises above the threshold, grains start being generated. Higher values closer to 0 will lead to fewer grains.</li><li id="flag--d"><b>-d &#60;value&#62;</b> (<span style="color:green">between 0 and 100</span>; the default is <span style="color:green">+12</span>) - This flag sets the relative offset trigger threshold. This value is added to the soundfile’s minimum amplitude. During segmentation, if a frame’s amplitude is below this threshold, it causes grains to stop being generated. For instance, if the lowest amplitude in the soundfile is -82 and -d is set to +12, a dB value of -70 dB will cause grains to cease. Also see -a.</li><li id="flag--a"><b>-a &#60;value&#62;</b> (<span style="color:green">between -200 and -0</span>; the default is <span style="color:green">-80</span>) - This flag changes the segmentation offset absolute threshold. When segmenting the target, if a frame's amplitude is below this value it will cause grains to stop being generated. This variable is an absolute value whereas -d specifies a value relative to the soundfile’s minimum amplitude. Effectively, whichever of these two variables is higher will be the offset threshold. Also see -d.</li></ul>
 
-As a result of running this python script, AudioGuide1.73 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
+As a result of running this python script, AudioGuide1.74 automatically writes a textfile with the exact same name and path as the soundfile, but adding the extension '.txt' -- in this case: examples/lachenmann.aiff.txt.
 
 <figure class="figure">
  <img src="http://www.benhackbarth.com/audioGuide/docimg/segmentationGranulate.png" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." width="75%">
@@ -312,15 +312,15 @@ See examples/06-granular.py for usage and details.
 
 
 <section id="ConcatenatingwithagConcatenatepy" class="group"><h2>Concatenating with agConcatenate.py</h2>
-Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.73 options file as the first (and only) argument. 
+Once you have segmented corpus soundfiles to your satisfaction, you are ready to call the concatenation script agConcatenate.py with a special AudioGuide1.74 options file as the first (and only) argument. 
 <br><br>
-To run one of the examples in the examples directory, run the following command inside the AudioGuide1.73 directory:
+To run one of the examples in the examples directory, run the following command inside the AudioGuide1.74 directory:
 <pre><code>python agConcatenate.py examples/01-simplest.py
 </code></pre>
 
 ...which will use the options contained in &lsquo;examples/01-simplest.py&rsquo; to parameterize the concatenative algorithm. In this options file you specify a target sound, the corpus sounds, and (if you like) lots of other options that parameterize the concatenative process. When run, the &lsquo;agConcatenate.py&rsquo; script will perform the following operations:
 <ul>
-<li> Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk. Analysis files are stored in a directory called &lsquo;AudioGuide1.73/audioguide/data/&rsquo; in the AudioGuide1.73 folder. This directory can become quite large since these files are quite substantial in size. Removing this folder will cause all analysis files to be recomputed). 
+<li> Run an ircamdescriptor analysis of the soundfile in the TARGET variable (note: the analysis is only done once -- subsequent usages of this soundfile simply read data from disk. Analysis files are stored in a directory called &lsquo;AudioGuide1.74/audioguide/data/&rsquo; in the AudioGuide1.74 folder. This directory can become quite large since these files are quite substantial in size. Removing this folder will cause all analysis files to be recomputed). 
 <li> Segment the target sound according to your options file. An Audacity-style label file is created in a file called &lsquo;output/tgtlabels.txt&rsquo; in the output directory.
 <li> Run an ircamdescriptor analysis of the soundfiles in the CORPUS variable (only the first time each of these files are used).
 <li> (If you&rsquo;ve specified them) Remove corpus segments according to descriptor limitations (Nothing above a certain pitch, nothing below a certain dynamic, etc.).
@@ -825,7 +825,7 @@ The score() object is assigned to 'INSTRUMENTS' in the options file. score() con
 
 		
 <ul>
-<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent note onsets for this instrument in seconds.<li><b>interval_limit_breakpoints</b> - A list. Described in the Handling Time second, below.<li><b>interval_limit_range_per_sec</b> - None or a number. Described in the Handling Time second, below.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum allowable time between polyphonic chord onsets in seconds. This works the same way as minspeed, but only applies to polyphonic selections.<li><b>technique_switch_delay_map*</b> - If different techniques are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify a list of minimum delay times needed to switich form one technique to another. ['tech1', 'tech2', 0.5] = to go from tech1 to tech2, there must be a delay of at least 0.5 seconds.<li><b>clef*</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key*</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.</ul>
+<li><b>instrTag</b> - This instrument's instrTag. Any corpus entries with the same string will be associated with this instrument.<li><b>temporal_mode</b> - 'sus' by default, which indicates a sustained event.<li><b>minspeed</b> - The minimum distance between adjecent note onsets for this instrument in seconds.<li><b>interval_limit_breakpoints</b> - A list. Described in the Handling Time second, below.<li><b>interval_limit_range_per_sec</b> - None or a number. Described in the Handling Time second, below.<li><b>pitched</b> - True of False. True by default, which does nothing. When False, this csf() will ignore any limitations from pitchfilters, interval_limit_breakpoints, and interval_limit_range_per_sec.<li><b>polyphony_max_voices</b> - Maximum voices that may be picked at the same time for this instrument.<li><b>polyphony_max_range</b> - If a number, the maximum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_min_range</b> - If a number, the minimum interval from the lowest to highest note in a chord in semitones. If None, there is no limit.<li><b>polyphony_permit_unison</b> - If True, unisons may be selected as part of a chord.<li><b>polyphony_minspeed</b> - The minimum allowable time between polyphonic chord onsets in seconds. This works the same way as minspeed, but only applies to polyphonic selections.<li><b>technique_switch_delay_map*</b> - If different techniques are specified in various corpus csf(instrParams={})s, the technique_switch_delay_map let's you specify a list of minimum delay times needed to switich form one technique to another. ['tech1', 'tech2', 0.5] = to go from tech1 to tech2, there must be a delay of at least 0.5 seconds.<li><b>clef*</b> - The clef for this instrument in the bach.roll. Valid values include, 'F', 'G', 'Alto', and 'FG' for a grand staff. See bach's documentation on clefs for more information.<li><b>key*</b> - The key for this instrument in the bach.roll. See bach's documentation on keys for more information.</ul>
 
 <p>Almost all keyword arguments may be overridden in individual csf()s through the csf(instrParams={}) dictionary (those which may not be are denoted with an asterisk). In the example below, the arco violin notes have a 0.05 second minspeed and may have 2 voice polyphony. However the pizzicato sounds have a minspeed of 0.2 second and will always be monophonic:</p>
 <script src="https://gist.github.com/benhackbarth/9d844dd092a0415e0b12e753aa0d869b.js"></script>

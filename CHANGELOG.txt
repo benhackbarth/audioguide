@@ -1,7 +1,23 @@
 ##################
+## Version 1.74 ##
+##################
+Various improvements and bug fixes, mostly related to instrument writing.
+
+• added a method instrParams={'pitched': False} for unpitched instrument csf()s that should bypass pitchfilters and interval restrictions. Useful for unpitched sound collections that shouldn't be subject to static or temporal pitch filtering.
+ 
+• added a method pitchfilter={'harmonics': ['D1']} for filtering with harmonics of one or more fundamental frequencies. This may be combined with other parameters; e.g. pitchfilter={'harmonics': ['D1'], 'pitches'=['C3', 1]} gives all harmonics of D1 as well as C3 and C# in any octave.
+
+• rewrote instr(interval_limit_range_per_sec) so that it works properly.
+
+• bug fixes for pitchfilter, 'closest' sub method of spass('parser'), midiPitchMethod={'type': 'file_match'}
+
+
+
+##################
 ## Version 1.73 ##
 ##################
 • bug fix in anallinkage.py
+
 
 ##################
 ## Version 1.72 ##
