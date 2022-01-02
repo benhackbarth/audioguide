@@ -529,13 +529,31 @@ class corpus:
 		for vid, cobj_list in cps_lists_by_voice.items():
 			descriptordata.evaluate_midipitches(cobj_list, cobj_list[0].midiPitchMethod)
 		#
-		
+		self.recordPreLimitAmplitudes()
 		self.evaluatePreConcateLimitations()
 		self.evaluateCorpusPitchFilters()
 		self.finalizeSegmentNormList()
 		p.percentageBarClose(txt="Read %i/%i segments (%.0f%%, %.2f min.)"%(self.data['postLimitSegmentCount'], len(self.preLimitSegmentList), self.data['postLimitSegmentCount']/float(len(self.preLimitSegmentList))*100., self.data['totalLengthInSeconds']/60.))
 
 		self.printConcateLimitations(p)
+	############################################################################
+	############################################################################
+	def recordPreLimitAmplitudes(self):
+		# added for musical writing dynamics pre-limitations
+		voiceToAmps = {}
+		for c in self.preLimitSegmentList:
+			if c.voiceID not in voiceToAmps: voiceToAmps[c.voiceID] = []
+			voiceToAmps[c.voiceID].append((c.desc.get("power-seg"), c))
+		for voiceID, segmentList in voiceToAmps.items():
+			if len(segmentList) == 1:
+				this_segmentList[0][1].amprank_uniform = 1
+				this_segmentList[0][1].amprank_real = 1
+			else:
+				this_segmentList = sorted(segmentList, key=lambda x: x[0])
+				max_amp = max([d[0] for d in this_segmentList])
+				for idx, (a, c) in enumerate(this_segmentList):
+					c.amprank_uniform = idx/float(len(this_segmentList)-1)
+					c.amprank_real = a/max_amp
 	############################################################################
 	############################################################################
 	def evaluatePreConcateLimitations(self):

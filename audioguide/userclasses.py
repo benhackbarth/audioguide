@@ -160,6 +160,7 @@ class Instrument(object):
 		'interval_limit_range_per_sec': None,
 		# handle dynamics
 		'dynamics': ('pp', 'p', 'mp', 'mf', 'f', 'ff'),
+		'dynamic_method': 'uniform', # 'uniform' or 'real' <- denotes how dynamics are inferred from power-seg measuresments.
 		# INSTRUMENT_ONLY VARIABLES
 		'technique_switch_delay_map': [], # 
 		'clef': 'G', 

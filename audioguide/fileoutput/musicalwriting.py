@@ -276,15 +276,12 @@ class instruments:
 			# make pitch/dynamics matrix
 			for voiceID in self.instruments[k]['cps']:
 				thiscps = [c for c in cpsseglist if c.voiceID == voiceID]
-				# do equally spaced dynamics
-				thiscps_powersort = sorted(thiscps, key=lambda x: x.desc.get('power-seg'))
-				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {}
-				if len(self.instruments[k]['cps'][voiceID]['dynamics']) == 1 or len(thiscps_powersort) <= 1:
-					self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][0] for c in thiscps}
-				else:
-					for idx, c in enumerate(thiscps_powersort):
-						dynidx = int((idx/float(len(thiscps_powersort)-1))*(len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01))
-						self.instruments[k]['cps'][voiceID]['cobj_to_dyn'][c] = self.instruments[k]['cps'][voiceID]['dynamics'][dynidx]
+				if self.instruments[k]['cps'][voiceID]['dynamic_method'] == 'uniform':
+					ranks = [c.amprank_uniform * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in cpsseglist if c.voiceID == voiceID]
+				elif self.instruments[k]['cps'][voiceID]['dynamic_method'] == 'real':
+					ranks = [c.amprank_real * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in cpsseglist if c.voiceID == voiceID]
+				# add dynamics
+				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)}
 		self.scoreparams = scoreFromUserOptions.params
 	########################################
 	def _s2f(self, timesec):
@@ -468,8 +465,11 @@ class instruments:
 				bs.add_note('cps%i'%eobj.voiceID, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.rmsSeg, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects)
 			else:
 				thiscps = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]
-				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.rmsSeg, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle],
-				instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_notehead=thiscps['notehead'], instr_annotation=thiscps['annotation'], 
+				# see which dynamic to write
+				if eobj.dynamicFromFilename != None: dyn = eobj.dynamicFromFilename
+				else: dyn = self.instruments[eobj.selectedinstrument]['cps'][eobj.voiceID]['cobj_to_dyn'][eobj.sfseghandle]
+				
+				bs.add_note(eobj.selectedinstrument, eobj.timeInScore, eobj.duration, eobj.midi, eobj.filename, eobj.sfSkip, eobj.sfchnls, eobj.rmsSeg, eobj.envDb, eobj.envAttackSec, eobj.envDecaySec, eobj.sfseghandle.desc, eobj.transposition, eobj.simSelects, instr_dynamic=dyn, instr_technique=thiscps['technique'], instr_temporal_mode=thiscps['temporal_mode'], instr_articulation=thiscps['articulation'], instr_notehead=thiscps['notehead'], instr_annotation=thiscps['annotation'], 
 				)
 		################################
 		## make a big ol' bach string ##
