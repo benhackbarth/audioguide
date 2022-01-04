@@ -145,19 +145,21 @@ class Instrument(object):
 		# handle temporality
 		'temporal_mode': 'sus', # dictates how duration is handled for this technique
 		'minspeed': 0.075,
+		# handle pitch
+		'pitched': True, # if False, the following will be ignored: cps(pitchfilter) local or global, 'interval_limit_breakpoints', interval_limit_breakpoints
+		'minpitch': None,
+		'maxpitch': None,
+		'interval_limit_range_per_sec': None,
+		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
 		# handle polyphony
 		'polyphony_max_voices': 1, 		
 		'polyphony_minspeed': None,
 		'polyphony_min_range': None,
 		'polyphony_max_range': None,
-		#'polyphony_interval_tests': [], # good idea, not implemented yet :(
+		'polyphony_include_intervals': [],
+		'polyphony_exclude_intervals': [],
 		'polyphony_permit_unison': False,
 		'polyphony_max_db_difference': 4,
-		# handle pitch
-		'pitched': True, # if False, the following will be ignored: cps(pitchfilter) local or global, 'interval_limit_breakpoints', interval_limit_breakpoints
-		#'interval_exclude': [], # 	the difference in semitones between two adjectent notes may not be found in this list
-		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
-		'interval_limit_range_per_sec': None,
 		# handle dynamics
 		'dynamics': ('pp', 'p', 'mp', 'mf', 'f', 'ff'),
 		'dynamic_method': 'uniform', # 'uniform' or 'real' <- denotes how dynamics are inferred from power-seg measuresments.

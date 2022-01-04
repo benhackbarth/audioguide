@@ -277,9 +277,9 @@ class instruments:
 			for voiceID in self.instruments[k]['cps']:
 				thiscps = [c for c in cpsseglist if c.voiceID == voiceID]
 				if self.instruments[k]['cps'][voiceID]['dynamic_method'] == 'uniform':
-					ranks = [c.amprank_uniform * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in cpsseglist if c.voiceID == voiceID]
+					ranks = [c.amprank_uniform * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in thiscps]
 				elif self.instruments[k]['cps'][voiceID]['dynamic_method'] == 'real':
-					ranks = [c.amprank_real * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in cpsseglist if c.voiceID == voiceID]
+					ranks = [c.amprank_real * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in thiscps]
 				# add dynamics
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)}
 				#print("instrument dynamics:", voiceID, self.instruments[k]['cps'][voiceID]['dynamics'], [ranks[cidx] for cidx, c in enumerate(thiscps)], [self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)])
@@ -359,6 +359,28 @@ class instruments:
 				if self.instruments[i]['cps'][v]['polyphony_min_range'] != None:
 					extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_min_range']-minmaxdict['pitchrange']
 					self.instrument_tests[i, v]['pitch2'].append('%%f <= %f or %%f >= %f'%(minmaxdict['pitchmin']-extra_room_in_minrange, minmaxdict['pitchmax']+extra_room_in_minrange))
+
+				# include certain polyphonc intervals
+				if len(self.instruments[i]['cps'][v]['polyphony_include_intervals']) > 0 and self.instruments[i]['cps'][v]['pitched']:
+					# loop through all tests in polyphony_include_intervals
+					include_pitches = []
+					for pint in self.instruments[i]['cps'][v]['polyphony_include_intervals']:
+						# loop through already selected pitches:
+						for pexisting in minmaxdict['pitches']:
+							# interval up and down
+							include_pitches.extend([pexisting + pint, pexisting - pint])
+					self.instrument_tests[i, v]['pitch'].append('%%f in %s'%(str(include_pitches)))
+				# exclude certain polyphonc intervals
+				if len(self.instruments[i]['cps'][v]['polyphony_exclude_intervals']) > 0 and self.instruments[i]['cps'][v]['pitched']:
+					# loop through all tests in polyphony_exclude_intervals
+					exclude_pitches = []
+					for pint in self.instruments[i]['cps'][v]['polyphony_exclude_intervals']:
+						# loop through already selected pitches:
+						for pexisting in minmaxdict['pitches']:
+							# interval up and down
+							exclude_pitches.extend([pexisting + pint, pexisting - pint])
+					self.instrument_tests[i, v]['pitch'].append('%%f not in %s'%(str(exclude_pitches)))
+
 				# unison tests
 				if not self.instruments[i]['cps'][v]['polyphony_permit_unison']:
 					for p in minmaxdict['pitches']:
@@ -368,7 +390,6 @@ class instruments:
 					extra_room_in_minrange = self.instruments[i]['cps'][v]['polyphony_max_db_difference']-minmaxdict['dbrange']
 					self.instrument_tests[i, v]['db2'].append('%%f >= %f and %%f <= %f'%(minmaxdict['dbmin']-extra_room_in_minrange, minmaxdict['dbmax']+extra_room_in_minrange))
 				
-
 			# interval restriction in time
 			for minp, maxp in self.tracker.get_interval_restrictions(self.instruments, i, v, tidx):
 				for v in self.instruments[i]['cps']:
