@@ -147,8 +147,8 @@ class Instrument(object):
 		'minspeed': 0.075,
 		# handle pitch
 		'pitched': True, # if False, the following will be ignored: cps(pitchfilter) local or global, 'interval_limit_breakpoints', interval_limit_breakpoints
-		'minpitch': None,
-		'maxpitch': None,
+		'minpitch': None, # minimum midi pitch this instrument can play
+		'maxpitch': None, # maximum midi pitch this instrument can play
 		'interval_limit_range_per_sec': None,
 		'interval_limit_breakpoints': [], # [(0, 7), (1, 12)]
 		# handle polyphony

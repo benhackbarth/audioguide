@@ -337,14 +337,20 @@ class instruments:
 		self.instrument_tests = {}
 		# loop through all instruments
 		for i in self.instruments:	
+			
+
 			# loop through each voice available to each instrument
 			for v in self.instruments[i]['cps']:
 				self.instrument_tests[i, v] = {'pitch': [], 'pitch2': [], 'db2': [], 'seqdata': []}
-
 				# sequence testing
 				if 'sequencetrack' in self.tracker.instrdata[i]:
 					self.instrument_tests[i, v]['seqdata'].extend(self.tracker.instrdata[i]['sequencetrack'].query(tsegidx))
 
+				# minpitch and maxpitch
+				if self.instruments[i]['cps'][v]['minpitch'] != None:
+					self.instrument_tests[i, v]['pitch'].append('%%f >= %f'%(self.instruments[i]['cps'][v]['minpitch']))
+				if self.instruments[i]['cps'][v]['maxpitch'] != None:
+					self.instrument_tests[i, v]['pitch'].append('%%f <= %f'%(self.instruments[i]['cps'][v]['maxpitch']))
 
 				# set up the test dict
 				minmaxdict = self.tracker.get_chord_minmax(i, tidx, v)
