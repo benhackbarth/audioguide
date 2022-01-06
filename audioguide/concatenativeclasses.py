@@ -546,8 +546,8 @@ class corpus:
 			voiceToAmps[c.voiceID].append((c.desc.get("power-seg"), c))
 		for voiceID, segmentList in voiceToAmps.items():
 			if len(segmentList) == 1:
-				this_segmentList[0][1].amprank_uniform = 1
-				this_segmentList[0][1].amprank_real = 1
+				segmentList[0][1].amprank_uniform = 1
+				segmentList[0][1].amprank_real = 1
 			else:
 				this_segmentList = sorted(segmentList, key=lambda x: x[0])
 				max_amp = max([d[0] for d in this_segmentList])
