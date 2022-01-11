@@ -151,23 +151,23 @@ class notetracker:
 	def get_chord_minmax(self, instr, time, vc):
 		if len(self.instrdata[instr]['selected_notes_v2'][time]) == 0: return None
 		pitches = [p for p, db, vcidx in self.instrdata[instr]['selected_notes_v2'][time] if vcidx == vc]
+		if len(pitches) == 0: return None # in case there is nothing for this particular vcidx
 		dbs = [db for p, db, vcidx in self.instrdata[instr]['selected_notes_v2'][time] if vcidx == vc]
 		d = {'pitches': pitches, 'pitchmin': min(pitches), 'pitchmax': max(pitches), 'dbmin': min(dbs), 'dbmax': max(dbs)}
 		d['pitchrange'] = d['pitchmax']-d['pitchmin']
 		d['dbrange'] = d['dbmax']-d['dbmin']
 		return d
-		sys.exit()
 	
-		if time not in self.instrdata[instr]['selected_notes']:
-			#print(self.instrdata[instr]['overlaps'][time])
-			return None
-		pitches = [p for d, p, db, vcidx in self.instrdata[instr]['selected_notes'][time] if vcidx == vc]
-		dbs = [db for d, p, db, vcidx in self.instrdata[instr]['selected_notes'][time] if vcidx == vc]
-		if len(pitches) == 0: return None
-		d = {'pitches': pitches, 'pitchmin': min(pitches), 'pitchmax': max(pitches), 'dbmin': min(dbs), 'dbmax': max(dbs)}
-		d['pitchrange'] = d['pitchmax']-d['pitchmin']
-		d['dbrange'] = d['dbmax']-d['dbmin']
-		return d
+#		if time not in self.instrdata[instr]['selected_notes']:
+#			#print(self.instrdata[instr]['overlaps'][time])
+#			return None
+#		pitches = [p for d, p, db, vcidx in self.instrdata[instr]['selected_notes'][time] if vcidx == vc]
+#		dbs = [db for d, p, db, vcidx in self.instrdata[instr]['selected_notes'][time] if vcidx == vc]
+#		if len(pitches) == 0: return None
+#		d = {'pitches': pitches, 'pitchmin': min(pitches), 'pitchmax': max(pitches), 'dbmin': min(dbs), 'dbmax': max(dbs)}
+#		d['pitchrange'] = d['pitchmax']-d['pitchmin']
+#		d['dbrange'] = d['dbmax']-d['dbmin']
+#		return d
 	########################################
 	def get_interval_restrictions(self, instrumentsobj, instr, vc, time):
 		tests = []
