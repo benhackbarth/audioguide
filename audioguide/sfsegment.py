@@ -136,7 +136,7 @@ class sfsegment:
 class corpusSegment(sfsegment):
 	'''Inherits sfsegment and adds additional attributes
 	used uniquely by corpus segments.'''
-	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilter, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, segfileData, metadata, clipDurationToTarget, instrTag, instrParams, normtag='cps'):
+	def __init__(self, filename, startSec, endSec, envDb, envAttackSec, envDecaySec, envSlope, AnalInterface, concatFileName, userCpsStr, voiceID, midiPitchMethod, limitObjList, pitchfilterObj, scaleDistance, superimposeRule, transMethod, transQuantize, allowRepetition, restrictInTime, restrictOverlaps, restrictRepetition, segfileData, metadata, clipDurationToTarget, instrTag, instrParams, normtag='cps'):
 		# initalise the sound segment object	
 		sfsegment.__init__(self, filename, startSec, endSec, AnalInterface, envDb=envDb, envAttackSec=envAttackSec, envDecaySec=envDecaySec, envSlope=envSlope, normtag='cps')
 		# additional corpus-specific data
@@ -145,7 +145,7 @@ class corpusSegment(sfsegment):
 		self.voiceID = voiceID
 		self.midiPitchMethod = midiPitchMethod
 		self.limitObjList = limitObjList
-		self.pitchfilter = pitchfilter
+		self.pitchfilterObj = pitchfilterObj
 		self.scaleDistance = scaleDistance
 		self.superimposeRule = superimposeRule
 		self.transMethod = transMethod

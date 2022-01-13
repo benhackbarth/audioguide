@@ -372,7 +372,7 @@ class corpus:
 				if name == 'limit': continue
 				setattr(cobj, name, val)
 			# initialize pitchfilter
-			cobj.pitchfilter = pitchFilterer(cobj.pitchfilter)
+			cobj.pitchfilterObj = pitchFilterer(cobj.pitchfilter)
 
 			# add local limits
 			totalLimitList = []
@@ -504,7 +504,7 @@ class corpus:
 					if util.matchString(timeList[idx][0], restrictStr): maxPercentTargetSegmentsByString = restrictVal
 
 				
-				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilter, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, segmentationfileData, metadata, cobj.clipDurationToTarget, cobj.instrTag, cobj.instrParams])
+				self.preloadlist.append([timeList[idx][0], timeList[idx][1], timeList[idx][2], cobj.scaleDb, cobj.onsetLen, cobj.offsetLen, cobj.envelopeSlope, AnalInterface, concatFileName, cobj.name, cobj.voiceID, cobj.midiPitchMethod, totalLimitList, cobj.pitchfilterObj, cobj.scaleDistance, cobj.superimposeRule, cobj.transMethod, cobj.transQuantize, cobj.allowRepetition, cobj.restrictInTime, cobj.restrictOverlaps, cobj.restrictRepetition, segmentationfileData, metadata, cobj.clipDurationToTarget, cobj.instrTag, cobj.instrParams])
 				vcCnt += 1
 			self.data['cspInfo'].append( {'name': cobj.name, 'filehead': os.path.split(cobj.name)[1], 'segs': str(vcCnt), 'fileType': fileType, 'numbSfFiles': cobj.numbSfFiles, 'restrictInTime': cobj.restrictInTime, 'segFile': cobj.segmentationFile, 'restrictOverlaps': cobj.restrictOverlaps, 'scaleDb': cobj.scaleDb, 'maxPercentTargetSegments': cobj.maxPercentTargetSegments, 'selectedTargetSegments': [], 'instrTag': cobj.instrTag, 'instrParams': cobj.instrParams} )	
 			###########################
@@ -575,7 +575,7 @@ class corpus:
 	def evaluateCorpusPitchFilters(self):
 		tmplist = []
 		for c in self.postLimitSegmentList:
-			if not c.pitchfilter.valid:
+			if not c.pitchfilterObj.valid:
 				# pitchfilter is not set, so add this sample
 				tmplist.append(c)
 			elif ('pitched' in c.instrParams and c.instrParams['pitched'] == False):
@@ -583,7 +583,7 @@ class corpus:
 				tmplist.append(c)
 			else:
 				# apply filter
-				passedTest, newTrans = c.pitchfilter.test(c.desc.get('MIDIPitch-seg'))
+				passedTest, newTrans = c.pitchfilterObj.test(c.desc.get('MIDIPitch-seg'))
 				if passedTest:
 					c.transMethod = 'semitone %f'%newTrans # overrides any other transmethod!
 					tmplist.append(c)
