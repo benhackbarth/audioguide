@@ -333,7 +333,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		## sort self.outputEvents by start time ##
 		##########################################
 		self.outputEvents.sort(key=lambda x: x.timeInScore)
-
+		eventsBool = len(self.outputEvents) > 0
 
 		###########################
 		## temporal quantization ##
@@ -344,7 +344,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		##################################
 		## CORPUS OUTPUT CLASSIFICATION ##
 		##################################
-		if self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
+		if eventsBool and self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'] > 1:
 			classifications = descriptordata.soundSegmentClassification(self.ops.OUTPUTEVENT_CLASSIFY['descriptors'], [oe.sfseghandle for oe in self.outputEvents], numbClasses=self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'])
 			for cidx, classified in enumerate(classifications): self.outputEvents[cidx].classification = int(classified)	
 
@@ -360,8 +360,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			self.tgt.startSec = 0
 			self.tgt.endSec = self.tgt.decompose['origduration']
 			self.AnalInterface.rawData[self.tgt.decompose['origfilename']] = {'info': {'channels': 1, 'lengthsec': self.tgt.decompose['origduration']}}
-
-
 
 		#########################
 		## CREATE OUTPUT FILES ##
@@ -436,7 +434,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			output['target'] = {'filename': self.tgt.filename, 'sfSkip': self.tgt.startSec, 'duration': self.tgt.endSec-self.tgt.startSec, 'segs': tgtSegDataList, 'fileduation': self.AnalInterface.rawData[self.tgt.filename]['info']['lengthsec'], 'chn': self.AnalInterface.rawData[self.tgt.filename]['info']['channels']} 
 			output['corpus_file_list'] = list(set(allusedcpsfiles))
 			output['selectedEvents'] = [oe.makeDictOutput() for oe in self.outputEvents]
-			output['outputparse'] = {'simultaneousSelections': int(max([d['simultaneousSelectionNumber'] for d in output['selectedEvents']])+1), 'classifications': max(self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], 1), 'corpusIds': int(max([d['corpusIdNumber'] for d in output['selectedEvents']])+1)}
+			if eventsBool:
+				output['outputparse'] = {'simultaneousSelections': int(max([d['simultaneousSelectionNumber'] for d in output['selectedEvents']])+1), 'classifications': max(self.ops.OUTPUTEVENT_CLASSIFY['numberClasses'], 1), 'corpusIds': int(max([d['corpusIdNumber'] for d in output['selectedEvents']])+1)}
 			fh = open(self.ops.get_outputfile('DICT_OUTPUT_FILEPATH'), 'w')
 			json.dump(output, fh)
 			fh.close()
@@ -509,7 +508,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		############################
 		## csound CSD output file ##
 		############################
-		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None:
+		if eventsBool and self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None:
 			from audioguide.fileoutput import csoundinterface as csd
 			maxOverlaps = np.max([oe.simSelects for oe in self.outputEvents])
 			csSco = 'i2  0.  %f  %f  "%s"  %f  %i\n\n'%(self.tgt.endSec-self.tgt.startSec, self.tgt.whole.envDb, self.tgt.filename, self.tgt.startSec, int(self.ops.CSOUND_CHANNEL_RENDER_METHOD == 'targetoutputmix'))
@@ -533,7 +532,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################################
 		## csound simple score output ##
 		################################
-		if self.ops.CSOUND_SCORE_FILEPATH != None:
+		if eventsBool and self.ops.CSOUND_SCORE_FILEPATH != None:
 			from audioguide.fileoutput import csoundinterface as csd
 			csSco = csd.instru2helpstring()+'\n'
 			csSco += ''.join([ oe.makeCsoundOutputText(self.ops.CSOUND_CHANNEL_RENDER_METHOD) for oe in self.outputEvents ])
@@ -554,8 +553,17 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		if self.ops.HTML_LOG_FILEPATH != None:
 			self.p.writehtmllog(self.ops.get_outputfile('HTML_LOG_FILEPATH', valid_extensions=['.html']))
 			dict_of_files_written['HTML_LOG_FILEPATH'] = self.ops.get_outputfile('HTML_LOG_FILEPATH')
+		
+		#######################################
+		## check for lack of selected events ##
+		#######################################
+		if not eventsBool and self.ops.HTML_LOG_FILEPATH != None:
+			util.error('CONCATENATION', "No segments were selected during concatenation. Check the log file %s for details."%self.ops.HTML_LOG_FILEPATH)
+		elif not eventsBool:
+			util.error('CONCATENATION', 'No segments were selected during concatenation. Try enabling the LOG file output to help figure out why. Use HTML_LOG_FILEPATH="valid/path"')
+			
 	
-		if self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:
+		if eventsBool and self.ops.CSOUND_CSD_FILEPATH != None and self.ops.CSOUND_RENDER_FILEPATH != None and self.ops.CSOUND_PLAY_RENDERED_FILE:
 			csd.playFile( self.ops.get_outputfile('CSOUND_RENDER_FILEPATH') )
 
 		return dict_of_files_written
