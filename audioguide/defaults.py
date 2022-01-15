@@ -98,7 +98,7 @@ IRCAMDESCRIPTOR_F0_MAX_FREQUENCY = 5000
 IRCAMDESCRIPTOR_F0_AMP_THRESHOLD = 1
 IRCAMDESCRIPTOR_NUMB_MFCCS = 13
 # filenames -> dynamic -> dB settings
-DYNAMIC_TO_DECIBEL = {'pp': -40, 'p': -35, 'mp': -30, 'mf': -22, 'f': -15, 'ff': -6}
+DYNAMIC_TO_DECIBEL = {'ppp': -45, 'pp': -40, 'p': -35, 'mp': -30, 'mf': -22, 'f': -15, 'ff': -6, 'fff': -3}
 FILENAMESTRING_TO_DYNAMICS = {}
 
 ###############  USER INTERACTION / PRINTING  ##############
