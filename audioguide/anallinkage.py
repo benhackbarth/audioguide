@@ -200,12 +200,14 @@ EnergyEnvelope  = 1
 		####################################################
 		self.dynToDbDict = ops.DYNAMIC_TO_DECIBEL
 		TMP_FILENAMESTRING_TO_DYN = {
+		'ppp': ['ppp'],
 		'pp': ['pianissimo', 'pp'],
 		'p': ['piano', 'p', 'p1', 'p2', 'pianissimo'],
 		'mp': ['mezzo-piano', 'mp'],
 		'mf': ['mezzo-forte', 'mf', 'ppmfpp'],
 		'f': ['forte', 'f', 'fp', 'pfp'],
 		'ff': ['fortissimo', 'ff', 'ffp', 'f-ff', 'ppff', 'ffpp', 'sfz'],
+		'fff': ['fff'],
 		}
 		self.stringToDynDict = {}
 		for k, v in TMP_FILENAMESTRING_TO_DYN.items():

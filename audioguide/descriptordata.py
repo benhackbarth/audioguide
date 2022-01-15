@@ -631,7 +631,7 @@ def getDynamicFromFilename(file, dynToDbDict, stringToDynDict, notFound=-1000):
 		strings.reverse() # they tend to be at the end of the file
 		for s in strings:
 			if s in stringToDynDict:
-				dynamic = s
+				dynamic = stringToDynDict[s]
 				NOTHING_YET = False
 				break
 		whichStr += 1
