@@ -261,24 +261,24 @@ class instruments:
 			self.instruments[k]['selected_pitches'] = {}
 			# this variable holds all valid voices for this instrument
 			self.instruments[k]['cps'] = {}
-			cpsids = [c.voiceID for c in usercorpus if c.instrTag in self.instruments[k]['cpsTags']]
+			cpsids = [cidx for cidx, c in enumerate(usercorpus) if c.instrTag in self.instruments[k]['cpsTags']]
 			cpsparams = [c.instrParams for c in usercorpus if c.instrTag in self.instruments[k]['cpsTags']]
 			self.tracker.addinstrument(k, tgtlength, ins.params, cpsids, cpsparams)
-			for c in usercorpus:
+			for voiceID, c in enumerate(usercorpus):
 				if not c.instrTag in self.instruments[k]['cpsTags']: continue
-				self.instruments[k]['cps'][c.voiceID] = ins.params.copy()
+				self.instruments[k]['cps'][voiceID] = ins.params.copy()
 				# update with instrument params if not user-supplied at corpus level
 				# add values if not supplied
 				voiceparam_defaults = {'technique': None, 'notehead': None, 'annotation': None, 'articulation': None, 'canPlayWhileDoingSomethingElse': False}
 				voiceparam_defaults.update(c.instrParams)
-				self.instruments[k]['cps'][c.voiceID].update(voiceparam_defaults)
+				self.instruments[k]['cps'][voiceID].update(voiceparam_defaults)
 				# other internal shit
-				self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'] = []
-				for time, value in self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints']:
-					self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'].append((self._s2f(time), value))
-				self.instruments[k]['cps'][c.voiceID]['interval_limit_breakpoints_frames'].sort()
-				if self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] == None:
-					self.instruments[k]['cps'][c.voiceID]['polyphony_minspeed'] = self.instruments[k]['cps'][c.voiceID]['minspeed']
+				self.instruments[k]['cps'][voiceID]['interval_limit_breakpoints_frames'] = []
+				for time, value in self.instruments[k]['cps'][voiceID]['interval_limit_breakpoints']:
+					self.instruments[k]['cps'][voiceID]['interval_limit_breakpoints_frames'].append((self._s2f(time), value))
+				self.instruments[k]['cps'][voiceID]['interval_limit_breakpoints_frames'].sort()
+				if self.instruments[k]['cps'][voiceID]['polyphony_minspeed'] == None:
+					self.instruments[k]['cps'][voiceID]['polyphony_minspeed'] = self.instruments[k]['cps'][voiceID]['minspeed']
 			# temporal restrictions in hop-sized frames
 			for voiceID in self.instruments[k]['cps']:
 				self.instruments[k]['cps'][voiceID]['minspeed_frames'] = self._s2f(self.instruments[k]['cps'][voiceID]['minspeed'])
@@ -298,7 +298,7 @@ class instruments:
 					ranks = [c.amprank_real * (len(self.instruments[k]['cps'][voiceID]['dynamics'])-0.01) for c in thiscps]
 				# add dynamics
 				self.instruments[k]['cps'][voiceID]['cobj_to_dyn'] = {c: self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)}
-				#print("instrument dynamics:", voiceID, self.instruments[k]['cps'][voiceID]['dynamics'], [ranks[cidx] for cidx, c in enumerate(thiscps)], [self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[cidx])] for cidx, c in enumerate(thiscps)])
+				#print("instrument dynamics:", voiceID, self.instruments[k]['cps'][voiceID]['dynamics'], [ranks[voiceID] for voiceID, c in enumerate(thiscps)], [self.instruments[k]['cps'][voiceID]['dynamics'][int(ranks[voiceID])] for voiceID, c in enumerate(thiscps)])
 		self.scoreparams = scoreFromUserOptions.params
 	########################################
 	def _s2f(self, timesec):
