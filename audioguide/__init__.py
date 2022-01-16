@@ -269,6 +269,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				if not returnBool: # nothing valid, so skip to new frame...
 					superimp.skip('no corpus sounds made it through the search passes', None, timeInSec)
 					tgtseg.seek += self.ops.SUPERIMPOSE.incr
+					maxoverlaps = np.max(superimp.cnt['overlap'][tgtseg.seek:tgtseg.seek+tgtseg.lengthInFrames])
+					htmlSelectionTable.append(["%.2fx%i"%(timeInSec, int(maxoverlaps)+1), ] + distanceCalculations.lengthAtPassesVerbose )
 					continue
 				###################################################
 				## if passing this point, picking a corpus sound ##

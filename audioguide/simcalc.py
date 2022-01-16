@@ -151,13 +151,13 @@ class distanceCalculations:
 				
 				# clip corpus list to reflect search results and scope
 				newList = self.selectFromSortedList(spassobj.method, spassobj.percent)
-
-			
 			
 			#print (spassobj.method, spassobj.submethod, len(newList))
-			if len(newList) < 1: return False
+			if len(newList) < 1:
+				self.lengthAtPassesVerbose.append( '%i -> %i (none passed)'%(len(self.corpusObjs), len(newList)) )
+				return False
 			### if this is the last pass
-			if lastPass and len(newList) > 1: # make a random choice
+			elif lastPass: # make a random choice
 				self.lengthAtPassesVerbose.append( '%i -> %i (random)'%(len(self.corpusObjs), len(newList)) )
 				newList = [random.choice(newList)]
 			else:
