@@ -1134,11 +1134,32 @@ Also note that any time varying descriptor can take a few different text string 
 </table>
 
 <br><br>
-The SEARCH from the exampe below first takes the best 20% of corpus matches according to a linear regression of each segments amplitude. Of the remaining 20% a segment is chosen based on a combination of the averaged first order different of f0 and the second order time varying centroids.
+The SEARCH from the exampe below first takes the best 20% of corpus matches according to a linear regression of each segments amplitude.  Of the remaining 20% a segment is chosen based on a combination of the averaged first order different of f0 and the second order time varying centroids.
 <script src="https://gist.github.com/benhackbarth/00512ca3990c66a48fc0977710cdda99.js"></script>
 
 </section>  
 
+
+
+
+
+<section id="Appendix2ObjectKeywords" class="group"><h2>Appendix 2 - Object Keywords</h2>
+The section below lists the keywords for all object-style options file variables.
+
+
+</section>  
+<pre class="language-python"><code class="language-python">tsf('pathtosoundfile', start=0, end=file-length, thresh=-40, offsetRise=1.5, offsetThreshAdd=+12, offsetThreshAbs=-80, scaleDb=0, minSegLen=0.05, maxSegLen=1000, midiPitchMethod='composite', stretch=1, segmentationFilepath=None)</code></pre>
+
+<pre class="language-python"><code class="language-python">csf('pathToFileOrDirectoryOfFiles', start=None, end=None, includeTimes=[], excludeTimes=[], pitchfilter={}, limit=[], wholeFile=False, <a href="#ben">recursive</a>=True, includeStr=None, excludeStr=None, scaleDb=0.0, limitDur=None, clipDurationToTarget=False, onsetLen=0.01, offsetLen='30%', midiPitchMethod='composite', transMethod=None, transQuantize=0, concatFileName=None, allowRepetition=True, restrictRepetition=0.5, restrictOverlaps=None, restrictInTime=0, maxPercentTargetSegments=None, scaleDistance=1, superimposeRule=None, segmentationFile=None, segmentationExtension='.txt', instrTag=None, instrParams={})</code></pre>
+
+<pre class="language-python"><code class="language-python">d('descriptor name', weight=1, norm=2, normmethod='stddev', distance='euclidean', energyWeight=False)</code></pre>
+
+<pre class="language-python"><code class="language-python">spass(methodstring, various options depending on method)</code></pre>
+
+<pre class="language-python"><code class="language-python">si(minSegment=None, maxSegment=None, minOnset=None, maxOnset=8, minOverlap=None, maxOverlap=None, searchOrder='power', calcMethod='mixture')</code></pre>
+
+
+<pre class="language-python"><code class="language-python">instr('instrTag', temporal_mode='sus', minspeed=0.075, minpitch=None, maxpitch=None, interval_limit_breakpoints=[], interval_limit_range_per_sec=None, pitched=True, polyphony_max_voices=1, polyphony_max_range=None, polyphony_min_range=None, polyphony_permit_unison=False, polyphony_include_intervals=[], polyphony_exclude_intervals=[], polyphony_max_db_difference=4, technique_switch_delay_map=[], clef='G', key='CM'))</code></pre>
 
 
 </div> <!--end Main Bar -->
@@ -1212,6 +1233,7 @@ The SEARCH from the exampe below first takes the best 20% of corpus matches acco
  </li>
  <li><a href="#DescriptorRetrieval">Descriptor Retrieval with agGetSfDescriptors.py</a></li>
  <li><a href="#Appendix1Descriptors">Appendix 1 - Descriptors</a></li>
+ <li><a href="#Appendix2ObjectKeywords">Appendix 2 - Object Keywords</a></li>
 </ul>
 </nav>
 </div>
