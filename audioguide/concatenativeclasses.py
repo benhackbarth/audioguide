@@ -522,7 +522,12 @@ class corpus:
 			cpsSeg = sfsegment.corpusSegment(*corpusSegParams)
 			# add it to the list!
 			self.preLimitSegmentList.append(cpsSeg)
-		
+	
+		# test that segmented made it through
+		if len(self.preLimitSegmentList) == 0:
+			util.error('CORPUS', "No database segments made it into your corpus.")
+
+
 		# evaluate midipitch for each corpus voice idx
 		cps_lists_by_voice = {i: [] for i in range(self.len)}
 		[cps_lists_by_voice[cobj.voiceID].append(cobj) for cobj in self.preLimitSegmentList]

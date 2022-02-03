@@ -252,6 +252,11 @@ EnergyEnvelope  = 1
 		# test for bad exit status
 		if err not in [0, b'']:
 			util.error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(command), '\n--------\n\n', out))	
+		# test to see if audio file could not be opened
+		if out.find("error: cannot open the requested audio file") != -1:
+			util.error('commandline', 'Could not read "%s" as it doesn\'t seem to be a vaild audio file. Please remove from your corpus.'%(sffile))	
+		
+		
 		infodict = {'ircamd_columns': {'power': 0}}
 		# fill output dict if requested
 		for o in out.split('\n'):
