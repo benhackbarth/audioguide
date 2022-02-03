@@ -211,9 +211,32 @@ def histogram(l):
 
 
 
-def getDirListOnlyExt(path, recur, extensions):
-	import os
-	# if recursive..
+#def getDirListOnlyExt(path, recur, extensions):
+#	import os
+#	# if recursive..
+#	if recur:
+#		output = []
+#		for dirname, dirnames, filenames in os.walk(path):
+#			for filename in filenames:
+#				output.append( os.path.abspath(os.path.join(dirname, filename)) )
+#	else:
+#		# if just whats in that folder..
+#		output = os.listdir(path)
+#	# filter files by extension - case insensative!
+#	validFiles = []
+#	for outty in output:
+#		isValid = False
+#		fileExt = os.path.splitext(outty)[1]
+#		for ext in extensions:
+#			if ext.lower() == fileExt.lower():
+#				isValid = True
+#				break
+#		if isValid: validFiles.append(outty)
+#	return validFiles
+	
+
+
+def getDirListOnlyExt(path, recur, invalid_lowercase_prefixes=['._'], valid_lowercase_extensions=['.wav']):
 	if recur:
 		output = []
 		for dirname, dirnames, filenames in os.walk(path):
@@ -225,15 +248,16 @@ def getDirListOnlyExt(path, recur, extensions):
 	# filter files by extension - case insensative!
 	validFiles = []
 	for outty in output:
-		isValid = False
-		fileExt = os.path.splitext(outty)[1]
-		for ext in extensions:
-			if ext.lower() == fileExt.lower():
-				isValid = True
-				break
-		if isValid: validFiles.append(outty)
+		fileHead = os.path.split(outty)[1].lower()
+		fileExt = os.path.splitext(outty)[1].lower()
+		#print([fileHead.startswith(s) for s in invalid_lowercase_prefixes], fileExt, valid_lowercase_extensions, fileExt not in valid_lowercase_extensions)
+		if True in [fileHead.startswith(s) for s in invalid_lowercase_prefixes]: continue
+		if fileExt not in valid_lowercase_extensions: continue
+		validFiles.append(outty)
 	return validFiles
-	
+		
+
+
 
 def verifyPath(path, searchPathList):
 	abspath = os.path.abspath(path)

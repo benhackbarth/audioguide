@@ -414,7 +414,7 @@ class corpus:
 				#######################
 				## input a DIRECTORY ##
 				#######################
-				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, AnalInterface.validSfExtensions)
+				files = util.getDirListOnlyExt(cobj.name, cobj.recursive, valid_lowercase_extensions=AnalInterface.validSfExtensions)
 				cobj.segmentationFile = None # don't print it
 				for file in files:
 					segFileTest = findSegmentationFile(file, searchPaths, cobj.segmentationExtension, cobj.wholeFile)
