@@ -1,4 +1,16 @@
 ##################
+## Version 1.75 ##
+##################
+Many bug fixes, including: reaper scableDb volume, musicalwriting.intervalrestictions for multiple voices, issues with instruments when using -i interactive mode, issues with automatic dynamic detection with descriptordata.getDynamicFromFilename, problems with pitchfilter when using interactive mode/the API.
+
+Also, better error handling for: audio files that cannot be read and empty directories, html.log printing if no segments get past an spass().
+
+AudioGuide now skips sound files in a directory that start with '._'
+
+
+
+
+##################
 ## Version 1.74 ##
 ##################
 Various improvements and bug fixes, mostly related to instrument writing.
@@ -154,7 +166,7 @@ http://www.benhackbarth.com/audioGuide/tutorial.html
 ##################
 • AudioGuide no longer depends on the pysdif module.
 
-• AudioGuide is now cross-compatible with Python2 and Python3. I’ve tested the code fairly thoroughly, and everything seems to work (midi file output is currently broken in Pyhon3). Please send bugs if you find them.
+• AudioGuide is now cross-compatible with Python2 and Python3. I’ve tested the code fairly thoroughly, and everything seems to work (midi file output is currently broken in Python3). Please send bugs if you find them.
 
 • The log.txt output file from the agConcatenate.py script has been replaced with log.html. It logs similar information, but also includes interactive graphs and charts plotting corpus and target descriptor data using chartjs. I would like to augment this in the future.
 
