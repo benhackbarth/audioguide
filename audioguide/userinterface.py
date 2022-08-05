@@ -175,14 +175,16 @@ class TerminalController:
 class printer:
 	def __init__(self, verbosity, optionsPath, pathtohtmlfile, length=74):
 		self.updateLength = length
-		#self.term = TerminalController()
-		#if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
-		#	raise ValueError("Terminal isn't capable enough -- you should use a simpler progress dispaly.")
 		self.v = verbosity
-		self.term = TerminalController()
+		if self.v == 0:
+			self.term = None
+		else:
+			self.term = TerminalController()
 		# make html log if asked for
 		if pathtohtmlfile == None: self.html = None
 		else: self.html = html5output.htmloutput()
+		#if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
+		#	raise ValueError("Terminal isn't capable enough -- you should use a simpler progress dispaly.")
 	###############################################
 	def log(self, *args):
 		if self.html != None:
@@ -258,6 +260,7 @@ class printer:
 		self.renderOrLog(self.term.render(printstr))
 	###############################################
 	def printProgramInfo(self, agversion, force=False):
+		if self.v == 0: return
 		self.renderOrLog(self.term.render("${RED}audioguide%s${NORMAL} -> %s"%(agversion, os.path.dirname(__file__))))
 		self.renderOrLog(self.term.render("${RED}python%s${NORMAL} -> %s"%(sys.version.split()[0], os.path.abspath(sys.executable))))
 	###############################################
