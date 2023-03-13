@@ -286,7 +286,7 @@ EnergyEnvelope  = 1
 		f = open(os.path.join(STAGING_DIRECTORY, 'EnergyEnvelope_ShortTermFeature_space1.info.txt'))
 		energyframelength = int(f.readlines()[2].split()[2])
 		f.close()
-		myarray = np.fromfile(os.path.join(STAGING_DIRECTORY, 'EnergyEnvelope_ShortTermFeature_space1.raw'), dtype=np.float, count=-1, sep='')
+		myarray = np.fromfile(os.path.join(STAGING_DIRECTORY, 'EnergyEnvelope_ShortTermFeature_space1.raw'), dtype=float, count=-1, sep='')
 		newarray = util.interpArray(myarray, framelength)
 		newarray = np.reshape(newarray, (framelength, 1))
 		ircamd_array[:,0] = newarray[:,0] # power is first column
@@ -294,7 +294,7 @@ EnergyEnvelope  = 1
 		
 		for idx, (agId, source, isAmp, isMixable, rawFilename, matrixSize, matrixLocation) in enumerate(self.descriptToFiles):
 			filename = os.path.join(STAGING_DIRECTORY, rawFilename+'_ShortTermFeature_space2.raw')
-			myarray = np.fromfile(filename, dtype=np.float, count=-1, sep='')
+			myarray = np.fromfile(filename, dtype=float, count=-1, sep='')
 			#print source, rawFilename, matrixSize, len(myarray), framelength, matrixSize, framelength*matrixSize
 			myarray = np.reshape(myarray, (framelength, matrixSize))
 			ircamd_array[:,idx+1] = myarray[:,matrixLocation]
