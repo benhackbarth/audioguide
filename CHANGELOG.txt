@@ -1,4 +1,11 @@
 ##################
+## Version 1.76 ##
+##################
+Bug fix for numpy.float64, which is now deprecated.
+
+
+
+##################
 ## Version 1.75 ##
 ##################
 Many bug fixes, including: reaper scableDb volume, musicalwriting.intervalrestictions for multiple voices, issues with instruments when using -i interactive mode, issues with automatic dynamic detection with descriptordata.getDynamicFromFilename, problems with pitchfilter when using interactive mode/the API.
