@@ -383,7 +383,7 @@ def listToCheckSum(items, enc="latin1"):
 	import hashlib
 	m = hashlib.md5()
 	for item in items:
-		if type(item) in [int, float, np.float64]:
+		if type(item) in [int, float]:
 			item = str(item).encode(enc)
 		elif type(item) in [str]:
 			item = item.encode('utf-8').decode(enc).encode(enc)
