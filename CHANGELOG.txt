@@ -1,4 +1,13 @@
 ##################
+## Version 1.77 ##
+##################
+Added RPP_TRANS_AFFECTS_SPEED, which lets the user select how reaper will perform transposition.
+
+Fixed bug in terminal progress bar printing.
+
+
+
+##################
 ## Version 1.76 ##
 ##################
 Bug fix for numpy.float64, which is now deprecated.
