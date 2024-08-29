@@ -173,7 +173,7 @@ class TerminalController:
 
 
 class printer:
-	def __init__(self, verbosity, optionsPath, pathtohtmlfile, length=74):
+	def __init__(self, verbosity, optionsPath, pathtohtmlfile, length=70):
 		self.updateLength = length
 		self.v = verbosity
 		if self.v == 0:
