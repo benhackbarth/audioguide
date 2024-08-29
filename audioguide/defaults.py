@@ -79,6 +79,7 @@ AAF_AUTOLAUNCH = False
 ###########  RPP   ########
 RPP_INCLUDE_TARGET = False
 RPP_CPSTRACK_METHOD = 'cpsidx'
+RPP_TRANS_AFFECTS_SPEED = True
 RPP_AUTOLAUNCH = False
 
 ################  DESCRIPTOR COMPUTATION SETTINGS  ################

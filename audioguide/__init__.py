@@ -5,7 +5,7 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.76"
+__version__ = "1.77"
 
 
 
@@ -392,7 +392,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			# add selected corpus sounds
 			for cpsfile in allusedcpsfiles:
 				this_aaf.addSoundfileResource(cpsfile, self.AnalInterface.rawData[cpsfile]['info'])
-			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'])
+			sorted_cps_tracks = concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.AAF_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'], transpositionAffectsPlayspeed=False)
 			this_aaf.add_tracks(sorted_cps_tracks)
 			this_aaf.done(self.ops.AAF_AUTOLAUNCH)
 			dict_of_files_written['AAF_FILEPATH'] = self.ops.get_outputfile('AAF_FILEPATH')
@@ -409,8 +409,8 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 			if self.ops.RPP_INCLUDE_TARGET:
 				this_rpp.add_tracks(concatenativeclasses.sortTargetSegmentsIntoTracks(self.tgt.segs, "minimum"))
 			# add selected corpus sounds
-			this_rpp.add_tracks(concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName']))
-			this_rpp.write(self.ops.RPP_AUTOLAUNCH)
+			this_rpp.add_tracks(concatenativeclasses.sortOutputEventsIntoTracks(self.outputEvents, self.ops.RPP_CPSTRACK_METHOD, self.cps.data['vcToCorpusName'], transpositionAffectsPlayspeed=self.ops.RPP_TRANS_AFFECTS_SPEED))
+			this_rpp.write(self.ops.RPP_AUTOLAUNCH, playrate_change_duration=self.ops.RPP_TRANS_AFFECTS_SPEED)
 			dict_of_files_written['RPP_FILEPATH'] = self.ops.get_outputfile('RPP_FILEPATH')
 			self.p.log( "Wrote rpp file %s\n"%self.ops.get_outputfile('RPP_FILEPATH') )
 

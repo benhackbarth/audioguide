@@ -168,7 +168,9 @@ UserVar_types = {
 # RPP
 'RPP_INCLUDE_TARGET': ['True or False'],
 'RPP_CPSTRACK_METHOD': ['cpsidx', 'minimum'],
+'RPP_TRANS_AFFECTS_SPEED': ['True or False'],
 'RPP_AUTOLAUNCH': ['True or False'],
+
 
 #################  DESCRIPTOR COMPUTATION SETTINGS  ################
 'DESCRIPTOR_DATABASE_SIZE_LIMIT': ['a number greater than zero'],
@@ -274,6 +276,7 @@ OptionChangeToProgramRun = {
 "RPP_FILEPATH": "output",
 "RPP_INCLUDE_TARGET": "output",
 "RPP_CPSTRACK_METHOD": "output",
+"RPP_TRANS_AFFECTS_SPEED": "output",
 "RPP_AUTOLAUNCH": "output",
 
 "DESCRIPTOR_DATABASE_SIZE_LIMIT": "concate",

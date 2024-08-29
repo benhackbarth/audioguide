@@ -1037,7 +1037,7 @@ class outputEvent:
 
 def sortTargetSegmentsIntoTracks(tgtsegs, track_method):
 	if not hasattr(tgtsegs[0], 'decomposeStreamIdx'):
-		events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.segmentStartSec, "duration": ts.segmentDurationSec, "orig_duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in tgtsegs]
+		events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "transposeSpeedChange": 1, "skip": ts.segmentStartSec, "duration": ts.segmentDurationSec, "orig_duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in tgtsegs]
 		return [['target', events_as_dicts, 'tgt']]
 
 	else: # target signal decomposition
@@ -1049,14 +1049,14 @@ def sortTargetSegmentsIntoTracks(tgtsegs, track_method):
 		track_assign = [(k, v) for k, v in track_assign.items()]
 		track_assign.sort()
 		for tidx, t in track_assign:
-			events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "skip": ts.decomposeSfSkip, "duration": ts.segmentDurationSec, "orig_duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in t]
+			events_as_dicts = [{'file': ts.filename, 'name': ts.printName, 'time': ts.segmentStartSec, 'stop': ts.segmentEndSec, "transposeSpeedChange": 1, "skip": ts.decomposeSfSkip, "duration": ts.segmentDurationSec, "orig_duration": ts.segmentDurationSec, "amp": ts.power, "ampscale": util.dbToAmp(ts.envDb), "fadein": ts.envAttackSec, 'fadeout': ts.envDecaySec, 'transposition': 0} for ts in t]
 			output_tracks.append(['target stream#%i'%(tidx), events_as_dicts, 'tgt'])
 		return output_tracks
 		
 
 
 
-def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName):
+def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName, transpositionAffectsPlayspeed=True):
 	grand_old_dict = {}
 	output = []
 	for e in eventlist:
@@ -1067,7 +1067,13 @@ def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName):
 			sortkey = (e.sfchnls)
 			trackname = "cps %ich"%(e.sfchnls)
 		if not sortkey in grand_old_dict: grand_old_dict[sortkey] = [trackname, []]
+		
+		if transpositionAffectsPlayspeed:
+			e.transposeSpeedChange = 1/(2**(e.transposition/12.))
+		else:
+			e.transposeSpeedChange = 1
 		grand_old_dict[sortkey][1].append(e)
+		
 	ordering = list(grand_old_dict.keys())
 	ordering.sort()
 	for sortkey in ordering:
@@ -1077,14 +1083,15 @@ def sortOutputEventsIntoTracks(eventlist, track_method, vcToCorpusName):
 			tidx = 0
 			while True:
 				if tidx not in track_assign: track_assign[tidx] = []
-				if True in [e.timeInScore <= te.timeInScore+te.duration and te.timeInScore <= e.timeInScore+e.duration for te in track_assign[tidx]]:
+				if True in [e.timeInScore <= te.timeInScore+(te.cpsduration*te.transposeSpeedChange) and te.timeInScore <= e.timeInScore+(e.cpsduration*e.transposeSpeedChange) for te in track_assign[tidx]]:
 					tidx += 1
 				else: break
 			track_assign[tidx].append(e)
 		track_assign = [(k, v) for k, v in track_assign.items()]
 		track_assign.sort()
 		for tidx, t in track_assign:
-			events_as_dicts = [{'file': e.filename, 'name': e.printName, 'time': e.timeInScore, 'stop': e.timeInScore+e.duration, "skip": e.sfSkip, "duration": e.duration, "orig_duration": e.cpsduration, "amp": e.powerSeg, "ampscale": util.dbToAmp(e.envDb), "fadein": e.envAttackSec, 'fadeout': e.envDecaySec, 'transposition': e.transposition} for e in t]
+			events_as_dicts = [{'file': e.filename, 'name': e.printName, 'time': e.timeInScore, 'stop': e.timeInScore+e.duration, "skip": e.sfSkip, "duration": e.duration, "orig_duration": e.cpsduration*e.transposeSpeedChange, "transposeSpeedChange": e.transposeSpeedChange, "amp": e.powerSeg, "ampscale": util.dbToAmp(e.envDb), "fadein": e.envAttackSec, 'fadeout': e.envDecaySec, 'transposition': e.transposition} for e in t]
+			#print(e.printName, e.transposeSpeedChange, e.cpsduration, e.transposeSpeedChange, e.cpsduration*e.transposeSpeedChange)
 			output.append([grand_old_dict[sortkey][0], events_as_dicts, 'cps'])
 	return output
 		
