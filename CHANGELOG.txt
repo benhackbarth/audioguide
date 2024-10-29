@@ -1,4 +1,13 @@
 ##################
+## Version 1.78 ##
+##################
+Fixed a bug that broke audioguide when a csf(includeStr) yielded no samples.
+
+Fixed a bug in interactive mode where if certain options were removed from the options file they wouldn't return to their default values.
+
+
+
+##################
 ## Version 1.77 ##
 ##################
 Added RPP_TRANS_AFFECTS_SPEED, which lets the user select how reaper will perform transposition.
