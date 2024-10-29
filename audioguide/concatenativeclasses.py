@@ -532,7 +532,8 @@ class corpus:
 		cps_lists_by_voice = {i: [] for i in range(self.len)}
 		[cps_lists_by_voice[cobj.voiceID].append(cobj) for cobj in self.preLimitSegmentList]
 		for vid, cobj_list in cps_lists_by_voice.items():
-			descriptordata.evaluate_midipitches(cobj_list, cobj_list[0].midiPitchMethod)
+			if len(cobj_list) > 0:
+				descriptordata.evaluate_midipitches(cobj_list, cobj_list[0].midiPitchMethod)
 		#
 		self.recordPreLimitAmplitudes()
 		self.evaluatePreConcateLimitations()
