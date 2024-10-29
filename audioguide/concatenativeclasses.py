@@ -61,11 +61,12 @@ class parseOptionsV2:
 		self.rewind()
 		# load defaults.py
 		self.defaults_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'defaults.py')
-		defaultops = {}
+		self.defaultops = {}
+		self.interactive_mode_last_ops_dict = None # gets a copy of interactive mode options dicts passed for comparison
 		fh = open(self.defaults_file)
-		exec(fh.read(), locals(), defaultops)
+		exec(fh.read(), locals(), self.defaultops)
 		fh.close()
-		for k, v in defaultops.items(): self.set_option(k, v)
+		for k, v in self.defaultops.items(): self.set_option(k, v)
 	#############################
 	def set_option(self, optionname, optionvalue, init=False):
 		'''records options and tracks changes in options for interative mode'''

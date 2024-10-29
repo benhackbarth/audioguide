@@ -35,9 +35,17 @@ class main:
 		self.ops.set_option(optionname, optionvalue)
 
 	def parse_options_dict(self, opsdict, init=False):
+		# if we are in interactive mode, this tests the new options to see
+		# if any options disappeared that need to be repopulated with defaults.
+		if not init and self.ops.interactive_mode_last_ops_dict != None:
+			for k in self.ops.interactive_mode_last_ops_dict:
+				if k not in opsdict:
+					opsdict[k] = self.ops.defaultops[k]
 		for optionname, optionvalue in opsdict.items():
 			self.ops.set_option(optionname, optionvalue, init=init)
-
+		# save it to inspect removed keys on next interactive pass
+		self.ops.interactive_mode_last_ops_dict = opsdict 
+		
 	def parse_options_file(self, opspath, init=False):
 		usrOptions = self.ops.parse_file(opspath)
 		self.parse_options_dict(usrOptions, init=init)
@@ -402,6 +410,7 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################
 		## RPP output ##
 		################
+		print(self.ops.RPP_FILEPATH)
 		if self.ops.RPP_FILEPATH != None:
 			import audioguide.fileoutput.reaper as rpp
 			this_rpp = rpp.output(self.ops.get_outputfile('RPP_FILEPATH'))
