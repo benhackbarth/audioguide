@@ -77,7 +77,7 @@ class notetracker:
 		# set up instrument trackers
 		self.instrdata[instr]['selected_notes'] = {}
 		self.instrdata[instr]['selected_notes_v2'] = []
-		for t in range(tgtlength+10): self.instrdata[instr]['selected_notes_v2'].append([]) # +10 just in case there is a one frame overage
+		for t in range(tgtlength): self.instrdata[instr]['selected_notes_v2'].append([]) # +10 just in case there is a one frame overage
 		self.instrdata[instr]['overlaps'] = np.zeros(tgtlength, dtype=int)
 		# test for sequence stuff
 		if 'sequences' in instrparams:
@@ -95,10 +95,8 @@ class notetracker:
 		self.instrdata[instr]['selected_notes'][time].append([duration, midi, db, cpsid])
 		for i in range(duration):
 			# record note choice in every valid frame
-# 			print(self.instrdata[instr]['selected_notes_v2'][time+i])
-# 			print(len(self.instrdata[instr]['selected_notes_v2']), time+i)
-# 			print(self.instrdata[instr]['selected_notes_v2'][time+i])
-# 			print(self.instrdata[instr]['selected_notes_v2'][time+i])
+			while len(self.instrdata[instr]['selected_notes_v2']) < time+i+1:
+				self.instrdata[instr]['selected_notes_v2'].append([])
 			self.instrdata[instr]['selected_notes_v2'][time+i].append([midi, db, cpsid])
 		self.instrdata[instr]['overlaps'][time:time+duration] += 1
 		self.instrdata[instr]['cps'][cpsid][time:time+duration] += 1
