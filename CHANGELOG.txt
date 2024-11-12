@@ -1,4 +1,11 @@
 ##################
+## Version 1.79 ##
+##################
+Fixed a stupid bug fix in musicalwriting that cause a fatal error sometimes.
+
+
+
+##################
 ## Version 1.78 ##
 ##################
 Fixed a bug that broke audioguide when a csf(includeStr) yielded no samples.

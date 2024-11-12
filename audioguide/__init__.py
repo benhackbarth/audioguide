@@ -5,7 +5,7 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.78"
+__version__ = "1.79"
 
 
 
@@ -410,7 +410,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 		################
 		## RPP output ##
 		################
-		print(self.ops.RPP_FILEPATH)
 		if self.ops.RPP_FILEPATH != None:
 			import audioguide.fileoutput.reaper as rpp
 			this_rpp = rpp.output(self.ops.get_outputfile('RPP_FILEPATH'))
