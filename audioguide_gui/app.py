@@ -45,6 +45,7 @@ from .project import (
 )
 from .render_manifest import write_render_manifest
 from .runner import AudioGuideRunner, AudioGuideToolRunner, RunnerError, bundled_resource_path
+from .take_browser import TakeBrowserPanel
 from .tutorial import render_tutorial_html
 
 
@@ -423,6 +424,7 @@ class MainWindow(QMainWindow):
 		button_layout.addWidget(self.render_button)
 
 		self.output_browser = OutputBrowserPanel()
+		self.take_browser = TakeBrowserPanel()
 
 		self.log_output = QPlainTextEdit()
 		self.log_output.setReadOnly(True)
@@ -483,6 +485,7 @@ class MainWindow(QMainWindow):
 
 		self.main_tabs = QTabWidget()
 		self.main_tabs.addTab(render_tab, "Render")
+		self.main_tabs.addTab(self.take_browser, "Takes")
 		self.main_tabs.addTab(self.output_browser, "Output Browser")
 		self.main_tabs.addTab(tools_tabs, "Tools")
 		self.main_tabs.addTab(self.tutorial_panel, "Tutorial")
@@ -649,6 +652,7 @@ class MainWindow(QMainWindow):
 		self._apply_config(ProjectConfig())
 		self.log_output.clear()
 		self.output_browser.clear()
+		self.take_browser.clear()
 		self._last_render_output_dir = ""
 		self._append_log("Started a new project.")
 		self._update_window_title()
@@ -670,6 +674,7 @@ class MainWindow(QMainWindow):
 		self._current_project_path = Path(path)
 		self._apply_config(config)
 		self.output_browser.clear()
+		self.take_browser.clear()
 		self._last_render_output_dir = ""
 		self._append_log(f"Opened project: {self._current_project_path}")
 		self._update_window_title()
@@ -770,6 +775,7 @@ class MainWindow(QMainWindow):
 
 		self.log_output.clear()
 		self.output_browser.clear()
+		self.take_browser.clear()
 		try:
 			config = self._config_from_inputs()
 			self._validate_config(config)
@@ -861,6 +867,7 @@ class MainWindow(QMainWindow):
 			self._append_log("Render finished successfully.")
 			if self._last_render_output_dir:
 				self.output_browser.scan(self._last_render_output_dir)
+				self.take_browser.scan(self._last_render_output_dir)
 				self._append_log(f"Scanned output folder: {self._last_render_output_dir}")
 			return
 		config, options_path = self._render_jobs[self._active_render_job_index]
