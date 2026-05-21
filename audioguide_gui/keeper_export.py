@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import csv
 import json
 import shutil
 import wave
@@ -19,6 +20,9 @@ except ImportError:  # pragma: no cover - Python 3.13+ removed aifc.
 
 KEEPERS_MANIFEST_FILENAME = "keepers-manifest.json"
 DEFAULT_ASSEMBLY_FILENAME = "transmissions-assembly.rpp"
+DEFAULT_ABLETON_PROJECT_DIRNAME = "TRANSMISSIONS Ableton Project"
+ABLETON_IMPORT_GUIDE_JSON = "ableton-import-guide.json"
+ABLETON_IMPORT_GUIDE_CSV = "ableton-import-guide.csv"
 DEFAULT_ASSEMBLY_GAP_SECONDS = 0.25
 DEFAULT_ITEM_LENGTH_SECONDS = 4.0
 
@@ -158,6 +162,68 @@ def export_reaper_assembly(
 	return assembly_path
 
 
+def export_ableton_project(
+	keepers_manifest_path: str | Path,
+	destination: str | Path | None = None,
+	*,
+	gap_seconds: float = DEFAULT_ASSEMBLY_GAP_SECONDS,
+) -> Path:
+	"""Create an Ableton-friendly project folder from a keeper manifest."""
+	manifest_path = Path(keepers_manifest_path).expanduser()
+	payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+	takes = payload.get("takes", [])
+	if not isinstance(takes, list):
+		takes = []
+	project_dir = Path(destination).expanduser() if destination else manifest_path.with_name(DEFAULT_ABLETON_PROJECT_DIRNAME)
+	imported_dir = project_dir / "Samples" / "Imported"
+	imported_dir.mkdir(parents=True, exist_ok=True)
+
+	rows: list[dict[str, Any]] = []
+	positions: dict[str, float] = {}
+	for take in takes:
+		if not isinstance(take, dict):
+			continue
+		audio_path = _audio_path_from_exported_take(take, manifest_path.parent)
+		if audio_path is None:
+			continue
+		tags = [str(tag) for tag in take.get("tags", []) if str(tag)]
+		track_name = tags[0] if tags else "TRANSMISSIONS Takes"
+		position = positions.get(track_name, 0.0)
+		length = _audio_duration_seconds(audio_path) or DEFAULT_ITEM_LENGTH_SECONDS
+		destination_audio = _unique_destination(imported_dir, audio_path.name)
+		shutil.copy2(audio_path, destination_audio)
+		row = {
+			"take": int(take.get("take") or 0),
+			"output_name": str(take.get("output_name") or ""),
+			"track": track_name,
+			"start_seconds": round(position, 6),
+			"duration_seconds": round(length, 6),
+			"rating": int(take.get("rating") or 0),
+			"keeper": bool(take.get("keeper", False)),
+			"tags": tags,
+			"notes": str(take.get("notes") or ""),
+			"audio_file": str(destination_audio),
+			"audio_file_relative": str(destination_audio.relative_to(project_dir)),
+		}
+		rows.append(row)
+		positions[track_name] = position + length + max(0.0, gap_seconds)
+
+	guide_payload = {
+		"project": "TRANSMISSIONS",
+		"format": "ableton-import-guide",
+		"source_keepers_manifest": str(manifest_path),
+		"notes": (
+			"This is an Ableton-friendly collected project folder, not a native .als/.alp file. "
+			"Drag the files from Samples/Imported into Ableton Live and use the guide rows for track names, order, and start times."
+		),
+		"takes": rows,
+	}
+	(project_dir / ABLETON_IMPORT_GUIDE_JSON).write_text(json.dumps(guide_payload, indent=2) + "\n", encoding="utf-8")
+	_write_ableton_csv(project_dir / ABLETON_IMPORT_GUIDE_CSV, rows)
+	_write_ableton_readme(project_dir)
+	return project_dir
+
+
 def _copy_take_files(entry: TakeEntry, export_dir: Path) -> tuple[dict[str, str], list[str]]:
 	candidates = {
 		"audio_file": entry.audio_file,
@@ -243,10 +309,55 @@ def _rpp_quote(value: str) -> str:
 	return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def _write_ableton_csv(path: Path, rows: list[dict[str, Any]]) -> None:
+	fieldnames = [
+		"take",
+		"output_name",
+		"track",
+		"start_seconds",
+		"duration_seconds",
+		"rating",
+		"keeper",
+		"tags",
+		"notes",
+		"audio_file_relative",
+	]
+	with path.open("w", encoding="utf-8", newline="") as file:
+		writer = csv.DictWriter(file, fieldnames=fieldnames)
+		writer.writeheader()
+		for row in rows:
+			writer.writerow(
+				{
+					field: (" ".join(row.get("tags", [])) if field == "tags" else row.get(field, ""))
+					for field in fieldnames
+				}
+			)
+
+
+def _write_ableton_readme(project_dir: Path) -> None:
+	(project_dir / "README-Ableton.txt").write_text(
+		"TRANSMISSIONS Ableton Import\n"
+		"\n"
+		"This folder is ready to drag into Ableton Live, but it is not a native .als/.alp file.\n"
+		"Audio files are collected in Samples/Imported.\n"
+		"Use ableton-import-guide.csv or ableton-import-guide.json for suggested track names,\n"
+		"start times, ratings, tags, and notes.\n"
+		"\n"
+		"Suggested workflow:\n"
+		"1. Open Ableton Live and create a new set.\n"
+		"2. Create tracks matching the guide's track column.\n"
+		"3. Drag samples from Samples/Imported onto the matching tracks.\n"
+		"4. Place clips at the guide's start_seconds values if you want the generated order.\n",
+		encoding="utf-8",
+	)
+
+
 __all__ = [
 	"DEFAULT_ASSEMBLY_FILENAME",
+	"DEFAULT_ABLETON_PROJECT_DIRNAME",
 	"KEEPERS_MANIFEST_FILENAME",
 	"KeeperExportResult",
+	"export_ableton_project",
 	"export_keepers",
 	"export_reaper_assembly",
 ]

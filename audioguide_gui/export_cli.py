@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from .keeper_export import export_keepers, export_reaper_assembly
+from .keeper_export import export_ableton_project, export_keepers, export_reaper_assembly
 
 
 def keepers_main(argv: list[str] | None = None) -> int:
@@ -49,6 +49,22 @@ def assembly_main(argv: list[str] | None = None) -> int:
 
 	path = export_reaper_assembly(args.keepers_manifest, args.output_file, gap_seconds=args.gap)
 	print(f"Wrote REAPER assembly: {path}")
+	return 0
+
+
+def ableton_main(argv: list[str] | None = None) -> int:
+	"""Export an Ableton-friendly collected project folder."""
+	parser = argparse.ArgumentParser(
+		prog="audioguide-gui-export-ableton",
+		description="Create an Ableton-friendly project folder from keepers-manifest.json.",
+	)
+	parser.add_argument("keepers_manifest", help="Path to keepers-manifest.json")
+	parser.add_argument("-o", "--output-dir", help="Ableton project folder path (default: beside keeper manifest)")
+	parser.add_argument("--gap", type=float, default=0.25, help="Gap in seconds between sequential clips")
+	args = parser.parse_args(argv)
+
+	path = export_ableton_project(args.keepers_manifest, args.output_dir, gap_seconds=args.gap)
+	print(f"Wrote Ableton project folder: {path}")
 	return 0
 
 

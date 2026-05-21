@@ -31,7 +31,13 @@ except ImportError:  # pragma: no cover - depends on the user's PySide install.
 	QMediaPlayer = None
 
 from .audio_preview import extract_audio_peaks
-from .keeper_export import DEFAULT_ASSEMBLY_FILENAME, export_keepers, export_reaper_assembly
+from .keeper_export import (
+	DEFAULT_ABLETON_PROJECT_DIRNAME,
+	DEFAULT_ASSEMBLY_FILENAME,
+	export_ableton_project,
+	export_keepers,
+	export_reaper_assembly,
+)
 from .output_browser import open_path, reveal_path
 from .take_manifest import TakeEntry, default_manifest_path, load_take_entries, save_take_annotation
 
@@ -148,6 +154,8 @@ class TakeBrowserPanel(QWidget):
 		self.export_rated_button.clicked.connect(self._export_rated)
 		self.export_assembly_button = QPushButton("Export Assembly RPP")
 		self.export_assembly_button.clicked.connect(self._export_assembly)
+		self.export_ableton_button = QPushButton("Export Ableton")
+		self.export_ableton_button.clicked.connect(self._export_ableton)
 		self.play_button = QPushButton("Play")
 		self.play_button.clicked.connect(self._play_pause)
 		self.stop_button = QPushButton("Stop")
@@ -212,6 +220,7 @@ class TakeBrowserPanel(QWidget):
 		button_layout.addWidget(self.export_keepers_button)
 		button_layout.addWidget(self.export_rated_button)
 		button_layout.addWidget(self.export_assembly_button)
+		button_layout.addWidget(self.export_ableton_button)
 		button_layout.addStretch(1)
 
 		layout = QVBoxLayout(self)
@@ -331,6 +340,7 @@ class TakeBrowserPanel(QWidget):
 		self.export_keepers_button.setEnabled(has_manifest)
 		self.export_rated_button.setEnabled(has_manifest)
 		self.export_assembly_button.setEnabled(has_manifest)
+		self.export_ableton_button.setEnabled(has_manifest)
 		self.rating_spin.setEnabled(has_entry)
 		self.keeper_check.setEnabled(has_entry)
 		for check in self.tag_checks.values():
@@ -535,6 +545,22 @@ class TakeBrowserPanel(QWidget):
 			return
 		assembly_path = export_reaper_assembly(result.manifest_path, path)
 		self.status_label.setText(f"Exported REAPER assembly: {assembly_path}")
+
+	def _export_ableton(self) -> None:
+		self._save_current_annotation(silent=True)
+		if self._manifest_path is None:
+			return
+		default_dir = self._manifest_path.parent / "keepers"
+		result = export_keepers(self._manifest_path, default_dir)
+		project_dir = QFileDialog.getExistingDirectory(
+			self,
+			"Choose Ableton project folder",
+			str(result.destination / DEFAULT_ABLETON_PROJECT_DIRNAME),
+		)
+		if not project_dir:
+			return
+		ableton_path = export_ableton_project(result.manifest_path, project_dir)
+		self.status_label.setText(f"Exported Ableton project folder: {ableton_path}")
 
 	def keyPressEvent(self, event):  # noqa: N802 - Qt override
 		if event.key() in (Qt.Key.Key_J, Qt.Key.Key_Down):
