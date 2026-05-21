@@ -22,6 +22,10 @@ class RenderManifestTest(unittest.TestCase):
 				preset_name="beat_chop",
 				preset_parameters={"duration_percent": 12},
 				random_seed=4,
+				render_csound=True,
+				output_json=True,
+				output_reaper=True,
+				output_aaf=True,
 			)
 
 			manifest_path = write_render_manifest([(config, root / "take-001-options.py")])
@@ -31,6 +35,11 @@ class RenderManifestTest(unittest.TestCase):
 			self.assertEqual(payload["preset_parameters"], {"duration_percent": 12})
 			self.assertEqual(payload["corpus_groups"], {"drums": ["drums"]})
 			self.assertEqual(payload["takes"][0]["random_seed"], 4)
+			self.assertEqual(payload["takes"][0]["audio_file"], str(root / "take-001.aiff"))
+			self.assertEqual(payload["takes"][0]["json_file"], str(root / "take-001.json"))
+			self.assertEqual(payload["takes"][0]["rpp_file"], str(root / "take-001.rpp"))
+			self.assertEqual(payload["takes"][0]["aaf_file"], str(root / "take-001.aaf"))
+			self.assertEqual(payload["takes"][0]["html_log_file"], str(root / "take-001-log.html"))
 
 
 if __name__ == "__main__":

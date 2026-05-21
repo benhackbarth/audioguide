@@ -13,7 +13,7 @@ class TakeManifestTest(unittest.TestCase):
 		with TemporaryDirectory() as tmp:
 			root = Path(tmp)
 			(root / "demo-take-001.aiff").write_text("audio", encoding="utf-8")
-			(root / "demo-take-001.json").write_text("{}", encoding="utf-8")
+			(root / "custom.json").write_text("{}", encoding="utf-8")
 			options_path = root / "demo-take-001-options.py"
 			options_path.write_text("# options", encoding="utf-8")
 			manifest_path = root / "transmissions-render-manifest.json"
@@ -27,6 +27,7 @@ class TakeManifestTest(unittest.TestCase):
 								"output_name": "demo-take-001",
 								"random_seed": 99,
 								"options_file": str(options_path),
+								"json_file": str(root / "custom.json"),
 							}
 						],
 					}
@@ -39,7 +40,7 @@ class TakeManifestTest(unittest.TestCase):
 
 			self.assertEqual(len(entries), 1)
 			self.assertEqual(entries[0].audio_file, root / "demo-take-001.aiff")
-			self.assertEqual(entries[0].json_file, root / "demo-take-001.json")
+			self.assertEqual(entries[0].json_file, root / "custom.json")
 			self.assertEqual(entries[0].rating, 4)
 			self.assertTrue(entries[0].keeper)
 			self.assertEqual(entries[0].notes, "use bar 3")

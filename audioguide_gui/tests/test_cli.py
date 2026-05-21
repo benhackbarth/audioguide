@@ -108,6 +108,29 @@ class CliConfigTest(unittest.TestCase):
 			self.assertIn("RANDOM_SEED = 10", take_one.read_text(encoding="utf-8"))
 			self.assertIn("RANDOM_SEED = 11", take_two.read_text(encoding="utf-8"))
 
+	def test_print_options_does_not_write_files(self):
+		with TemporaryDirectory() as tmp:
+			root = Path(tmp)
+			config_path = root / "config.json"
+			config_path.write_text(
+				json.dumps(
+					{
+						"target_path": "target.aiff",
+						"corpus_paths": ["corpus"],
+						"output_folder": "renders",
+						"output_name": "demo",
+						"selected_output_formats": [],
+						"take_count": 2,
+					}
+				),
+				encoding="utf-8",
+			)
+
+			exit_code = main([str(config_path), "--print-options"])
+
+			self.assertEqual(exit_code, 0)
+			self.assertFalse((root / "renders").exists())
+
 
 if __name__ == "__main__":
 	unittest.main()

@@ -24,6 +24,7 @@ class TakeEntry:
 	audio_file: Path | None
 	json_file: Path | None
 	rpp_file: Path | None
+	aaf_file: Path | None = None
 	rating: int = 0
 	keeper: bool = False
 	notes: str = ""
@@ -48,10 +49,14 @@ def load_take_entries(manifest_path: str | Path) -> list[TakeEntry]:
 				take=take_number,
 				output_name=output_name,
 				random_seed=take_payload.get("random_seed"),
-				options_file=Path(str(take_payload.get("options_file") or "")).expanduser(),
-				audio_file=_first_existing(output_dir, output_name, AUDIO_SUFFIXES),
-				json_file=_existing(output_dir / f"{output_name}.json"),
-				rpp_file=_existing(output_dir / f"{output_name}.rpp"),
+				options_file=_path_from_manifest(take_payload.get("options_file"), path.parent),
+				audio_file=_manifest_file(take_payload.get("audio_file"), path.parent)
+				or _first_existing(output_dir, output_name, AUDIO_SUFFIXES),
+				json_file=_manifest_file(take_payload.get("json_file"), path.parent)
+				or _existing(output_dir / f"{output_name}.json"),
+				rpp_file=_manifest_file(take_payload.get("rpp_file"), path.parent)
+				or _existing(output_dir / f"{output_name}.rpp"),
+				aaf_file=_manifest_file(take_payload.get("aaf_file"), path.parent),
 				rating=int(note_payload.get("rating", 0) or 0),
 				keeper=bool(note_payload.get("keeper", False)),
 				notes=str(note_payload.get("notes", "")),
@@ -112,6 +117,20 @@ def _first_existing(output_dir: Path, output_name: str, suffixes: tuple[str, ...
 
 def _existing(path: Path) -> Path | None:
 	return path if path.exists() else None
+
+
+def _manifest_file(value: Any, base_dir: Path) -> Path | None:
+	if not value:
+		return None
+	path = _path_from_manifest(value, base_dir)
+	return path if path.exists() else None
+
+
+def _path_from_manifest(value: Any, base_dir: Path) -> Path:
+	path = Path(str(value or "")).expanduser()
+	if path.is_absolute():
+		return path
+	return (base_dir / path).resolve()
 
 
 __all__ = [
