@@ -1,0 +1,20 @@
+name: beat_chop
+label: Beat Chop
+description: Tight rhythmic replacement for loops, drums, and sample chops.
+output_formats:
+  - csound
+  - json
+  - reaper
+options_text: |
+  # TRANSMISSIONS: tight rhythmic replacement.
+  # The first pass keeps durations and power close enough to preserve beat logic.
+  # The percent passes leave room for random variation when RANDOM_SEED changes.
+  SEARCH = [
+      spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=18),
+      spass('closest_percent', d('centroid-seg', norm=1), percent=30),
+      spass('closest', d('mfccs-seg')),
+  ]
+
+  SUPERIMPOSE = si(maxSegment=1, peakAlign=True, searchOrder='power')
+  ROTATE_VOICES = False
+  OUTPUT_GAIN_DB = -3

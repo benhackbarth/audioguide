@@ -62,6 +62,7 @@ def build_options_text(config: ProjectConfig) -> str:
 			"# The GUI uses a conservative default search that advanced users may edit.",
 			DEFAULT_SEARCH_TEXT,
 			DEFAULT_SUPERIMPOSE_TEXT,
+			f"RANDOM_SEED = {_optional_number(config.random_seed)}",
 			"",
 			"############# OUTPUT FILES #############",
 			f"HTML_LOG_FILEPATH = {_py_string(output_dir / f'{output_name}-log.html')}",
@@ -112,6 +113,12 @@ def _optional_path(enabled: bool, path: str | Path) -> str:
 	if not enabled:
 		return "None"
 	return _py_string(path)
+
+
+def _optional_number(value: int | float | None) -> str:
+	if value is None:
+		return "None"
+	return str(value)
 
 
 def _py_string(value: str | Path) -> str:

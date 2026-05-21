@@ -27,6 +27,7 @@ class OptionBuilderTest(unittest.TestCase):
 				output_json=True,
 				output_reaper=True,
 				output_aaf=False,
+				random_seed=123,
 				extra_options_text="VERBOSITY = 0\nOUTPUT_GAIN_DB = -3",
 			)
 
@@ -43,6 +44,7 @@ class OptionBuilderTest(unittest.TestCase):
 			self.assertEqual(namespace["DICT_OUTPUT_FILEPATH"], str(root / "render output" / "demo-render.json"))
 			self.assertEqual(namespace["RPP_FILEPATH"], str(root / "render output" / "demo-render.rpp"))
 			self.assertIsNone(namespace["AAF_FILEPATH"])
+			self.assertEqual(namespace["RANDOM_SEED"], 123)
 			self.assertEqual(namespace["VERBOSITY"], 0)
 			self.assertEqual(namespace["OUTPUT_GAIN_DB"], -3)
 

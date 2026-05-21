@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import Future
+from dataclasses import replace
 from pathlib import Path
 import shlex
 import sys
@@ -12,6 +13,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
 	QApplication,
 	QCheckBox,
+	QComboBox,
 	QDialog,
 	QDialogButtonBox,
 	QFileDialog,
@@ -22,6 +24,7 @@ from PySide6.QtWidgets import (
 	QMainWindow,
 	QPlainTextEdit,
 	QPushButton,
+	QSpinBox,
 	QTabWidget,
 	QTextBrowser,
 	QVBoxLayout,
@@ -30,6 +33,7 @@ from PySide6.QtWidgets import (
 
 from .option_builder import OptionBuilder, OptionBuilderError
 from .output_browser import OutputBrowserPanel
+from .presets import CreativePreset, PresetError, list_presets
 from .project import (
 	PROJECT_FILE_EXTENSION,
 	AudioGuideProject,
@@ -280,6 +284,8 @@ class MainWindow(QMainWindow):
 		self._current_project_path: Path | None = None
 		self._last_options_file_path = ""
 		self._last_render_output_dir = ""
+		self._render_jobs: list[tuple[ProjectConfig, Path]] = []
+		self._active_render_job_index = -1
 		self._signals = _RunnerSignals(self)
 		self._signals.log_updated.connect(self._append_log)
 		self._signals.future_done.connect(self._render_finished)
@@ -313,6 +319,42 @@ class MainWindow(QMainWindow):
 		formats_group = QGroupBox("Output Formats")
 		formats_group.setLayout(formats_layout)
 		self.output_formats_group = formats_group
+
+		self._presets = list_presets()
+		self.preset_combo = QComboBox()
+		self.preset_combo.addItem("Custom", "")
+		for preset in self._presets:
+			self.preset_combo.addItem(preset.label, preset.name)
+		self.preset_combo.currentIndexChanged.connect(self._preset_selection_changed)
+		self.apply_preset_button = QPushButton("Apply Preset")
+		self.apply_preset_button.clicked.connect(self._apply_selected_preset)
+		self.preset_description = QLabel("")
+		self.preset_description.setWordWrap(True)
+
+		preset_picker_layout = QHBoxLayout()
+		preset_picker_layout.addWidget(QLabel("Preset"))
+		preset_picker_layout.addWidget(self.preset_combo, stretch=1)
+		preset_picker_layout.addWidget(self.apply_preset_button)
+
+		preset_layout = QVBoxLayout()
+		preset_layout.addLayout(preset_picker_layout)
+		preset_layout.addWidget(self.preset_description)
+
+		self.preset_group = QGroupBox("TRANSMISSIONS Preset")
+		self.preset_group.setLayout(preset_layout)
+
+		self.take_count_spin = QSpinBox()
+		self.take_count_spin.setRange(1, 99)
+		self.take_count_spin.setValue(1)
+		self.random_seed_edit = QLineEdit()
+		self.random_seed_edit.setPlaceholderText("blank = timestamp/random")
+		batch_layout = QHBoxLayout()
+		batch_layout.addWidget(QLabel("Takes"))
+		batch_layout.addWidget(self.take_count_spin)
+		batch_layout.addWidget(QLabel("Seed"))
+		batch_layout.addWidget(self.random_seed_edit, stretch=1)
+		self.batch_group = QGroupBox("Batch Variations")
+		self.batch_group.setLayout(batch_layout)
 
 		self.advanced_options_edit = QPlainTextEdit()
 		self.advanced_options_edit.setPlaceholderText(
@@ -364,6 +406,8 @@ class MainWindow(QMainWindow):
 		render_layout.addWidget(self.output_picker)
 		render_layout.addLayout(output_name_layout)
 		render_layout.addWidget(self.output_formats_group)
+		render_layout.addWidget(self.preset_group)
+		render_layout.addWidget(self.batch_group)
 		render_layout.addWidget(self.advanced_options_group, stretch=1)
 		render_layout.addLayout(button_layout)
 		render_layout.addWidget(QLabel("Log output"))
@@ -462,6 +506,9 @@ class MainWindow(QMainWindow):
 		config.output_aaf = self.aaf_checkbox.isChecked()
 		config.extra_options_text = self.advanced_options_edit.toPlainText()
 		config.last_options_file_path = self._last_options_file_path
+		config.preset_name = str(self.preset_combo.currentData() or "")
+		config.random_seed = self._random_seed_from_input()
+		config.take_count = self.take_count_spin.value()
 		return config
 
 	def _apply_config(self, config: ProjectConfig) -> None:
@@ -475,6 +522,53 @@ class MainWindow(QMainWindow):
 		self.aaf_checkbox.setChecked(config.output_aaf)
 		self.advanced_options_edit.setPlainText(config.extra_options_text)
 		self._last_options_file_path = config.last_options_file_path
+		self._select_preset(config.preset_name)
+		self.random_seed_edit.setText("" if config.random_seed is None else str(config.random_seed))
+		self.take_count_spin.setValue(max(1, config.take_count))
+
+	def _preset_selection_changed(self, *_args: object) -> None:
+		preset = self._selected_preset()
+		if preset is None:
+			self.preset_description.setText("")
+		else:
+			self.preset_description.setText(preset.description)
+
+	def _apply_selected_preset(self) -> None:
+		preset = self._selected_preset()
+		if preset is None:
+			return
+		self._set_output_formats(preset.output_formats)
+		self.advanced_options_edit.setPlainText(preset.options_text)
+		self._append_log(f"Applied preset: {preset.label}")
+
+	def _selected_preset(self) -> CreativePreset | None:
+		name = str(self.preset_combo.currentData() or "")
+		if not name:
+			return None
+		for preset in self._presets:
+			if preset.name == name:
+				return preset
+		return None
+
+	def _select_preset(self, name: str) -> None:
+		index = self.preset_combo.findData(name)
+		self.preset_combo.setCurrentIndex(index if index >= 0 else 0)
+
+	def _set_output_formats(self, formats: tuple[str, ...]) -> None:
+		selected_formats = set(formats)
+		self.csound_checkbox.setChecked("csound" in selected_formats)
+		self.json_checkbox.setChecked("json" in selected_formats)
+		self.reaper_checkbox.setChecked("reaper" in selected_formats)
+		self.aaf_checkbox.setChecked("aaf" in selected_formats)
+
+	def _random_seed_from_input(self) -> int | None:
+		text = self.random_seed_edit.text().strip()
+		if not text:
+			return None
+		try:
+			return int(text)
+		except ValueError as exc:
+			raise ValueError("seed must be a whole number") from exc
 
 	def _new_project_clicked(self) -> None:
 		self._current_project_path = None
@@ -605,31 +699,23 @@ class MainWindow(QMainWindow):
 		try:
 			config = self._config_from_inputs()
 			self._validate_config(config)
-			options_path = self._options_path_for_config(config)
-			self._option_builder.build_file(config, options_path)
-		except (OptionBuilderError, OSError, RunnerError, ValueError) as exc:
+			jobs = self._build_render_jobs(config)
+		except (OptionBuilderError, OSError, PresetError, RunnerError, ValueError) as exc:
 			self._append_log(f"Cannot start render: {exc}")
 			return
 
-		self._last_options_file_path = str(options_path)
+		self._render_jobs = jobs
+		self._active_render_job_index = -1
+		self._last_options_file_path = str(jobs[-1][1])
 		self._last_render_output_dir = config.output_dir
-		self._append_log("Render requested.")
+		self._append_log("Render requested." if len(jobs) == 1 else f"Batch render requested: {len(jobs)} takes.")
 		self._append_log(f"Target sound file: {config.target_path}")
 		self._append_log(f"Corpus folder: {config.corpus_paths[0]}")
 		self._append_log(f"Output folder: {config.output_dir}")
-		self._append_log(f"Generated options file: {options_path}")
 
 		self._set_running_state(True)
 		self._cancel_requested = False
-		self._runner = AudioGuideRunner(options_path)
-		self._runner.add_log_callback(self._signals.log_updated.emit)
-		try:
-			self._render_future = self._runner.start()
-		except RunnerError as exc:
-			self._append_log(f"Cannot start render: {exc}")
-			self._set_running_state(False)
-			return
-		self._render_future.add_done_callback(self._signals.future_done.emit)
+		self._start_next_render_job()
 
 	def _cancel_clicked(self) -> None:
 		if self._runner is None or not self._runner.is_running:
@@ -658,9 +744,57 @@ class MainWindow(QMainWindow):
 		if not output_dir.exists() or not output_dir.is_dir():
 			raise ValueError(f'output folder does not exist: "{output_dir}"')
 
-	def _options_path_for_config(self, config: ProjectConfig) -> Path:
+	def _build_render_jobs(self, config: ProjectConfig) -> list[tuple[ProjectConfig, Path]]:
+		jobs: list[tuple[ProjectConfig, Path]] = []
+		for take_index in range(max(1, config.take_count)):
+			take_config = self._config_for_take(config, take_index)
+			options_path = self._options_path_for_config(take_config, take_index if config.take_count > 1 else None)
+			self._option_builder.build_file(take_config, options_path)
+			jobs.append((take_config, options_path))
+		return jobs
+
+	def _config_for_take(self, config: ProjectConfig, take_index: int) -> ProjectConfig:
+		if config.take_count <= 1:
+			return config
+		seed = None if config.random_seed is None else config.random_seed + take_index
+		return replace(
+			config,
+			output_name=f"{config.output_name}-take-{take_index + 1:03d}",
+			random_seed=seed,
+		)
+
+	def _options_path_for_config(self, config: ProjectConfig, take_index: int | None = None) -> Path:
 		output_dir = Path(config.output_dir).expanduser()
+		if take_index is not None:
+			return output_dir / f"{config.output_name}-options.py"
 		return output_dir / "audioguide-gui-options.py"
+
+	def _start_next_render_job(self) -> None:
+		self._active_render_job_index += 1
+		if self._active_render_job_index >= len(self._render_jobs):
+			self._set_running_state(False)
+			self._append_log("Render finished successfully.")
+			if self._last_render_output_dir:
+				self.output_browser.scan(self._last_render_output_dir)
+				self._append_log(f"Scanned output folder: {self._last_render_output_dir}")
+			return
+		config, options_path = self._render_jobs[self._active_render_job_index]
+		self._append_log(
+			f"Starting take {self._active_render_job_index + 1}/{len(self._render_jobs)}: "
+			f"{config.output_name}"
+		)
+		if config.random_seed is not None:
+			self._append_log(f"RANDOM_SEED = {config.random_seed}")
+		self._append_log(f"Generated options file: {options_path}")
+		self._runner = AudioGuideRunner(options_path)
+		self._runner.add_log_callback(self._signals.log_updated.emit)
+		try:
+			self._render_future = self._runner.start()
+		except RunnerError as exc:
+			self._append_log(f"Cannot start render: {exc}")
+			self._set_running_state(False)
+			return
+		self._render_future.add_done_callback(self._signals.future_done.emit)
 
 	def _set_running_state(self, is_running: bool) -> None:
 		self.render_button.setEnabled(not is_running)
@@ -670,6 +804,8 @@ class MainWindow(QMainWindow):
 		self.output_picker.set_enabled(not is_running)
 		self.output_name_edit.setEnabled(not is_running)
 		self.output_formats_group.setEnabled(not is_running)
+		self.preset_group.setEnabled(not is_running)
+		self.batch_group.setEnabled(not is_running)
 		self.advanced_options_edit.setReadOnly(is_running)
 		self.preview_options_button.setEnabled(not is_running)
 		self.save_options_button.setEnabled(not is_running)
@@ -691,22 +827,22 @@ class MainWindow(QMainWindow):
 
 	@Slot(object)
 	def _render_finished(self, future: Future[int]) -> None:
-		self._set_running_state(False)
 		try:
 			exit_code = future.result()
 		except Exception as exc:
 			self._append_log(f"Render failed: {exc}")
+			self._set_running_state(False)
 			return
 
 		if exit_code == 0:
-			self._append_log("Render finished successfully.")
-			if self._last_render_output_dir:
-				self.output_browser.scan(self._last_render_output_dir)
-				self._append_log(f"Scanned output folder: {self._last_render_output_dir}")
+			self._append_log("Take finished successfully.")
+			self._start_next_render_job()
 		elif self._cancel_requested:
 			self._append_log(f"Render cancelled with exit code {exit_code}.")
+			self._set_running_state(False)
 		else:
 			self._append_log(f"Render failed with exit code {exit_code}.")
+			self._set_running_state(False)
 
 
 def run() -> int:

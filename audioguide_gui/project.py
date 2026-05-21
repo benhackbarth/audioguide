@@ -31,6 +31,9 @@ class ProjectConfig:
 	output_aaf: bool = False
 	extra_options_text: str = ""
 	last_options_file_path: str = ""
+	preset_name: str = ""
+	random_seed: int | None = None
+	take_count: int = 1
 
 	@property
 	def selected_output_formats(self) -> list[str]:
@@ -115,6 +118,9 @@ def _config_from_payload(payload: dict[str, Any], base_dir: Path) -> ProjectConf
 		last_options_file_path=_path_from_project(
 			payload.get("last_generated_options_file_path", ""), base_dir
 		),
+		preset_name=str(payload.get("preset_name", "")),
+		random_seed=_optional_int(payload.get("random_seed")),
+		take_count=max(1, int(payload.get("take_count", 1) or 1)),
 	)
 
 
@@ -128,7 +134,16 @@ def _payload_from_config(config: ProjectConfig, base_dir: Path) -> dict[str, Any
 		"selected_output_formats": config.selected_output_formats,
 		"advanced_options_text": config.extra_options_text,
 		"last_generated_options_file_path": _path_for_project(config.last_options_file_path, base_dir),
+		"preset_name": config.preset_name,
+		"random_seed": config.random_seed,
+		"take_count": config.take_count,
 	}
+
+
+def _optional_int(value: Any) -> int | None:
+	if value in (None, ""):
+		return None
+	return int(value)
 
 
 def _formats_from_legacy_booleans(payload: dict[str, Any]) -> list[str]:

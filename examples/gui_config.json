@@ -5,6 +5,9 @@
   ],
   "output_dir": "../output/gui-demo",
   "output_name": "gui-demo",
+  "preset": "beat_chop",
+  "random_seed": 1200,
+  "take_count": 4,
   "output_formats": [
     "json"
   ],

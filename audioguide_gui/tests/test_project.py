@@ -24,6 +24,9 @@ class ProjectFileTest(unittest.TestCase):
 				output_aaf=False,
 				extra_options_text="VERBOSITY = 0\n",
 				last_options_file_path=str(root / "renders" / "options.py"),
+				preset_name="beat_chop",
+				random_seed=77,
+				take_count=4,
 			)
 
 			written_path = save_project_file(config, project_path)
@@ -37,6 +40,9 @@ class ProjectFileTest(unittest.TestCase):
 			self.assertEqual(payload["selected_output_formats"], ["json", "reaper"])
 			self.assertEqual(payload["advanced_options_text"], "VERBOSITY = 0\n")
 			self.assertEqual(payload["last_generated_options_file_path"], "renders/options.py")
+			self.assertEqual(payload["preset_name"], "beat_chop")
+			self.assertEqual(payload["random_seed"], 77)
+			self.assertEqual(payload["take_count"], 4)
 
 			loaded = load_project_file(project_path)
 			self.assertEqual(loaded.target_path, str(root / "sounds" / "target.aiff"))
@@ -49,6 +55,9 @@ class ProjectFileTest(unittest.TestCase):
 			self.assertFalse(loaded.output_aaf)
 			self.assertEqual(loaded.extra_options_text, "VERBOSITY = 0\n")
 			self.assertEqual(loaded.last_options_file_path, str(root / "renders" / "options.py"))
+			self.assertEqual(loaded.preset_name, "beat_chop")
+			self.assertEqual(loaded.random_seed, 77)
+			self.assertEqual(loaded.take_count, 4)
 
 	def test_save_project_file_adds_agui_extension(self):
 		with TemporaryDirectory() as tmp:

@@ -1,0 +1,19 @@
+name: vocal_transmission
+label: Vocal Transmission
+description: Loose vocal/radio cut-up with rotation and broken phrase memory.
+output_formats:
+  - csound
+  - json
+  - reaper
+options_text: |
+  # TRANSMISSIONS: vocal/radio cut-up.
+  # Looser candidate pools create broken phrase memory instead of literal matching.
+  SEARCH = [
+      spass('closest_percent', d('effDur-seg', norm=1), percent=35),
+      spass('parser', 'noisiness-seg >= 50%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent=25),
+      spass('closest_percent', d('centroid-seg', norm=1), percent=20),
+  ]
+
+  SUPERIMPOSE = si(maxSegment=2, maxOverlap=3, peakAlign=True, searchOrder='power')
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = -4

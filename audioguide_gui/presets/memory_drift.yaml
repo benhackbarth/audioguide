@@ -1,0 +1,18 @@
+name: memory_drift
+label: Memory Drift
+description: Less literal matching for strange, repeatable variation takes.
+output_formats:
+  - csound
+  - json
+  - reaper
+options_text: |
+  # TRANSMISSIONS: degraded-source memory.
+  # The final winner comes from a broad candidate pool, so different seeds matter.
+  SEARCH = [
+      spass('closest_percent', d('effDur-seg', norm=1), percent=45),
+      spass('closest_percent', d('mfccs-seg'), percent=20),
+  ]
+
+  SUPERIMPOSE = si(maxSegment=3, maxOverlap=4, subtractScale=0.75)
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = -6

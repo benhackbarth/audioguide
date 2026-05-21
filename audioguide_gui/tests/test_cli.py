@@ -20,6 +20,9 @@ class CliConfigTest(unittest.TestCase):
 						"corpus": ["corpus"],
 						"output_dir": "renders",
 						"output_name": "demo",
+						"preset": "beat_chop",
+						"random_seed": 99,
+						"take_count": 3,
 						"output_formats": ["json", "reaper"],
 						"extra_options_text": "VERBOSITY = 0\n",
 					}
@@ -37,7 +40,11 @@ class CliConfigTest(unittest.TestCase):
 			self.assertTrue(config.output_json)
 			self.assertTrue(config.output_reaper)
 			self.assertFalse(config.output_aaf)
-			self.assertEqual(config.extra_options_text, "VERBOSITY = 0\n")
+			self.assertEqual(config.preset_name, "beat_chop")
+			self.assertEqual(config.random_seed, 99)
+			self.assertEqual(config.take_count, 3)
+			self.assertIn("closest_percent", config.extra_options_text)
+			self.assertIn("VERBOSITY = 0", config.extra_options_text)
 
 	def test_main_writes_options_file_without_rendering(self):
 		with TemporaryDirectory() as tmp:
@@ -64,6 +71,35 @@ class CliConfigTest(unittest.TestCase):
 			self.assertIn("TARGET = tsf", generated)
 			self.assertIn("CSOUND_RENDER_FILEPATH = None", generated)
 			self.assertIn("DICT_OUTPUT_FILEPATH = None", generated)
+
+	def test_main_writes_batch_options_files(self):
+		with TemporaryDirectory() as tmp:
+			root = Path(tmp)
+			config_path = root / "config.json"
+			config_path.write_text(
+				json.dumps(
+					{
+						"target_path": "target.aiff",
+						"corpus_paths": ["corpus"],
+						"output_folder": "renders",
+						"output_name": "demo",
+						"selected_output_formats": [],
+						"random_seed": 10,
+						"take_count": 2,
+					}
+				),
+				encoding="utf-8",
+			)
+
+			exit_code = main([str(config_path)])
+
+			self.assertEqual(exit_code, 0)
+			take_one = root / "renders" / "demo-take-001-options.py"
+			take_two = root / "renders" / "demo-take-002-options.py"
+			self.assertTrue(take_one.exists())
+			self.assertTrue(take_two.exists())
+			self.assertIn("RANDOM_SEED = 10", take_one.read_text(encoding="utf-8"))
+			self.assertIn("RANDOM_SEED = 11", take_two.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
