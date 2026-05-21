@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from collections import defaultdict
 
 from .runner import bundled_resource_path
 
@@ -22,60 +23,61 @@ class CreativePreset:
 	description: str
 	output_formats: tuple[str, ...]
 	options_text: str
+	parameters: dict[str, float | int | str]
 
 
 BEAT_CHOP_OPTIONS = """# TRANSMISSIONS: tight rhythmic replacement.
 # The first pass keeps durations and power close enough to preserve beat logic.
 # The percent passes leave room for random variation when RANDOM_SEED changes.
 SEARCH = [
-	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=18),
-	spass('closest_percent', d('centroid-seg', norm=1), percent=30),
+	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={duration_percent}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
 	spass('closest', d('mfccs-seg')),
 ]
 
-SUPERIMPOSE = si(maxSegment=1, peakAlign=True, searchOrder='power')
+SUPERIMPOSE = si(maxSegment={max_segment}, peakAlign=True, searchOrder='power')
 ROTATE_VOICES = False
-OUTPUT_GAIN_DB = -3
+OUTPUT_GAIN_DB = {output_gain_db}
 """
 
 
 VOCAL_TRANSMISSION_OPTIONS = """# TRANSMISSIONS: vocal/radio cut-up.
 # Looser candidate pools create broken phrase memory instead of literal matching.
 SEARCH = [
-	spass('closest_percent', d('effDur-seg', norm=1), percent=35),
-	spass('parser', 'noisiness-seg >= 50%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent=25),
-	spass('closest_percent', d('centroid-seg', norm=1), percent=20),
+	spass('closest_percent', d('effDur-seg', norm=1), percent={duration_percent}),
+	spass('parser', 'noisiness-seg >= 50%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent={voice_percent}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
 ]
 
-SUPERIMPOSE = si(maxSegment=2, maxOverlap=3, peakAlign=True, searchOrder='power')
+SUPERIMPOSE = si(maxSegment={max_segment}, maxOverlap={max_overlap}, peakAlign=True, searchOrder='power')
 ROTATE_VOICES = True
-OUTPUT_GAIN_DB = -4
+OUTPUT_GAIN_DB = {output_gain_db}
 """
 
 
 NOISE_BED_OPTIONS = """# TRANSMISSIONS: radio/static/noise layer.
 # This favors spectral resemblance while allowing overlapping texture.
 SEARCH = [
-	spass('closest_percent', d('noisiness-seg', norm=1), percent=40),
-	spass('closest_percent', d('centroid-seg', norm=1), percent=30),
+	spass('closest_percent', d('noisiness-seg', norm=1), percent={noise_percent}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
 	spass('closest', d('flatnesses-seg')),
 ]
 
-SUPERIMPOSE = si(minSegment=1, maxSegment=4, maxOverlap=8, searchOrder='power')
-OUTPUT_GAIN_DB = -10
+SUPERIMPOSE = si(minSegment=1, maxSegment={max_segment}, maxOverlap={max_overlap}, searchOrder='power')
+OUTPUT_GAIN_DB = {output_gain_db}
 """
 
 
 MEMORY_DRIFT_OPTIONS = """# TRANSMISSIONS: degraded-source memory.
 # The final winner comes from a broad candidate pool, so different seeds matter.
 SEARCH = [
-	spass('closest_percent', d('effDur-seg', norm=1), percent=45),
-	spass('closest_percent', d('mfccs-seg'), percent=20),
+	spass('closest_percent', d('effDur-seg', norm=1), percent={duration_percent}),
+	spass('closest_percent', d('mfccs-seg'), percent={timbre_percent}),
 ]
 
-SUPERIMPOSE = si(maxSegment=3, maxOverlap=4, subtractScale=0.75)
+SUPERIMPOSE = si(maxSegment={max_segment}, maxOverlap={max_overlap}, subtractScale={subtract_scale})
 ROTATE_VOICES = True
-OUTPUT_GAIN_DB = -6
+OUTPUT_GAIN_DB = {output_gain_db}
 """
 
 
@@ -86,6 +88,7 @@ BUILTIN_PRESETS = {
 		description="Tight rhythmic replacement for loops, drums, and sample chops.",
 		output_formats=("csound", "json", "reaper"),
 		options_text=BEAT_CHOP_OPTIONS,
+		parameters={"duration_percent": 18, "color_percent": 30, "max_segment": 1, "output_gain_db": -3},
 	),
 	"vocal_transmission": CreativePreset(
 		name="vocal_transmission",
@@ -93,6 +96,14 @@ BUILTIN_PRESETS = {
 		description="Loose vocal/radio cut-up with rotation and broken phrase memory.",
 		output_formats=("csound", "json", "reaper"),
 		options_text=VOCAL_TRANSMISSION_OPTIONS,
+		parameters={
+			"duration_percent": 35,
+			"voice_percent": 25,
+			"color_percent": 20,
+			"max_segment": 2,
+			"max_overlap": 3,
+			"output_gain_db": -4,
+		},
 	),
 	"noise_bed": CreativePreset(
 		name="noise_bed",
@@ -100,6 +111,7 @@ BUILTIN_PRESETS = {
 		description="Layered radio, vinyl, room tone, or static beds for resampling.",
 		output_formats=("csound", "json"),
 		options_text=NOISE_BED_OPTIONS,
+		parameters={"noise_percent": 40, "color_percent": 30, "max_segment": 4, "max_overlap": 8, "output_gain_db": -10},
 	),
 	"memory_drift": CreativePreset(
 		name="memory_drift",
@@ -107,6 +119,14 @@ BUILTIN_PRESETS = {
 		description="Less literal matching for strange, repeatable variation takes.",
 		output_formats=("csound", "json", "reaper"),
 		options_text=MEMORY_DRIFT_OPTIONS,
+		parameters={
+			"duration_percent": 45,
+			"timbre_percent": 20,
+			"max_segment": 3,
+			"max_overlap": 4,
+			"subtract_scale": 0.75,
+			"output_gain_db": -6,
+		},
 	),
 }
 
@@ -125,6 +145,14 @@ def get_preset(name: str) -> CreativePreset:
 		if preset.name == name:
 			return preset
 	raise PresetError(f'unknown preset: "{name}"')
+
+
+def render_preset_options(preset: CreativePreset, parameters: dict[str, Any] | None = None) -> str:
+	"""Return preset option text with validated parameter substitution."""
+	values = dict(preset.parameters)
+	if parameters:
+		values.update({key: value for key, value in parameters.items() if value not in (None, "")})
+	return preset.options_text.format_map(defaultdict(str, values))
 
 
 def _load_yaml_presets() -> list[CreativePreset]:
@@ -153,8 +181,11 @@ def _preset_from_mapping(payload: dict[str, Any], path: Path) -> CreativePreset:
 	description = str(payload.get("description") or "")
 	output_formats = payload.get("output_formats", [])
 	options_text = str(payload.get("options_text") or "")
+	parameters = payload.get("parameters", {})
 	if not isinstance(output_formats, list):
 		raise PresetError(f"output_formats must be a list: {path}")
+	if not isinstance(parameters, dict):
+		raise PresetError(f"parameters must be an object: {path}")
 	if not options_text.strip():
 		raise PresetError(f"options_text is required: {path}")
 	return CreativePreset(
@@ -163,6 +194,7 @@ def _preset_from_mapping(payload: dict[str, Any], path: Path) -> CreativePreset:
 		description=description,
 		output_formats=tuple(str(format_name) for format_name in output_formats),
 		options_text=options_text,
+		parameters=dict(parameters),
 	)
 
 
@@ -171,4 +203,5 @@ __all__ = [
 	"PresetError",
 	"get_preset",
 	"list_presets",
+	"render_preset_options",
 ]

@@ -25,8 +25,10 @@ class ProjectFileTest(unittest.TestCase):
 				extra_options_text="VERBOSITY = 0\n",
 				last_options_file_path=str(root / "renders" / "options.py"),
 				preset_name="beat_chop",
+				preset_parameters={"duration_percent": 22, "max_segment": 1.5},
 				random_seed=77,
 				take_count=4,
+				corpus_groups={"drums": [str(root / "drums")], "vocals": ["/external/vocals"]},
 			)
 
 			written_path = save_project_file(config, project_path)
@@ -41,8 +43,10 @@ class ProjectFileTest(unittest.TestCase):
 			self.assertEqual(payload["advanced_options_text"], "VERBOSITY = 0\n")
 			self.assertEqual(payload["last_generated_options_file_path"], "renders/options.py")
 			self.assertEqual(payload["preset_name"], "beat_chop")
+			self.assertEqual(payload["preset_parameters"], {"duration_percent": 22, "max_segment": 1.5})
 			self.assertEqual(payload["random_seed"], 77)
 			self.assertEqual(payload["take_count"], 4)
+			self.assertEqual(payload["corpus_groups"], {"drums": ["drums"], "vocals": ["/external/vocals"]})
 
 			loaded = load_project_file(project_path)
 			self.assertEqual(loaded.target_path, str(root / "sounds" / "target.aiff"))
@@ -56,8 +60,10 @@ class ProjectFileTest(unittest.TestCase):
 			self.assertEqual(loaded.extra_options_text, "VERBOSITY = 0\n")
 			self.assertEqual(loaded.last_options_file_path, str(root / "renders" / "options.py"))
 			self.assertEqual(loaded.preset_name, "beat_chop")
+			self.assertEqual(loaded.preset_parameters, {"duration_percent": 22, "max_segment": 1.5})
 			self.assertEqual(loaded.random_seed, 77)
 			self.assertEqual(loaded.take_count, 4)
+			self.assertEqual(loaded.corpus_groups, {"drums": [str(root / "drums")], "vocals": ["/external/vocals"]})
 
 	def test_save_project_file_adds_agui_extension(self):
 		with TemporaryDirectory() as tmp:

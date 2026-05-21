@@ -32,8 +32,10 @@ class ProjectConfig:
 	extra_options_text: str = ""
 	last_options_file_path: str = ""
 	preset_name: str = ""
+	preset_parameters: dict[str, Any] = field(default_factory=dict)
 	random_seed: int | None = None
 	take_count: int = 1
+	corpus_groups: dict[str, list[str]] = field(default_factory=dict)
 
 	@property
 	def selected_output_formats(self) -> list[str]:
@@ -104,6 +106,9 @@ def _config_from_payload(payload: dict[str, Any], base_dir: Path) -> ProjectConf
 	corpus_paths = payload.get("corpus_paths", [])
 	if not isinstance(corpus_paths, list):
 		raise ProjectFileError("corpus_paths must be a list")
+	corpus_groups = payload.get("corpus_groups", {})
+	if not isinstance(corpus_groups, dict):
+		raise ProjectFileError("corpus_groups must be an object")
 
 	return ProjectConfig(
 		target_path=_path_from_project(payload.get("target_path", ""), base_dir),
@@ -119,8 +124,14 @@ def _config_from_payload(payload: dict[str, Any], base_dir: Path) -> ProjectConf
 			payload.get("last_generated_options_file_path", ""), base_dir
 		),
 		preset_name=str(payload.get("preset_name", "")),
+		preset_parameters=dict(payload.get("preset_parameters", {})),
 		random_seed=_optional_int(payload.get("random_seed")),
 		take_count=max(1, int(payload.get("take_count", 1) or 1)),
+		corpus_groups={
+			str(role): [_path_from_project(path, base_dir) for path in paths if str(path)]
+			for role, paths in corpus_groups.items()
+			if isinstance(paths, list)
+		},
 	)
 
 
@@ -135,8 +146,14 @@ def _payload_from_config(config: ProjectConfig, base_dir: Path) -> dict[str, Any
 		"advanced_options_text": config.extra_options_text,
 		"last_generated_options_file_path": _path_for_project(config.last_options_file_path, base_dir),
 		"preset_name": config.preset_name,
+		"preset_parameters": config.preset_parameters,
 		"random_seed": config.random_seed,
 		"take_count": config.take_count,
+		"corpus_groups": {
+			role: [_path_for_project(path, base_dir) for path in paths if path]
+			for role, paths in config.corpus_groups.items()
+			if paths
+		},
 	}
 
 

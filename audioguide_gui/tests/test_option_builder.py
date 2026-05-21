@@ -21,6 +21,7 @@ class OptionBuilderTest(unittest.TestCase):
 			config = ProjectConfig(
 				target_path=str(root / "target sound.aiff"),
 				corpus_paths=[str(root / "corpus one"), str(root / "corpus two")],
+				corpus_groups={"drums": [str(root / "drums")], "noise": [str(root / "radio")]},
 				output_dir=str(root / "render output"),
 				output_name="demo-render",
 				render_csound=True,
@@ -39,7 +40,12 @@ class OptionBuilderTest(unittest.TestCase):
 
 			namespace = self._exec_like_audioguide_options_file(generated)
 			self.assertEqual(namespace["TARGET"].args, (config.target_path,))
-			self.assertEqual([c.args[0] for c in namespace["CORPUS"]], config.corpus_paths)
+			self.assertEqual(
+				[c.args[0] for c in namespace["CORPUS"]],
+				[*config.corpus_paths, str(root / "drums"), str(root / "radio")],
+			)
+			self.assertEqual(namespace["CORPUS"][2].kwargs["instrTag"], "drums")
+			self.assertEqual(namespace["CORPUS"][3].kwargs["metadata"], ["noise"])
 			self.assertEqual(namespace["CSOUND_RENDER_FILEPATH"], str(root / "render output" / "demo-render.aiff"))
 			self.assertEqual(namespace["DICT_OUTPUT_FILEPATH"], str(root / "render output" / "demo-render.json"))
 			self.assertEqual(namespace["RPP_FILEPATH"], str(root / "render output" / "demo-render.rpp"))

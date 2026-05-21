@@ -5,16 +5,21 @@ output_formats:
   - csound
   - json
   - reaper
+parameters:
+  duration_percent: 18
+  color_percent: 30
+  max_segment: 1
+  output_gain_db: -3
 options_text: |
   # TRANSMISSIONS: tight rhythmic replacement.
   # The first pass keeps durations and power close enough to preserve beat logic.
   # The percent passes leave room for random variation when RANDOM_SEED changes.
   SEARCH = [
-      spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=18),
-      spass('closest_percent', d('centroid-seg', norm=1), percent=30),
+      spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={duration_percent}),
+      spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
       spass('closest', d('mfccs-seg')),
   ]
 
-  SUPERIMPOSE = si(maxSegment=1, peakAlign=True, searchOrder='power')
+  SUPERIMPOSE = si(maxSegment={max_segment}, peakAlign=True, searchOrder='power')
   ROTATE_VOICES = False
-  OUTPUT_GAIN_DB = -3
+  OUTPUT_GAIN_DB = {output_gain_db}

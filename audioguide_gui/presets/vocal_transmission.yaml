@@ -5,15 +5,22 @@ output_formats:
   - csound
   - json
   - reaper
+parameters:
+  duration_percent: 35
+  voice_percent: 25
+  color_percent: 20
+  max_segment: 2
+  max_overlap: 3
+  output_gain_db: -4
 options_text: |
   # TRANSMISSIONS: vocal/radio cut-up.
   # Looser candidate pools create broken phrase memory instead of literal matching.
   SEARCH = [
-      spass('closest_percent', d('effDur-seg', norm=1), percent=35),
-      spass('parser', 'noisiness-seg >= 50%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent=25),
-      spass('closest_percent', d('centroid-seg', norm=1), percent=20),
+      spass('closest_percent', d('effDur-seg', norm=1), percent={duration_percent}),
+      spass('parser', 'noisiness-seg >= 50%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent={voice_percent}),
+      spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
   ]
 
-  SUPERIMPOSE = si(maxSegment=2, maxOverlap=3, peakAlign=True, searchOrder='power')
+  SUPERIMPOSE = si(maxSegment={max_segment}, maxOverlap={max_overlap}, peakAlign=True, searchOrder='power')
   ROTATE_VOICES = True
-  OUTPUT_GAIN_DB = -4
+  OUTPUT_GAIN_DB = {output_gain_db}

@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 	QComboBox,
 	QDialog,
 	QDialogButtonBox,
+	QDoubleSpinBox,
 	QFileDialog,
 	QGroupBox,
 	QHBoxLayout,
@@ -33,7 +34,7 @@ from PySide6.QtWidgets import (
 
 from .option_builder import OptionBuilder, OptionBuilderError
 from .output_browser import OutputBrowserPanel
-from .presets import CreativePreset, PresetError, list_presets
+from .presets import CreativePreset, PresetError, list_presets, render_preset_options
 from .project import (
 	PROJECT_FILE_EXTENSION,
 	AudioGuideProject,
@@ -42,6 +43,7 @@ from .project import (
 	load_project_file,
 	save_project_file,
 )
+from .render_manifest import write_render_manifest
 from .runner import AudioGuideRunner, AudioGuideToolRunner, RunnerError, bundled_resource_path
 from .tutorial import render_tutorial_html
 
@@ -295,6 +297,9 @@ class MainWindow(QMainWindow):
 
 		self.target_picker = PathPicker("Target sound file", "Choose target sound file", "file")
 		self.corpus_picker = PathPicker("Corpus folder", "Choose corpus folder", "directory")
+		self.drums_picker = PathPicker("Drums", "Choose drum corpus folder", "directory")
+		self.vocals_picker = PathPicker("Vocals", "Choose vocal corpus folder", "directory")
+		self.noise_picker = PathPicker("Noise", "Choose noise corpus folder", "directory")
 		self.output_picker = PathPicker("Output folder", "Choose output folder", "directory")
 
 		self.output_name_edit = QLineEdit("output")
@@ -330,6 +335,19 @@ class MainWindow(QMainWindow):
 		self.apply_preset_button.clicked.connect(self._apply_selected_preset)
 		self.preset_description = QLabel("")
 		self.preset_description.setWordWrap(True)
+		self.candidate_percent_spin = QSpinBox()
+		self.candidate_percent_spin.setRange(1, 100)
+		self.candidate_percent_spin.setValue(25)
+		self.max_segment_spin = QDoubleSpinBox()
+		self.max_segment_spin.setRange(0.1, 32.0)
+		self.max_segment_spin.setSingleStep(0.1)
+		self.max_segment_spin.setValue(1.0)
+		self.max_overlap_spin = QSpinBox()
+		self.max_overlap_spin.setRange(1, 32)
+		self.max_overlap_spin.setValue(4)
+		self.output_gain_spin = QSpinBox()
+		self.output_gain_spin.setRange(-48, 12)
+		self.output_gain_spin.setValue(-3)
 
 		preset_picker_layout = QHBoxLayout()
 		preset_picker_layout.addWidget(QLabel("Preset"))
@@ -339,6 +357,16 @@ class MainWindow(QMainWindow):
 		preset_layout = QVBoxLayout()
 		preset_layout.addLayout(preset_picker_layout)
 		preset_layout.addWidget(self.preset_description)
+		parameter_layout = QHBoxLayout()
+		parameter_layout.addWidget(QLabel("Pool %"))
+		parameter_layout.addWidget(self.candidate_percent_spin)
+		parameter_layout.addWidget(QLabel("Max seg"))
+		parameter_layout.addWidget(self.max_segment_spin)
+		parameter_layout.addWidget(QLabel("Overlap"))
+		parameter_layout.addWidget(self.max_overlap_spin)
+		parameter_layout.addWidget(QLabel("Gain"))
+		parameter_layout.addWidget(self.output_gain_spin)
+		preset_layout.addLayout(parameter_layout)
 
 		self.preset_group = QGroupBox("TRANSMISSIONS Preset")
 		self.preset_group.setLayout(preset_layout)
@@ -403,6 +431,9 @@ class MainWindow(QMainWindow):
 		render_layout = QVBoxLayout()
 		render_layout.addWidget(self.target_picker)
 		render_layout.addWidget(self.corpus_picker)
+		render_layout.addWidget(self.drums_picker)
+		render_layout.addWidget(self.vocals_picker)
+		render_layout.addWidget(self.noise_picker)
 		render_layout.addWidget(self.output_picker)
 		render_layout.addLayout(output_name_layout)
 		render_layout.addWidget(self.output_formats_group)
@@ -507,8 +538,10 @@ class MainWindow(QMainWindow):
 		config.extra_options_text = self.advanced_options_edit.toPlainText()
 		config.last_options_file_path = self._last_options_file_path
 		config.preset_name = str(self.preset_combo.currentData() or "")
+		config.preset_parameters = self._preset_parameters_from_inputs()
 		config.random_seed = self._random_seed_from_input()
 		config.take_count = self.take_count_spin.value()
+		config.corpus_groups = self._corpus_groups_from_inputs()
 		return config
 
 	def _apply_config(self, config: ProjectConfig) -> None:
@@ -523,8 +556,12 @@ class MainWindow(QMainWindow):
 		self.advanced_options_edit.setPlainText(config.extra_options_text)
 		self._last_options_file_path = config.last_options_file_path
 		self._select_preset(config.preset_name)
+		self._apply_preset_parameters(config.preset_parameters)
 		self.random_seed_edit.setText("" if config.random_seed is None else str(config.random_seed))
 		self.take_count_spin.setValue(max(1, config.take_count))
+		self.drums_picker.set_path((config.corpus_groups.get("drums") or [""])[0])
+		self.vocals_picker.set_path((config.corpus_groups.get("vocals") or [""])[0])
+		self.noise_picker.set_path((config.corpus_groups.get("noise") or [""])[0])
 
 	def _preset_selection_changed(self, *_args: object) -> None:
 		preset = self._selected_preset()
@@ -532,13 +569,14 @@ class MainWindow(QMainWindow):
 			self.preset_description.setText("")
 		else:
 			self.preset_description.setText(preset.description)
+			self._apply_preset_parameters(preset.parameters)
 
 	def _apply_selected_preset(self) -> None:
 		preset = self._selected_preset()
 		if preset is None:
 			return
 		self._set_output_formats(preset.output_formats)
-		self.advanced_options_edit.setPlainText(preset.options_text)
+		self.advanced_options_edit.setPlainText(render_preset_options(preset, self._preset_parameters_from_inputs()))
 		self._append_log(f"Applied preset: {preset.label}")
 
 	def _selected_preset(self) -> CreativePreset | None:
@@ -560,6 +598,42 @@ class MainWindow(QMainWindow):
 		self.json_checkbox.setChecked("json" in selected_formats)
 		self.reaper_checkbox.setChecked("reaper" in selected_formats)
 		self.aaf_checkbox.setChecked("aaf" in selected_formats)
+
+	def _preset_parameters_from_inputs(self) -> dict[str, float | int]:
+		candidate_percent = self.candidate_percent_spin.value()
+		return {
+			"duration_percent": candidate_percent,
+			"color_percent": candidate_percent,
+			"voice_percent": candidate_percent,
+			"noise_percent": candidate_percent,
+			"timbre_percent": candidate_percent,
+			"max_segment": self.max_segment_spin.value(),
+			"max_overlap": self.max_overlap_spin.value(),
+			"output_gain_db": self.output_gain_spin.value(),
+		}
+
+	def _apply_preset_parameters(self, parameters: dict[str, object]) -> None:
+		percent = int(
+			parameters.get(
+				"duration_percent",
+				parameters.get("noise_percent", parameters.get("timbre_percent", self.candidate_percent_spin.value())),
+			)
+		)
+		self.candidate_percent_spin.setValue(percent)
+		self.max_segment_spin.setValue(float(parameters.get("max_segment", self.max_segment_spin.value())))
+		self.max_overlap_spin.setValue(int(parameters.get("max_overlap", self.max_overlap_spin.value())))
+		self.output_gain_spin.setValue(int(parameters.get("output_gain_db", self.output_gain_spin.value())))
+
+	def _corpus_groups_from_inputs(self) -> dict[str, list[str]]:
+		groups: dict[str, list[str]] = {}
+		for role, picker in (
+			("drums", self.drums_picker),
+			("vocals", self.vocals_picker),
+			("noise", self.noise_picker),
+		):
+			if picker.path:
+				groups[role] = [picker.path]
+		return groups
 
 	def _random_seed_from_input(self) -> int | None:
 		text = self.random_seed_edit.text().strip()
@@ -710,7 +784,10 @@ class MainWindow(QMainWindow):
 		self._last_render_output_dir = config.output_dir
 		self._append_log("Render requested." if len(jobs) == 1 else f"Batch render requested: {len(jobs)} takes.")
 		self._append_log(f"Target sound file: {config.target_path}")
-		self._append_log(f"Corpus folder: {config.corpus_paths[0]}")
+		if config.corpus_paths:
+			self._append_log(f"Corpus folder: {config.corpus_paths[0]}")
+		if config.corpus_groups:
+			self._append_log(f"Corpus roles: {', '.join(sorted(config.corpus_groups))}")
 		self._append_log(f"Output folder: {config.output_dir}")
 
 		self._set_running_state(True)
@@ -732,11 +809,17 @@ class MainWindow(QMainWindow):
 		if not target_path.exists() or not target_path.is_file():
 			raise ValueError(f'target sound file does not exist: "{target_path}"')
 
-		if not config.corpus_paths or not config.corpus_paths[0]:
-			raise ValueError("choose a corpus folder")
-		corpus_path = Path(config.corpus_paths[0]).expanduser()
-		if not corpus_path.exists() or not corpus_path.is_dir():
-			raise ValueError(f'corpus folder does not exist: "{corpus_path}"')
+		if not config.corpus_paths and not any(config.corpus_groups.values()):
+			raise ValueError("choose a corpus folder or corpus role folder")
+		if config.corpus_paths and config.corpus_paths[0]:
+			corpus_path = Path(config.corpus_paths[0]).expanduser()
+			if not corpus_path.exists() or not corpus_path.is_dir():
+				raise ValueError(f'corpus folder does not exist: "{corpus_path}"')
+		for role, paths in config.corpus_groups.items():
+			for path_text in paths:
+				group_path = Path(path_text).expanduser()
+				if not group_path.exists() or not group_path.is_dir():
+					raise ValueError(f'{role} corpus folder does not exist: "{group_path}"')
 
 		if not config.output_dir:
 			raise ValueError("choose an output folder")
@@ -751,6 +834,8 @@ class MainWindow(QMainWindow):
 			options_path = self._options_path_for_config(take_config, take_index if config.take_count > 1 else None)
 			self._option_builder.build_file(take_config, options_path)
 			jobs.append((take_config, options_path))
+		manifest_path = write_render_manifest(jobs)
+		self._append_log(f"Wrote render manifest: {manifest_path}")
 		return jobs
 
 	def _config_for_take(self, config: ProjectConfig, take_index: int) -> ProjectConfig:
@@ -801,6 +886,9 @@ class MainWindow(QMainWindow):
 		self.cancel_button.setEnabled(is_running)
 		self.target_picker.set_enabled(not is_running)
 		self.corpus_picker.set_enabled(not is_running)
+		self.drums_picker.set_enabled(not is_running)
+		self.vocals_picker.set_enabled(not is_running)
+		self.noise_picker.set_enabled(not is_running)
 		self.output_picker.set_enabled(not is_running)
 		self.output_name_edit.setEnabled(not is_running)
 		self.output_formats_group.setEnabled(not is_running)

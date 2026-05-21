@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from .option_builder import OptionBuilderError, build_options_file, build_options_text
-from .presets import PresetError, get_preset
+from .presets import PresetError, get_preset, render_preset_options
 from .project import PROJECT_FILE_EXTENSION, ProjectConfig, ProjectFileError, load_project_file
+from .render_manifest import write_render_manifest
 from .runner import AudioGuideRunner, RunnerError
 
 
@@ -33,6 +34,7 @@ def main(argv: list[str] | None = None) -> int:
 	)
 	parser.add_argument("--render", action="store_true", help="Run agConcatenate.py after writing the options file")
 	parser.add_argument("--print-options", action="store_true", help="Print generated options text to stdout")
+	parser.add_argument("--manifest", help="Optional path for a generated render manifest JSON file")
 	parser.add_argument(
 		"--ag-concatenate",
 		help="Path to agConcatenate.py when rendering outside the repository layout",
@@ -54,6 +56,8 @@ def main(argv: list[str] | None = None) -> int:
 	else:
 		for _, options_path in jobs:
 			print(f"Wrote options file: {options_path}")
+		manifest_path = write_render_manifest(jobs, args.manifest)
+		print(f"Wrote render manifest: {manifest_path}")
 
 	if not args.render:
 		return 0
@@ -134,6 +138,7 @@ def _config_from_mapping(payload: dict[str, Any], base_dir: Path) -> ProjectConf
 		corpus_paths = [corpus_paths]
 	if not isinstance(corpus_paths, list):
 		raise ConfigFileError("corpus_paths/corpus must be a list or string")
+	corpus_groups = _corpus_groups_from_payload(payload.get("corpus_groups", {}), base_dir)
 
 	config = ProjectConfig(
 		target_path=_path_from_config(payload.get("target_path", payload.get("target", "")), base_dir),
@@ -150,8 +155,10 @@ def _config_from_mapping(payload: dict[str, Any], base_dir: Path) -> ProjectConf
 			base_dir,
 		),
 		preset_name=str(payload.get("preset", payload.get("preset_name", ""))),
+		preset_parameters=dict(payload.get("preset_parameters", {})),
 		random_seed=_optional_int(payload.get("random_seed")),
 		take_count=max(1, int(payload.get("take_count", 1) or 1)),
+		corpus_groups=corpus_groups,
 	)
 	if config.preset_name:
 		_apply_preset(config, config.preset_name, formats_provided)
@@ -187,6 +194,21 @@ def _optional_int(value: Any) -> int | None:
 	return int(value)
 
 
+def _corpus_groups_from_payload(value: Any, base_dir: Path) -> dict[str, list[str]]:
+	if not value:
+		return {}
+	if not isinstance(value, dict):
+		raise ConfigFileError("corpus_groups must be an object")
+	groups: dict[str, list[str]] = {}
+	for role, paths in value.items():
+		if isinstance(paths, str):
+			paths = [paths]
+		if not isinstance(paths, list):
+			raise ConfigFileError("each corpus_groups entry must be a string or list")
+		groups[str(role)] = [_path_from_config(path, base_dir) for path in paths if str(path)]
+	return groups
+
+
 def _apply_preset(config: ProjectConfig, preset_name: str, keep_explicit_formats: bool) -> None:
 	preset = get_preset(preset_name)
 	if not keep_explicit_formats:
@@ -194,7 +216,10 @@ def _apply_preset(config: ProjectConfig, preset_name: str, keep_explicit_formats
 		config.output_json = "json" in preset.output_formats
 		config.output_reaper = "reaper" in preset.output_formats
 		config.output_aaf = "aaf" in preset.output_formats
-	config.extra_options_text = _join_options(preset.options_text, config.extra_options_text)
+	config.extra_options_text = _join_options(
+		render_preset_options(preset, config.preset_parameters),
+		config.extra_options_text,
+	)
 
 
 def _join_options(*blocks: str) -> str:
