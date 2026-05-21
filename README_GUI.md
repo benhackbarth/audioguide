@@ -20,8 +20,9 @@ The GUI is a PySide6 desktop front end for common AudioGuide tasks:
 - write a `transmissions-render-manifest.json` file that records take names,
   seeds, options files, preset parameters, and corpus roles.
 - review batch renders in a **Takes** tab with embedded playback, waveform
-  overview, audio/options/JSON/RPP open actions, keeper flags, 0-5 ratings, and
-  saved notes.
+  overview, filters, sorting, tags, audio/options/JSON/RPP open actions, keeper
+  flags, 0-5 ratings, and saved notes.
+- export keeper packs and a combined REAPER assembly session for DAW editing.
 
 The GUI invokes the same Python entry points used by the CLI. Keep using the CLI
 docs for detailed AudioGuide option syntax and synthesis behavior.
@@ -113,6 +114,18 @@ Generate options and immediately render with `agConcatenate.py`:
 audioguide-gui-render examples/gui_config.yaml --render
 ```
 
+Export the best takes after review:
+
+```bash
+audioguide-gui-export-keepers output/transmissions-render-manifest.json
+```
+
+Create a REAPER assembly from the keeper pack:
+
+```bash
+audioguide-gui-export-assembly output/keepers/keepers-manifest.json
+```
+
 JSON uses the same fields:
 
 ```bash
@@ -130,11 +143,14 @@ Supported config keys:
 - `output_name`: base name for generated outputs.
 - `output_formats` or `selected_output_formats`: any of `csound`, `json`,
   `reaper`, `aaf`. An empty list disables all optional output files.
-- `preset` or `preset_name`: one of `beat_chop`, `vocal_transmission`,
-  `noise_bed`, or `memory_drift`. Presets live in `audioguide_gui/presets` as
-  editable YAML files and are also mirrored as built-ins for source checkouts.
+- `preset` or `preset_name`: one of the TRANSMISSIONS presets such as
+  `beat_chop`, `dusty_drum_chop`, `breakbeat_shatter`, `vocal_ghosts`,
+  `radio_memory`, `noise_bed`, `ambient_bed_glue`, or `memory_drift`. Presets
+  live in `audioguide_gui/presets` as editable YAML files and core presets are
+  also mirrored as built-ins for source checkouts.
 - `preset_parameters`: optional object used to fill preset placeholders, for
-  example `duration_percent`, `color_percent`, `max_segment`, `max_overlap`, and
+  example `duration_percent`, `color_percent`, `max_segment`, `max_overlap`,
+  `density`, `chop_size`, `chaos`, `timbre_bias`, `rhythm_lock`, and
   `output_gain_db`.
 - `random_seed`: optional integer passed to AudioGuide as `RANDOM_SEED`.
 - `take_count`: number of take configs to generate. Seeds increment by one per
@@ -155,9 +171,10 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
 3. Choose the output formats you need. Csound audio rendering requires `csound`
    on `PATH`.
 4. Optionally choose role-specific corpus folders for drums, vocals, or noise.
-5. Choose a **TRANSMISSIONS Preset**, adjust Pool %, Max seg, Overlap, and Gain,
-   then click **Apply Preset** when you want the GUI to replace the raw options
-   block with a named strategy.
+5. Choose a **TRANSMISSIONS Preset**, adjust Pool %, Max seg, Overlap, Gain, and
+   the Density/Chop/Chaos/Timbre/Rhythm macro controls, then click **Apply
+   Preset** when you want the GUI to replace the raw options block with a named
+   strategy.
 6. Set **Takes** and **Seed** for batch variations. Batch output names are
    suffixed as `name-take-001`, `name-take-002`, and so on.
 7. Use **Preview Generated Options File** to inspect the AudioGuide option file
@@ -166,10 +183,30 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
 9. Click **Render** to launch AudioGuide. Logs stream in the lower pane.
 10. Use **Cancel** to request process termination if the render should stop.
 11. Use the **Takes** tab to audition batch results with Play/Pause/Stop,
-   seek through the waveform, mark keepers, rate takes, and save notes to
-   `transmissions-take-notes.json`.
-12. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
+   seek through the waveform, mark keepers, rate takes, add tags, filter/sort
+   the list, and save notes to `transmissions-take-notes.json`.
+12. Click **Export Keepers** or **Export Rated 4+** to copy selected audio,
+   options, JSON/RPP/AAF, logs, and label files into a non-destructive
+   `keepers/` folder with `keepers-manifest.json`.
+13. Click **Export Assembly RPP** to build `transmissions-assembly.rpp`, a
+   combined REAPER session organized by take tags.
+14. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
    helper scripts.
+
+## TRANSMISSIONS DAW workflow
+
+The intended workflow is render many variations, audition quickly, tag the useful
+ones, then export a DAW handoff:
+
+1. Use corpus roles such as `drums`, `voice`, `bass`, `texture`, and `noise` to
+   keep source material organized.
+2. Batch render with a preset and a fixed seed when you want repeatable
+   variation.
+3. In **Takes**, mark obvious winners as keepers, rate maybes 4+, and tag each
+   take by musical use.
+4. Export a keeper pack before editing so the DAW session is portable.
+5. Open the generated REAPER assembly and start arranging chops, loops, beds, and
+   transitions there.
 
 ## Optional macOS app packaging with PyInstaller
 
@@ -208,6 +245,9 @@ scripts/install_macos.sh --package-app
   window.
 - The spec also bundles `audioguide_gui/presets`, so installed apps can keep
   using the editable YAML preset files.
+- The repository installer creates `audioguide-gui-render`,
+  `audioguide-gui-export-keepers`, and `audioguide-gui-export-assembly` in the
+  virtual environment.
 - `csound` and `ffmpeg` are treated as external command-line tools. They are not
   bundled by the starter spec; install them separately and ensure the packaged
   app can find them on `PATH`, or configure your options to avoid features that

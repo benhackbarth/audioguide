@@ -13,6 +13,11 @@ class PresetTest(unittest.TestCase):
 		self.assertIn("vocal_transmission", names)
 		self.assertIn("noise_bed", names)
 		self.assertIn("memory_drift", names)
+		self.assertIn("dusty_drum_chop", names)
+		self.assertIn("vocal_ghosts", names)
+		self.assertIn("radio_memory", names)
+		self.assertIn("breakbeat_shatter", names)
+		self.assertIn("ambient_bed_glue", names)
 
 	def test_get_preset_returns_options_text(self):
 		preset = get_preset("beat_chop")

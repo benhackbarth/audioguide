@@ -9,6 +9,9 @@ from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
 	QApplication,
 	QCheckBox,
+	QComboBox,
+	QFileDialog,
+	QGridLayout,
 	QHBoxLayout,
 	QLabel,
 	QPlainTextEdit,
@@ -28,8 +31,12 @@ except ImportError:  # pragma: no cover - depends on the user's PySide install.
 	QMediaPlayer = None
 
 from .audio_preview import extract_audio_peaks
+from .keeper_export import DEFAULT_ASSEMBLY_FILENAME, export_keepers, export_reaper_assembly
 from .output_browser import open_path, reveal_path
 from .take_manifest import TakeEntry, default_manifest_path, load_take_entries, save_take_annotation
+
+
+DEFAULT_TAGS = ("drums", "bass", "vocal", "texture", "noise", "loop", "intro", "hook", "break", "weird", "favorite")
 
 
 class WaveformWidget(QWidget):
@@ -95,9 +102,28 @@ class TakeBrowserPanel(QWidget):
 
 		self.status_label = QLabel("Batch takes will appear here after a render manifest is available.")
 		self.tree = QTreeWidget()
-		self.tree.setHeaderLabels(["Take", "Rating", "Keep", "Seed", "Audio", "Notes"])
+		self.tree.setHeaderLabels(["Take", "Rating", "Keep", "Seed", "Audio", "Tags", "Notes"])
 		self.tree.itemSelectionChanged.connect(self._selection_changed)
 		self.tree.itemDoubleClicked.connect(self._open_audio)
+
+		self.filter_combo = QComboBox()
+		self.filter_combo.addItem("All takes", "all")
+		self.filter_combo.addItem("Keepers", "keepers")
+		self.filter_combo.addItem("Rated 4+", "rated4")
+		self.filter_combo.addItem("Has audio", "audio")
+		self.filter_combo.addItem("Tagged", "tagged")
+		self.filter_combo.currentIndexChanged.connect(self._refresh_tree)
+		self.tag_filter_combo = QComboBox()
+		self.tag_filter_combo.addItem("Any tag", "")
+		for tag in DEFAULT_TAGS:
+			self.tag_filter_combo.addItem(tag, tag)
+		self.tag_filter_combo.currentIndexChanged.connect(self._refresh_tree)
+		self.sort_combo = QComboBox()
+		self.sort_combo.addItem("Take number", "take")
+		self.sort_combo.addItem("Rating", "rating")
+		self.sort_combo.addItem("Seed", "seed")
+		self.sort_combo.addItem("Output name", "name")
+		self.sort_combo.currentIndexChanged.connect(self._refresh_tree)
 
 		self.rating_spin = QSpinBox()
 		self.rating_spin.setRange(0, 5)
@@ -116,6 +142,12 @@ class TakeBrowserPanel(QWidget):
 		self.open_rpp_button.clicked.connect(self._open_rpp)
 		self.open_options_button = QPushButton("Open Options")
 		self.open_options_button.clicked.connect(self._open_options)
+		self.export_keepers_button = QPushButton("Export Keepers")
+		self.export_keepers_button.clicked.connect(self._export_keepers)
+		self.export_rated_button = QPushButton("Export Rated 4+")
+		self.export_rated_button.clicked.connect(self._export_rated)
+		self.export_assembly_button = QPushButton("Export Assembly RPP")
+		self.export_assembly_button.clicked.connect(self._export_assembly)
 		self.play_button = QPushButton("Play")
 		self.play_button.clicked.connect(self._play_pause)
 		self.stop_button = QPushButton("Stop")
@@ -145,12 +177,27 @@ class TakeBrowserPanel(QWidget):
 			self._player.playbackStateChanged.connect(self._player_state_changed)
 			self._player.mediaStatusChanged.connect(self._player_status_changed)
 
+		filter_layout = QHBoxLayout()
+		filter_layout.addWidget(QLabel("Filter"))
+		filter_layout.addWidget(self.filter_combo)
+		filter_layout.addWidget(self.tag_filter_combo)
+		filter_layout.addWidget(QLabel("Sort"))
+		filter_layout.addWidget(self.sort_combo)
+		filter_layout.addStretch(1)
+
 		editor_layout = QHBoxLayout()
 		editor_layout.addWidget(QLabel("Rating"))
 		editor_layout.addWidget(self.rating_spin)
 		editor_layout.addWidget(self.keeper_check)
 		editor_layout.addWidget(self.save_button)
 		editor_layout.addStretch(1)
+
+		self.tag_checks: dict[str, QCheckBox] = {}
+		tags_layout = QGridLayout()
+		for index, tag in enumerate(DEFAULT_TAGS):
+			check = QCheckBox(tag)
+			self.tag_checks[tag] = check
+			tags_layout.addWidget(check, index // 6, index % 6)
 
 		button_layout = QHBoxLayout()
 		button_layout.addWidget(self.open_audio_button)
@@ -162,15 +209,20 @@ class TakeBrowserPanel(QWidget):
 		button_layout.addWidget(self.open_options_button)
 		button_layout.addWidget(self.reveal_button)
 		button_layout.addWidget(self.copy_button)
+		button_layout.addWidget(self.export_keepers_button)
+		button_layout.addWidget(self.export_rated_button)
+		button_layout.addWidget(self.export_assembly_button)
 		button_layout.addStretch(1)
 
 		layout = QVBoxLayout(self)
 		layout.addWidget(self.status_label)
+		layout.addLayout(filter_layout)
 		layout.addWidget(self.tree, stretch=1)
 		layout.addWidget(self.waveform)
 		layout.addWidget(self.position_slider)
 		layout.addWidget(self.time_label)
 		layout.addLayout(editor_layout)
+		layout.addLayout(tags_layout)
 		layout.addWidget(self.notes_edit)
 		layout.addLayout(button_layout)
 		self._update_action_state()
@@ -188,20 +240,7 @@ class TakeBrowserPanel(QWidget):
 			return
 		self._manifest_path = path
 		self._entries = load_take_entries(path)
-		for entry in self._entries:
-			item = QTreeWidgetItem(
-				[
-					f"{entry.take:03d}  {entry.output_name}",
-					str(entry.rating),
-					"yes" if entry.keeper else "",
-					"" if entry.random_seed is None else str(entry.random_seed),
-					entry.audio_file.name if entry.audio_file else "",
-					_trim_note(entry.notes),
-				]
-			)
-			item.setData(0, Qt.ItemDataRole.UserRole, entry.output_name)
-			self.tree.addTopLevelItem(item)
-		self.tree.resizeColumnToContents(0)
+		self._refresh_tree()
 		self.status_label.setText(f"Loaded {len(self._entries)} take{'s' if len(self._entries) != 1 else ''} from {path}.")
 		self._update_action_state()
 
@@ -214,6 +253,8 @@ class TakeBrowserPanel(QWidget):
 		self.tree.clear()
 		self.rating_spin.setValue(0)
 		self.keeper_check.setChecked(False)
+		for check in self.tag_checks.values():
+			check.setChecked(False)
 		self.notes_edit.clear()
 		self._stop()
 		self.waveform.set_audio_file(None)
@@ -241,6 +282,8 @@ class TakeBrowserPanel(QWidget):
 			self._loading_selection = True
 			self.rating_spin.setValue(entry.rating)
 			self.keeper_check.setChecked(entry.keeper)
+			for tag, check in self.tag_checks.items():
+				check.setChecked(tag in entry.tags)
 			self.notes_edit.setPlainText(entry.notes)
 			self._loading_selection = False
 			self._current_output_name = entry.output_name
@@ -256,6 +299,7 @@ class TakeBrowserPanel(QWidget):
 			rating=self.rating_spin.value(),
 			keeper=self.keeper_check.isChecked(),
 			notes=self.notes_edit.toPlainText(),
+			tags=self._selected_tags(),
 		)
 		if silent:
 			return
@@ -283,9 +327,66 @@ class TakeBrowserPanel(QWidget):
 		self.open_options_button.setEnabled(bool(entry and entry.options_file.exists()))
 		self.reveal_button.setEnabled(has_entry)
 		self.copy_button.setEnabled(bool(entry and entry.audio_file))
+		has_manifest = self._manifest_path is not None
+		self.export_keepers_button.setEnabled(has_manifest)
+		self.export_rated_button.setEnabled(has_manifest)
+		self.export_assembly_button.setEnabled(has_manifest)
 		self.rating_spin.setEnabled(has_entry)
 		self.keeper_check.setEnabled(has_entry)
+		for check in self.tag_checks.values():
+			check.setEnabled(has_entry)
 		self.notes_edit.setEnabled(has_entry)
+
+	def _refresh_tree(self) -> None:
+		current = self._current_output_name
+		self.tree.clear()
+		for entry in self._visible_entries():
+			item = QTreeWidgetItem(
+				[
+					f"{entry.take:03d}  {entry.output_name}",
+					str(entry.rating),
+					"yes" if entry.keeper else "",
+					"" if entry.random_seed is None else str(entry.random_seed),
+					entry.audio_file.name if entry.audio_file else "",
+					", ".join(entry.tags),
+					_trim_note(entry.notes),
+				]
+			)
+			item.setData(0, Qt.ItemDataRole.UserRole, entry.output_name)
+			self.tree.addTopLevelItem(item)
+			if current and entry.output_name == current:
+				self.tree.setCurrentItem(item)
+		self.tree.resizeColumnToContents(0)
+		self.tree.resizeColumnToContents(5)
+
+	def _visible_entries(self) -> list[TakeEntry]:
+		entries = [entry for entry in self._entries if self._matches_filter(entry)]
+		sort_mode = self.sort_combo.currentData()
+		if sort_mode == "rating":
+			return sorted(entries, key=lambda entry: (-entry.rating, entry.take))
+		if sort_mode == "seed":
+			return sorted(entries, key=lambda entry: (entry.random_seed is None, entry.random_seed or 0, entry.take))
+		if sort_mode == "name":
+			return sorted(entries, key=lambda entry: entry.output_name.lower())
+		return sorted(entries, key=lambda entry: entry.take)
+
+	def _matches_filter(self, entry: TakeEntry) -> bool:
+		tag_filter = str(self.tag_filter_combo.currentData() or "")
+		if tag_filter and tag_filter not in entry.tags:
+			return False
+		filter_mode = self.filter_combo.currentData()
+		if filter_mode == "keepers":
+			return entry.keeper
+		if filter_mode == "rated4":
+			return entry.rating >= 4
+		if filter_mode == "audio":
+			return entry.audio_file is not None
+		if filter_mode == "tagged":
+			return bool(entry.tags)
+		return True
+
+	def _selected_tags(self) -> list[str]:
+		return [tag for tag, check in self.tag_checks.items() if check.isChecked()]
 
 	def _load_selected_audio(self, entry: TakeEntry) -> None:
 		self._stop()
@@ -392,6 +493,66 @@ class TakeBrowserPanel(QWidget):
 		if entry is not None and entry.audio_file is not None:
 			QApplication.clipboard().setText(str(entry.audio_file))
 
+	def _export_keepers(self) -> None:
+		self._export_keeper_pack(keepers=True, rated=True, min_rating=4)
+
+	def _export_rated(self) -> None:
+		self._export_keeper_pack(keepers=False, rated=True, min_rating=4)
+
+	def _export_keeper_pack(self, *, keepers: bool, rated: bool, min_rating: int) -> None:
+		self._save_current_annotation(silent=True)
+		if self._manifest_path is None:
+			return
+		default_dir = self._manifest_path.parent / "keepers"
+		directory = QFileDialog.getExistingDirectory(self, "Choose keeper export folder", str(default_dir))
+		if not directory:
+			return
+		result = export_keepers(
+			self._manifest_path,
+			directory,
+			min_rating=min_rating,
+			keepers=keepers,
+			rated=rated,
+		)
+		self.status_label.setText(
+			f"Exported {result.exported_count} take{'s' if result.exported_count != 1 else ''} to {result.destination}."
+		)
+
+	def _export_assembly(self) -> None:
+		self._save_current_annotation(silent=True)
+		if self._manifest_path is None:
+			return
+		default_dir = self._manifest_path.parent / "keepers"
+		result = export_keepers(self._manifest_path, default_dir)
+		default_path = result.destination / DEFAULT_ASSEMBLY_FILENAME
+		path, _ = QFileDialog.getSaveFileName(
+			self,
+			"Export REAPER assembly",
+			str(default_path),
+			"REAPER projects (*.rpp);;All files (*)",
+		)
+		if not path:
+			return
+		assembly_path = export_reaper_assembly(result.manifest_path, path)
+		self.status_label.setText(f"Exported REAPER assembly: {assembly_path}")
+
+	def keyPressEvent(self, event):  # noqa: N802 - Qt override
+		if event.key() in (Qt.Key.Key_J, Qt.Key.Key_Down):
+			self._select_relative(1)
+			return
+		if event.key() in (Qt.Key.Key_K, Qt.Key.Key_Up):
+			self._select_relative(-1)
+			return
+		super().keyPressEvent(event)
+
+	def _select_relative(self, offset: int) -> None:
+		count = self.tree.topLevelItemCount()
+		if count == 0:
+			return
+		current = self.tree.indexOfTopLevelItem(self.tree.currentItem())
+		next_row = max(0, min(count - 1, current + offset if current >= 0 else 0))
+		self.tree.setCurrentItem(self.tree.topLevelItem(next_row))
+
 
 def _trim_note(note: str) -> str:
 	collapsed = " ".join(note.split())
@@ -406,4 +567,4 @@ def _format_ms(milliseconds: int) -> str:
 	return f"{minutes:02d}:{seconds:02d}"
 
 
-__all__ = ["TakeBrowserPanel", "WaveformWidget"]
+__all__ = ["DEFAULT_TAGS", "TakeBrowserPanel", "WaveformWidget"]

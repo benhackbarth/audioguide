@@ -1,0 +1,26 @@
+name: radio_memory
+label: Radio Memory
+description: Broken radio scan collage with noisy timbral jumps and repeatable drift.
+output_formats:
+  - csound
+  - json
+  - reaper
+parameters:
+  density: 6
+  chop_size: 0.8
+  chaos: 45
+  timbre_bias: 22
+  rhythm_lock: 42
+  output_gain_db: -6
+options_text: |
+  # TRANSMISSIONS macro preset: radio memory.
+  # density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+  SEARCH = [
+  	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+  	spass('closest_percent', d('noisiness-seg', norm=1), percent={chaos}),
+  	spass('closest_percent', d('mfccs-seg'), percent={timbre_bias}),
+  ]
+
+  SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, subtractScale=0.65, searchOrder='power')
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = {output_gain_db}

@@ -168,6 +168,18 @@ cd "${REPO_ROOT}"
 exec "${VENV_DIR}/bin/python" -m audioguide_gui.cli "\$@"
 EOF
 chmod +x "${VENV_DIR}/bin/audioguide-gui-render"
+cat > "${VENV_DIR}/bin/audioguide-gui-export-keepers" <<EOF
+#!/usr/bin/env bash
+cd "${REPO_ROOT}"
+exec "${VENV_DIR}/bin/python" "${REPO_ROOT}/scripts/audioguide_gui_export_keepers.py" "\$@"
+EOF
+chmod +x "${VENV_DIR}/bin/audioguide-gui-export-keepers"
+cat > "${VENV_DIR}/bin/audioguide-gui-export-assembly" <<EOF
+#!/usr/bin/env bash
+cd "${REPO_ROOT}"
+exec "${VENV_DIR}/bin/python" "${REPO_ROOT}/scripts/audioguide_gui_export_assembly.py" "\$@"
+EOF
+chmod +x "${VENV_DIR}/bin/audioguide-gui-export-assembly"
 
 if [[ ${INSTALL_EXTRAS} -eq 1 ]]; then
   log "Installing optional analysis/DAW/export extras"
@@ -213,5 +225,7 @@ Next steps:
 CLI example:
   audioguide-gui-render examples/gui_config.yaml --print-options
   audioguide-gui-render examples/gui_config.yaml --render
+  audioguide-gui-export-keepers output/transmissions-render-manifest.json
+  audioguide-gui-export-assembly output/keepers/keepers-manifest.json
   python agConcatenate.py examples/01-simplest.py
 DONE
