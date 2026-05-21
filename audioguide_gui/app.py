@@ -46,7 +46,7 @@ from .project import (
 from .render_manifest import write_render_manifest
 from .runner import AudioGuideRunner, AudioGuideToolRunner, RunnerError, bundled_resource_path
 from .take_browser import TakeBrowserPanel
-from .tutorial import render_tutorial_html
+from .tutorial import GUIDED_TOUR_STEPS, GuidedTourStep, render_tutorial_html
 
 
 class PathPicker(QWidget):
@@ -264,12 +264,76 @@ class TutorialPanel(QWidget):
 
 	def __init__(self, parent: QWidget | None = None):
 		super().__init__(parent)
+		self.start_tour_button = QPushButton("Start Guided Tour")
 		browser = QTextBrowser()
 		browser.setOpenExternalLinks(True)
 		browser.setHtml(render_tutorial_html())
 
 		layout = QVBoxLayout(self)
+		layout.addWidget(self.start_tour_button)
 		layout.addWidget(browser)
+
+
+class GuidedTourDialog(QDialog):
+	"""Small stepper dialog for walking through the GUI."""
+
+	def __init__(self, steps: tuple[GuidedTourStep, ...], parent: QWidget | None = None):
+		super().__init__(parent)
+		self._steps = steps
+		self._index = 0
+		self.setWindowTitle("Guided Tour")
+		self.resize(460, 260)
+
+		self.step_label = QLabel("")
+		self.step_label.setWordWrap(True)
+		self.body_label = QLabel("")
+		self.body_label.setWordWrap(True)
+		self.location_label = QLabel("")
+		self.location_label.setWordWrap(True)
+
+		self.previous_button = QPushButton("Previous")
+		self.previous_button.clicked.connect(self.previous_step)
+		self.next_button = QPushButton("Next")
+		self.next_button.clicked.connect(self.next_step)
+		self.close_button = QPushButton("Close")
+		self.close_button.clicked.connect(self.accept)
+
+		button_layout = QHBoxLayout()
+		button_layout.addWidget(self.previous_button)
+		button_layout.addWidget(self.next_button)
+		button_layout.addStretch(1)
+		button_layout.addWidget(self.close_button)
+
+		layout = QVBoxLayout(self)
+		layout.addWidget(self.step_label)
+		layout.addWidget(self.location_label)
+		layout.addWidget(self.body_label, stretch=1)
+		layout.addLayout(button_layout)
+		self._render()
+
+	def current_step(self) -> GuidedTourStep:
+		"""Return the currently displayed guided-tour step."""
+		return self._steps[self._index]
+
+	def next_step(self) -> None:
+		"""Advance to the next tour step."""
+		if self._index < len(self._steps) - 1:
+			self._index += 1
+			self._render()
+
+	def previous_step(self) -> None:
+		"""Return to the previous tour step."""
+		if self._index > 0:
+			self._index -= 1
+			self._render()
+
+	def _render(self) -> None:
+		step = self.current_step()
+		self.step_label.setText(f"{self._index + 1}/{len(self._steps)}  {step.title}")
+		self.location_label.setText(f"Go to tab: {step.tab}")
+		self.body_label.setText(step.body)
+		self.previous_button.setEnabled(self._index > 0)
+		self.next_button.setEnabled(self._index < len(self._steps) - 1)
 
 
 class MainWindow(QMainWindow):
@@ -510,6 +574,8 @@ class MainWindow(QMainWindow):
 		)
 
 		self.tutorial_panel = TutorialPanel()
+		self.tutorial_panel.start_tour_button.clicked.connect(self._start_guided_tour)
+		self._tour_dialog: GuidedTourDialog | None = None
 
 		self.main_tabs = QTabWidget()
 		self.main_tabs.addTab(render_tab, "Render")
@@ -550,6 +616,22 @@ class MainWindow(QMainWindow):
 
 	def _show_tutorial_clicked(self) -> None:
 		self.main_tabs.setCurrentWidget(self.tutorial_panel)
+
+	def _start_guided_tour(self) -> None:
+		self._tour_dialog = GuidedTourDialog(GUIDED_TOUR_STEPS, self)
+		self._tour_dialog.next_button.clicked.connect(self._sync_guided_tour_tab)
+		self._tour_dialog.previous_button.clicked.connect(self._sync_guided_tour_tab)
+		self._sync_guided_tour_tab()
+		self._tour_dialog.show()
+
+	def _sync_guided_tour_tab(self) -> None:
+		if self._tour_dialog is None:
+			return
+		tab_name = self._tour_dialog.current_step().tab
+		for index in range(self.main_tabs.count()):
+			if self.main_tabs.tabText(index) == tab_name:
+				self.main_tabs.setCurrentIndex(index)
+				return
 
 	def _project_from_inputs(self) -> AudioGuideProject:
 		return AudioGuideProject(
