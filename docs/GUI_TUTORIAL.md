@@ -21,7 +21,27 @@ source .venv/bin/activate
 python -m audioguide_gui
 ```
 
-## 2. Simple render: choose source and output paths
+## 2. Collect and prep your source files
+
+Collect one target sound and one or more corpus folders before rendering:
+
+- **Target**: the rhythm, phrase, beat, texture, or reference sound AudioGuide will try to follow.
+- **Corpus**: the pile of source sounds AudioGuide can cut up and reassemble.
+- **Role folders**: optional TRANSMISSIONS folders such as `drums`, `vocals`, `bass`, `texture`, and `noise`.
+
+For a first simple render, use short WAV or AIFF files in one corpus folder. For a TRANSMISSIONS beat/collage session, keep material organized by role so the GUI can route those folders separately on the Render tab.
+
+You usually do **not** need to prep files by hand. AudioGuide analyzes and segments sounds during a render, and the GUI writes the options file that points to your target and corpus folders.
+
+Use the **Tools** tab when you want extra control before rendering:
+
+- **Segment** can test or create segmentation data for a file or folder.
+- **Descriptors** can inspect analysis data before you commit to a render.
+- **Granulate** can create additional chopped source material for your corpus.
+
+If a render fails because a file is unreadable or unsupported, convert that source to WAV or AIFF outside the app, then choose the converted file or folder in the GUI.
+
+## 3. Simple render: choose source and output paths
 
 Open the **Render** tab and fill in the main path fields:
 
@@ -31,7 +51,7 @@ Open the **Render** tab and fill in the main path fields:
 
 The output folder must already exist. Set **Output name** to control the base name used for generated files.
 
-## 3. Simple render: select output formats
+## 4. Simple render: select output formats
 
 Choose only the formats you need:
 
@@ -42,7 +62,7 @@ Choose only the formats you need:
 
 If you do not have `csound` installed, disable **Csound audio render** and use JSON/Reaper/AAF outputs instead.
 
-## 4. Simple render: preview or customize options
+## 5. Simple render: preview or customize options
 
 Use **Preview Generated Options File** before rendering to inspect the Python options the GUI will pass to `agConcatenate.py`.
 
@@ -50,13 +70,13 @@ Use **Raw AudioGuide options** for advanced settings that are not exposed as for
 
 Use **Save Options File As...** when you want to keep the generated options for command-line runs or manual editing.
 
-## 5. Simple render: render and review outputs
+## 6. Simple render: render and review outputs
 
 Click **Render** to run AudioGuide. The live log shows the selected paths, generated options file path, progress messages, and validation/backend errors.
 
 When rendering completes successfully, open **Output Browser**. The GUI scans the output folder and groups generated files such as Csound scores/renders, JSON dictionaries, Reaper projects, AAF files, audio files, labels, logs, and uncategorized outputs.
 
-## 6. Advanced TRANSMISSIONS: build a batch
+## 7. Advanced TRANSMISSIONS: build a batch
 
 Choose a TRANSMISSIONS preset such as **Dusty Drum Chop**, **Breakbeat Shatter**, **Vocal Ghosts**, **Radio Memory**, or **Ambient Bed Glue**.
 
@@ -66,7 +86,7 @@ Set **Takes** to create batch variations. Set **Seed** when you want repeatable 
 
 Use role-specific corpus folders such as **Drums**, **Vocals**, and **Noise** when you want AudioGuide to preserve source roles in generated options.
 
-## 7. Advanced TRANSMISSIONS: audition and curate takes
+## 8. Advanced TRANSMISSIONS: audition and curate takes
 
 Open the **Takes** tab after a batch render. Use **Play/Pause/Stop**, the waveform, and the seek bar to audition quickly.
 
@@ -74,7 +94,7 @@ Rate takes from 0 to 5, mark clear winners as **Keeper**, add notes, and tag mat
 
 Use the filter and sort controls to focus on keepers, rated 4+ takes, tagged takes, or takes with audio.
 
-## 8. Advanced TRANSMISSIONS: export to a DAW
+## 9. Advanced TRANSMISSIONS: export to a DAW
 
 Click **Export Keepers** to copy keeper and rated 4+ takes into a non-destructive `keepers/` folder with `keepers-manifest.json`.
 
@@ -89,7 +109,7 @@ audioguide-gui-export-keepers output/transmissions-render-manifest.json
 audioguide-gui-export-assembly output/keepers/keepers-manifest.json
 ```
 
-## 9. Use helper tools
+## 10. Use helper tools
 
 The **Tools** tab wraps the repository helper scripts:
 
@@ -99,7 +119,7 @@ The **Tools** tab wraps the repository helper scripts:
 
 Choose an input file or folder, choose an output path when the tool asks for one, and add **Advanced flags** only when you already know the command-line option you need. Each tool streams output into its panel so you can troubleshoot without leaving the GUI.
 
-## 10. Save reusable projects
+## 11. Save reusable projects
 
 Use **Project > Save Project** to store paths, selected output formats, raw options, and the last generated options file path in an `.agui` project file.
 
