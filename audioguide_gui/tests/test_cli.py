@@ -21,8 +21,10 @@ class CliConfigTest(unittest.TestCase):
 						"output_dir": "renders",
 						"output_name": "demo",
 						"preset": "beat_chop",
+						"preset_parameters": {"duration_percent": 22, "max_segment": 1.5},
 						"random_seed": 99,
 						"take_count": 3,
+						"corpus_groups": {"drums": "drums", "noise": ["radio"]},
 						"output_formats": ["json", "reaper"],
 						"extra_options_text": "VERBOSITY = 0\n",
 					}
@@ -41,9 +43,13 @@ class CliConfigTest(unittest.TestCase):
 			self.assertTrue(config.output_reaper)
 			self.assertFalse(config.output_aaf)
 			self.assertEqual(config.preset_name, "beat_chop")
+			self.assertEqual(config.preset_parameters, {"duration_percent": 22, "max_segment": 1.5})
 			self.assertEqual(config.random_seed, 99)
 			self.assertEqual(config.take_count, 3)
+			self.assertEqual(config.corpus_groups, {"drums": [str(root / "drums")], "noise": [str(root / "radio")]})
 			self.assertIn("closest_percent", config.extra_options_text)
+			self.assertIn("percent=22", config.extra_options_text)
+			self.assertIn("maxSegment=1.5", config.extra_options_text)
 			self.assertIn("VERBOSITY = 0", config.extra_options_text)
 
 	def test_main_writes_options_file_without_rendering(self):
@@ -98,6 +104,7 @@ class CliConfigTest(unittest.TestCase):
 			take_two = root / "renders" / "demo-take-002-options.py"
 			self.assertTrue(take_one.exists())
 			self.assertTrue(take_two.exists())
+			self.assertTrue((root / "renders" / "transmissions-render-manifest.json").exists())
 			self.assertIn("RANDOM_SEED = 10", take_one.read_text(encoding="utf-8"))
 			self.assertIn("RANDOM_SEED = 11", take_two.read_text(encoding="utf-8"))
 

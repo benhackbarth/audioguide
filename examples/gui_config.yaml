@@ -4,8 +4,16 @@ corpus:
 output_dir: ../output/gui-demo
 output_name: gui-demo
 preset: beat_chop
+preset_parameters:
+  duration_percent: 18
+  color_percent: 30
+  max_segment: 1
+  output_gain_db: -3
 random_seed: 1200
 take_count: 4
+corpus_groups:
+  drums: .
+  noise: .
 output_formats:
   - json
 extra_options_text: |
