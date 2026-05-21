@@ -6,7 +6,7 @@ import json
 import unittest
 import wave
 
-from audioguide_gui.keeper_export import export_keepers, export_reaper_assembly
+from audioguide_gui.keeper_export import export_ableton_project, export_keepers, export_reaper_assembly
 from audioguide_gui.take_manifest import save_take_annotation
 
 
@@ -75,6 +75,25 @@ class KeeperExportTest(unittest.TestCase):
 			self.assertIn('NAME "vocal"', text)
 			self.assertIn("demo-take-001.wav", text)
 			self.assertIn('NAME "take 001 r5 demo-take-001"', text)
+
+	def test_export_ableton_project_collects_samples_and_writes_guides(self):
+		with TemporaryDirectory() as tmp:
+			root = Path(tmp)
+			manifest_path = _write_manifest(root)
+			save_take_annotation(manifest_path, "demo-take-001", rating=5, keeper=True, notes="hard drums", tags=["drums"])
+			save_take_annotation(manifest_path, "demo-take-002", rating=4, keeper=False, notes="phrase", tags=["vocal"])
+			result = export_keepers(manifest_path)
+
+			project_dir = export_ableton_project(result.manifest_path)
+
+			self.assertTrue((project_dir / "Samples" / "Imported" / "demo-take-001.wav").exists())
+			self.assertTrue((project_dir / "Samples" / "Imported" / "demo-take-002.wav").exists())
+			self.assertTrue((project_dir / "ableton-import-guide.csv").exists())
+			self.assertTrue((project_dir / "README-Ableton.txt").exists())
+			payload = json.loads((project_dir / "ableton-import-guide.json").read_text(encoding="utf-8"))
+			self.assertEqual(payload["format"], "ableton-import-guide")
+			self.assertEqual(payload["takes"][0]["track"], "drums")
+			self.assertEqual(payload["takes"][0]["audio_file_relative"], "Samples/Imported/demo-take-001.wav")
 
 
 def _write_manifest(root: Path) -> Path:

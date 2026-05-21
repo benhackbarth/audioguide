@@ -27,6 +27,7 @@ datas = [
     (str(ROOT / "agSegmentSf.py"), "."),
     (str(ROOT / "scripts" / "audioguide_gui_export_keepers.py"), "scripts"),
     (str(ROOT / "scripts" / "audioguide_gui_export_assembly.py"), "scripts"),
+    (str(ROOT / "scripts" / "audioguide_gui_export_ableton.py"), "scripts"),
     (str(ROOT / "audioguide_gui" / "presets"), "audioguide_gui/presets"),
 ]
 

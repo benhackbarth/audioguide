@@ -126,6 +126,12 @@ Create a REAPER assembly from the keeper pack:
 audioguide-gui-export-assembly output/keepers/keepers-manifest.json
 ```
 
+Create an Ableton-friendly collected project folder:
+
+```bash
+audioguide-gui-export-ableton output/keepers/keepers-manifest.json
+```
+
 JSON uses the same fields:
 
 ```bash
@@ -190,7 +196,11 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
    `keepers/` folder with `keepers-manifest.json`.
 13. Click **Export Assembly RPP** to build `transmissions-assembly.rpp`, a
    combined REAPER session organized by take tags.
-14. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
+14. Click **Export Ableton** to build an Ableton-friendly project folder with
+   collected samples in `Samples/Imported` plus JSON/CSV import guides. This is
+   not a native `.als` or `.alp`; import the collected samples into Ableton Live
+   and use the guide files for suggested tracks, start times, tags, and notes.
+15. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
    helper scripts.
 
 ## TRANSMISSIONS DAW workflow
@@ -246,8 +256,8 @@ scripts/install_macos.sh --package-app
 - The spec also bundles `audioguide_gui/presets`, so installed apps can keep
   using the editable YAML preset files.
 - The repository installer creates `audioguide-gui-render`,
-  `audioguide-gui-export-keepers`, and `audioguide-gui-export-assembly` in the
-  virtual environment.
+  `audioguide-gui-export-keepers`, `audioguide-gui-export-assembly`, and
+  `audioguide-gui-export-ableton` in the virtual environment.
 - `csound` and `ffmpeg` are treated as external command-line tools. They are not
   bundled by the starter spec; install them separately and ensure the packaged
   app can find them on `PATH`, or configure your options to avoid features that

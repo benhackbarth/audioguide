@@ -102,11 +102,14 @@ Click **Export Rated 4+** when you want only high-rated takes and not manually c
 
 Click **Export Assembly RPP** to create a combined REAPER session. The assembly groups material by tags when possible and leaves the original AudioGuide per-take files untouched.
 
+Click **Export Ableton** to create an Ableton-friendly project folder. The exporter collects audio into `Samples/Imported` and writes JSON/CSV guides with suggested track names, start times, ratings, tags, and notes. It does not write a native `.als` or `.alp`; open Ableton Live, drag in the collected samples, and use the guide files to arrange them.
+
 Command-line equivalents:
 
 ```bash
 audioguide-gui-export-keepers output/transmissions-render-manifest.json
 audioguide-gui-export-assembly output/keepers/keepers-manifest.json
+audioguide-gui-export-ableton output/keepers/keepers-manifest.json
 ```
 
 ## 10. Use helper tools
