@@ -20,6 +20,8 @@ docs for detailed AudioGuide option syntax and synthesis behavior.
 
 - Python 3.10 or newer is recommended.
 - `PySide6` is required for the desktop widgets and is listed in `requirements-gui.txt`.
+- `PyYAML` is listed in `requirements-gui.txt` so the config-driven CLI can read
+  `.yaml`/`.yml` files. JSON configs work through the Python standard library.
 - `csound` is required when rendering Csound audio output. The GUI checks for a
   `csound` executable on `PATH` before launching options that request Csound
   output. If you only want non-Csound outputs, set the generated options to avoid
@@ -77,6 +79,50 @@ python -m audioguide_gui
 Launching from the repository root keeps the GUI's relative lookups for
 `agConcatenate.py` and the helper scripts aligned with the source checkout.
 
+## Config-driven command line usage
+
+The GUI project model can also be used without opening the desktop app. The
+installer creates an `audioguide-gui-render` launcher inside `.venv/bin`; from an
+activated environment you can also use `python -m audioguide_gui.cli`.
+
+Generate an AudioGuide options file from YAML:
+
+```bash
+audioguide-gui-render examples/gui_config.yaml
+```
+
+Preview the generated options text:
+
+```bash
+audioguide-gui-render examples/gui_config.yaml --print-options
+```
+
+Generate options and immediately render with `agConcatenate.py`:
+
+```bash
+audioguide-gui-render examples/gui_config.yaml --render
+```
+
+JSON uses the same fields:
+
+```bash
+python -m audioguide_gui.cli examples/gui_config.json --options-file output/gui-demo/options.py
+```
+
+Supported config keys:
+
+- `target` or `target_path`: target sound file.
+- `corpus` or `corpus_paths`: one folder/file path or a list of corpus paths.
+- `output_dir` or `output_folder`: render output directory.
+- `output_name`: base name for generated outputs.
+- `output_formats` or `selected_output_formats`: any of `csound`, `json`,
+  `reaper`, `aaf`. An empty list disables all optional output files.
+- `extra_options_text` or `advanced_options_text`: raw AudioGuide option syntax
+  appended after generated settings.
+
+Relative paths in JSON/YAML configs resolve relative to the config file. `.agui`
+project files saved by the GUI are accepted by the CLI as well.
+
 ## Basic GUI usage
 
 For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_TUTORIAL.md`.
@@ -117,11 +163,18 @@ pyinstaller --clean --noconfirm packaging/audioguide_gui_macos.spec
 
 The app bundle is written under `dist/AudioGuide GUI.app`.
 
+The repository installer can perform the same build after setting up the venv:
+
+```bash
+scripts/install_macos.sh --package-app
+```
+
 ### Packaging notes and limitations
 
 - The spec bundles the AudioGuide Python packages and top-level helper scripts
-  needed by the GUI. Keep the app's working directory and bundled paths in mind
-  if you customize how scripts are discovered.
+  needed by the GUI. The PyInstaller entry wrapper dispatches subprocess calls
+  back into bundled scripts so render/tool actions do not relaunch a second GUI
+  window.
 - `csound` and `ffmpeg` are treated as external command-line tools. They are not
   bundled by the starter spec; install them separately and ensure the packaged
   app can find them on `PATH`, or configure your options to avoid features that

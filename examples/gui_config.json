@@ -1,0 +1,12 @@
+{
+  "target": "bone.aiff",
+  "corpus": [
+    "."
+  ],
+  "output_dir": "../output/gui-demo",
+  "output_name": "gui-demo",
+  "output_formats": [
+    "json"
+  ],
+  "extra_options_text": "VERBOSITY = 1\n"
+}

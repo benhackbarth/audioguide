@@ -38,7 +38,7 @@ from .project import (
 	load_project_file,
 	save_project_file,
 )
-from .runner import AudioGuideRunner, AudioGuideToolRunner, RunnerError
+from .runner import AudioGuideRunner, AudioGuideToolRunner, RunnerError, bundled_resource_path
 from .tutorial import render_tutorial_html
 
 
@@ -124,7 +124,7 @@ class ToolPanel(QWidget):
 	):
 		super().__init__(parent)
 		self._title = title
-		self._script_path = Path(__file__).resolve().parent.parent / script_name
+		self._script_path = bundled_resource_path(script_name)
 		self._output_flag = output_flag
 		self._runner: AudioGuideToolRunner | None = None
 		self._future: Future[int] | None = None

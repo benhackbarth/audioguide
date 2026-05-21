@@ -30,6 +30,12 @@ class RunnerError(RuntimeError):
 	"""Raised when AudioGuide cannot be launched by the GUI runner."""
 
 
+def bundled_resource_path(*parts: str) -> Path:
+	"""Return a repository resource path in source or a PyInstaller bundle."""
+	root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+	return root.joinpath(*parts)
+
+
 class CallbackSignal:
 	"""Small signal-like callback collection used without requiring Qt imports."""
 
@@ -376,4 +382,4 @@ class AudioGuideRunner(SubprocessRunner):
 
 	@staticmethod
 	def _default_ag_concatenate_path() -> Path:
-		return Path(__file__).resolve().parent.parent / "agConcatenate.py"
+		return bundled_resource_path("agConcatenate.py")
