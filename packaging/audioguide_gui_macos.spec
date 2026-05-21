@@ -25,6 +25,7 @@ datas = [
     (str(ROOT / "agGetSfDescriptors.py"), "."),
     (str(ROOT / "agGranulateSf.py"), "."),
     (str(ROOT / "agSegmentSf.py"), "."),
+    (str(ROOT / "audioguide_gui" / "presets"), "audioguide_gui/presets"),
 ]
 
 # Include AudioGuide's bundled analysis helper assets when present. Some source

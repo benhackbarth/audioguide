@@ -1,0 +1,23 @@
+name: noise_bed
+label: Noise Bed
+description: Layered radio, vinyl, room tone, or static beds for resampling.
+output_formats:
+  - csound
+  - json
+parameters:
+  noise_percent: 40
+  color_percent: 30
+  max_segment: 4
+  max_overlap: 8
+  output_gain_db: -10
+options_text: |
+  # TRANSMISSIONS: radio/static/noise layer.
+  # This favors spectral resemblance while allowing overlapping texture.
+  SEARCH = [
+      spass('closest_percent', d('noisiness-seg', norm=1), percent={noise_percent}),
+      spass('closest_percent', d('centroid-seg', norm=1), percent={color_percent}),
+      spass('closest', d('flatnesses-seg')),
+  ]
+
+  SUPERIMPOSE = si(minSegment=1, maxSegment={max_segment}, maxOverlap={max_overlap}, searchOrder='power')
+  OUTPUT_GAIN_DB = {output_gain_db}

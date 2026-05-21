@@ -54,6 +54,11 @@ def build_options_text(config: ProjectConfig) -> str:
 		"CORPUS = [",
 	]
 	lines.extend(f"\tcsf({_py_string(path)})," for path in config.corpus_paths)
+	for role, paths in config.corpus_groups.items():
+		for path in paths:
+			lines.append(
+				f"\tcsf({_py_string(path)}, instrTag={_py_string(role)}, metadata=[{_py_string(role)}]),"
+			)
 	lines.extend(
 		[
 			"]",
@@ -62,6 +67,7 @@ def build_options_text(config: ProjectConfig) -> str:
 			"# The GUI uses a conservative default search that advanced users may edit.",
 			DEFAULT_SEARCH_TEXT,
 			DEFAULT_SUPERIMPOSE_TEXT,
+			f"RANDOM_SEED = {_optional_number(config.random_seed)}",
 			"",
 			"############# OUTPUT FILES #############",
 			f"HTML_LOG_FILEPATH = {_py_string(output_dir / f'{output_name}-log.html')}",
@@ -95,8 +101,8 @@ def build_options_text(config: ProjectConfig) -> str:
 def _validate_config(config: ProjectConfig) -> None:
 	if not config.target_path:
 		raise OptionBuilderError("target_path is required")
-	if not config.corpus_paths:
-		raise OptionBuilderError("at least one corpus path is required")
+	if not config.corpus_paths and not any(config.corpus_groups.values()):
+		raise OptionBuilderError("at least one corpus path or corpus group is required")
 	if not config.output_dir:
 		raise OptionBuilderError("output_dir is required")
 
@@ -112,6 +118,12 @@ def _optional_path(enabled: bool, path: str | Path) -> str:
 	if not enabled:
 		return "None"
 	return _py_string(path)
+
+
+def _optional_number(value: int | float | None) -> str:
+	if value is None:
+		return "None"
+	return str(value)
 
 
 def _py_string(value: str | Path) -> str:
