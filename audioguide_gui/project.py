@@ -151,7 +151,7 @@ def _path_for_project(value: str, base_dir: Path) -> str:
 	if not path.is_absolute():
 		return path.as_posix()
 	try:
-		return path.relative_to(base_dir.resolve()).as_posix()
+		return path.resolve().relative_to(base_dir.resolve()).as_posix()
 	except ValueError:
 		return str(path)
 

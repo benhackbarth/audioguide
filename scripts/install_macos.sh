@@ -161,6 +161,14 @@ python -m pip install --upgrade pip setuptools wheel
 python -m pip install numpy
 python -m pip install -r requirements-gui.txt
 
+log "Installing command-line launcher"
+cat > "${VENV_DIR}/bin/audioguide-gui-render" <<EOF
+#!/usr/bin/env bash
+cd "${REPO_ROOT}"
+exec "${VENV_DIR}/bin/python" -m audioguide_gui.cli "\$@"
+EOF
+chmod +x "${VENV_DIR}/bin/audioguide-gui-render"
+
 if [[ ${INSTALL_EXTRAS} -eq 1 ]]; then
   log "Installing optional analysis/DAW/export extras"
   python -m pip install scipy librosa scikit-learn soundfile matplotlib pyaaf2
@@ -177,12 +185,13 @@ python - <<'PY'
 import importlib.util
 import numpy
 import audioguide
-missing = [name for name in ("PySide6",) if importlib.util.find_spec(name) is None]
+missing = [name for name in ("PySide6", "yaml") if importlib.util.find_spec(name) is None]
 if missing:
     raise SystemExit(f"Missing required package(s): {', '.join(missing)}")
 print(f"AudioGuide {audioguide.__version__} import OK")
 print(f"NumPy {numpy.__version__} import OK")
 print("PySide6 import OK")
+print("PyYAML import OK")
 PY
 
 for tool in csound ffmpeg; do
@@ -202,5 +211,7 @@ Next steps:
   python -m audioguide_gui
 
 CLI example:
+  audioguide-gui-render examples/gui_config.yaml --print-options
+  audioguide-gui-render examples/gui_config.yaml --render
   python agConcatenate.py examples/01-simplest.py
 DONE
