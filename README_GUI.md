@@ -19,6 +19,8 @@ The GUI is a PySide6 desktop front end for common AudioGuide tasks:
   keeping the generated AudioGuide options editable.
 - write a `transmissions-render-manifest.json` file that records take names,
   seeds, options files, preset parameters, and corpus roles.
+- review batch renders in a **Takes** tab with audio/options/JSON/RPP open
+  actions, keeper flags, 0-5 ratings, and saved notes.
 
 The GUI invokes the same Python entry points used by the CLI. Keep using the CLI
 docs for detailed AudioGuide option syntax and synthesis behavior.
@@ -162,7 +164,9 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
 8. Use **Save Options File As…** if you want to keep or edit the options file.
 9. Click **Render** to launch AudioGuide. Logs stream in the lower pane.
 10. Use **Cancel** to request process termination if the render should stop.
-11. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
+11. Use the **Takes** tab to audition batch results, mark keepers, rate takes,
+   and save notes to `transmissions-take-notes.json`.
+12. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
    helper scripts.
 
 ## Optional macOS app packaging with PyInstaller
