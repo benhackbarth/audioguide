@@ -1,0 +1,26 @@
+name: breakbeat_shatter
+label: Breakbeat Shatter
+description: Aggressive micro-chop preset for splintered drums, stutters, and beat fills.
+output_formats:
+  - csound
+  - json
+  - reaper
+parameters:
+  density: 8
+  chop_size: 0.18
+  chaos: 28
+  timbre_bias: 35
+  rhythm_lock: 8
+  output_gain_db: -4
+options_text: |
+  # TRANSMISSIONS macro preset: breakbeat shatter.
+  # density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+  SEARCH = [
+  	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={rhythm_lock}),
+  	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+  	spass('closest_percent', d('flatnesses-seg'), percent={chaos}),
+  ]
+
+  SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = {output_gain_db}

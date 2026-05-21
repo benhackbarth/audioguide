@@ -1,0 +1,26 @@
+name: vocal_ghosts
+label: Vocal Ghosts
+description: Airy vocal and radio phrase fragments for haunted hooks and ad-lib beds.
+output_formats:
+  - csound
+  - json
+  - reaper
+parameters:
+  density: 5
+  chop_size: 1.2
+  chaos: 32
+  timbre_bias: 18
+  rhythm_lock: 35
+  output_gain_db: -5
+options_text: |
+  # TRANSMISSIONS macro preset: vocal ghosts.
+  # density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+  SEARCH = [
+  	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+  	spass('parser', 'noisiness-seg >= 35%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent={chaos}),
+  	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+  ]
+
+  SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = {output_gain_db}

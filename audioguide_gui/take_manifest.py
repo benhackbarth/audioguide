@@ -25,9 +25,13 @@ class TakeEntry:
 	json_file: Path | None
 	rpp_file: Path | None
 	aaf_file: Path | None = None
+	html_log_file: Path | None = None
+	target_labels_file: Path | None = None
+	output_labels_file: Path | None = None
 	rating: int = 0
 	keeper: bool = False
 	notes: str = ""
+	tags: tuple[str, ...] = ()
 
 
 def load_take_entries(manifest_path: str | Path) -> list[TakeEntry]:
@@ -44,6 +48,9 @@ def load_take_entries(manifest_path: str | Path) -> list[TakeEntry]:
 		output_name = str(take_payload.get("output_name") or "")
 		take_number = int(take_payload.get("take") or len(entries) + 1)
 		note_payload = annotations.get(output_name, {})
+		tags = note_payload.get("tags", [])
+		if not isinstance(tags, list):
+			tags = []
 		entries.append(
 			TakeEntry(
 				take=take_number,
@@ -57,9 +64,13 @@ def load_take_entries(manifest_path: str | Path) -> list[TakeEntry]:
 				rpp_file=_manifest_file(take_payload.get("rpp_file"), path.parent)
 				or _existing(output_dir / f"{output_name}.rpp"),
 				aaf_file=_manifest_file(take_payload.get("aaf_file"), path.parent),
+				html_log_file=_manifest_file(take_payload.get("html_log_file"), path.parent),
+				target_labels_file=_manifest_file(take_payload.get("target_labels_file"), path.parent),
+				output_labels_file=_manifest_file(take_payload.get("output_labels_file"), path.parent),
 				rating=int(note_payload.get("rating", 0) or 0),
 				keeper=bool(note_payload.get("keeper", False)),
 				notes=str(note_payload.get("notes", "")),
+				tags=tuple(str(tag) for tag in tags if str(tag)),
 			)
 		)
 	return entries
@@ -84,6 +95,7 @@ def save_take_annotation(
 	rating: int,
 	keeper: bool,
 	notes: str,
+	tags: list[str] | tuple[str, ...] | None = None,
 ) -> Path:
 	"""Persist rating, keeper, and notes for one take."""
 	path = annotations_path_for_manifest(manifest_path)
@@ -92,6 +104,7 @@ def save_take_annotation(
 		"rating": max(0, min(5, int(rating))),
 		"keeper": bool(keeper),
 		"notes": notes,
+		"tags": sorted({str(tag).strip() for tag in (tags or []) if str(tag).strip()}),
 	}
 	path.write_text(json.dumps({"takes": annotations}, indent=2) + "\n", encoding="utf-8")
 	return path

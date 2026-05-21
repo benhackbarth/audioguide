@@ -1,0 +1,26 @@
+name: dusty_drum_chop
+label: Dusty Drum Chop
+description: Short, punchy drum replacement for cut-up hip hop loops and break fragments.
+output_formats:
+  - csound
+  - json
+  - reaper
+parameters:
+  density: 4
+  chop_size: 0.35
+  chaos: 18
+  timbre_bias: 24
+  rhythm_lock: 12
+  output_gain_db: -3
+options_text: |
+  # TRANSMISSIONS macro preset: dusty drum chop.
+  # density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+  SEARCH = [
+  	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={rhythm_lock}),
+  	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+  	spass('closest_percent', d('mfccs-seg'), percent={chaos}),
+  ]
+
+  SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+  ROTATE_VOICES = False
+  OUTPUT_GAIN_DB = {output_gain_db}

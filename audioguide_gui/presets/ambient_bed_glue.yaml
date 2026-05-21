@@ -1,0 +1,25 @@
+name: ambient_bed_glue
+label: Ambient Bed Glue
+description: Longer overlapping texture bed for smoothing edits and resampling transitions.
+output_formats:
+  - csound
+  - json
+parameters:
+  density: 10
+  chop_size: 5.0
+  chaos: 38
+  timbre_bias: 26
+  rhythm_lock: 55
+  output_gain_db: -12
+options_text: |
+  # TRANSMISSIONS macro preset: ambient bed glue.
+  # density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+  SEARCH = [
+  	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+  	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+  	spass('closest_percent', d('noisiness-seg', norm=1), percent={chaos}),
+  ]
+
+  SUPERIMPOSE = si(minSegment=1, maxSegment={chop_size}, maxOverlap={density}, subtractScale=0.8, searchOrder='power')
+  ROTATE_VOICES = True
+  OUTPUT_GAIN_DB = {output_gain_db}

@@ -81,6 +81,76 @@ OUTPUT_GAIN_DB = {output_gain_db}
 """
 
 
+DUSTY_DRUM_CHOP_OPTIONS = """# TRANSMISSIONS macro preset: dusty drum chop.
+# density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+SEARCH = [
+	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={rhythm_lock}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+	spass('closest_percent', d('mfccs-seg'), percent={chaos}),
+]
+
+SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+ROTATE_VOICES = False
+OUTPUT_GAIN_DB = {output_gain_db}
+"""
+
+
+VOCAL_GHOSTS_OPTIONS = """# TRANSMISSIONS macro preset: vocal ghosts.
+# density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+SEARCH = [
+	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+	spass('parser', 'noisiness-seg >= 35%', 'closest_percent', [d('mfccs-seg')], [d('f0-seg')], percent={chaos}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+]
+
+SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+ROTATE_VOICES = True
+OUTPUT_GAIN_DB = {output_gain_db}
+"""
+
+
+RADIO_MEMORY_OPTIONS = """# TRANSMISSIONS macro preset: radio memory.
+# density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+SEARCH = [
+	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+	spass('closest_percent', d('noisiness-seg', norm=1), percent={chaos}),
+	spass('closest_percent', d('mfccs-seg'), percent={timbre_bias}),
+]
+
+SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, subtractScale=0.65, searchOrder='power')
+ROTATE_VOICES = True
+OUTPUT_GAIN_DB = {output_gain_db}
+"""
+
+
+BREAKBEAT_SHATTER_OPTIONS = """# TRANSMISSIONS macro preset: breakbeat shatter.
+# density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+SEARCH = [
+	spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent={rhythm_lock}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+	spass('closest_percent', d('flatnesses-seg'), percent={chaos}),
+]
+
+SUPERIMPOSE = si(maxSegment={chop_size}, maxOverlap={density}, peakAlign=True, searchOrder='power')
+ROTATE_VOICES = True
+OUTPUT_GAIN_DB = {output_gain_db}
+"""
+
+
+AMBIENT_BED_GLUE_OPTIONS = """# TRANSMISSIONS macro preset: ambient bed glue.
+# density={density}, chop_size={chop_size}, chaos={chaos}, timbre_bias={timbre_bias}, rhythm_lock={rhythm_lock}
+SEARCH = [
+	spass('closest_percent', d('effDur-seg', norm=1), percent={rhythm_lock}),
+	spass('closest_percent', d('centroid-seg', norm=1), percent={timbre_bias}),
+	spass('closest_percent', d('noisiness-seg', norm=1), percent={chaos}),
+]
+
+SUPERIMPOSE = si(minSegment=1, maxSegment={chop_size}, maxOverlap={density}, subtractScale=0.8, searchOrder='power')
+ROTATE_VOICES = True
+OUTPUT_GAIN_DB = {output_gain_db}
+"""
+
+
 BUILTIN_PRESETS = {
 	"beat_chop": CreativePreset(
 		name="beat_chop",
@@ -127,6 +197,46 @@ BUILTIN_PRESETS = {
 			"subtract_scale": 0.75,
 			"output_gain_db": -6,
 		},
+	),
+	"dusty_drum_chop": CreativePreset(
+		name="dusty_drum_chop",
+		label="Dusty Drum Chop",
+		description="Short, punchy drum replacement for cut-up hip hop loops and break fragments.",
+		output_formats=("csound", "json", "reaper"),
+		options_text=DUSTY_DRUM_CHOP_OPTIONS,
+		parameters={"density": 4, "chop_size": 0.35, "chaos": 18, "timbre_bias": 24, "rhythm_lock": 12, "output_gain_db": -3},
+	),
+	"vocal_ghosts": CreativePreset(
+		name="vocal_ghosts",
+		label="Vocal Ghosts",
+		description="Airy vocal and radio phrase fragments for haunted hooks and ad-lib beds.",
+		output_formats=("csound", "json", "reaper"),
+		options_text=VOCAL_GHOSTS_OPTIONS,
+		parameters={"density": 5, "chop_size": 1.2, "chaos": 32, "timbre_bias": 18, "rhythm_lock": 35, "output_gain_db": -5},
+	),
+	"radio_memory": CreativePreset(
+		name="radio_memory",
+		label="Radio Memory",
+		description="Broken radio scan collage with noisy timbral jumps and repeatable drift.",
+		output_formats=("csound", "json", "reaper"),
+		options_text=RADIO_MEMORY_OPTIONS,
+		parameters={"density": 6, "chop_size": 0.8, "chaos": 45, "timbre_bias": 22, "rhythm_lock": 42, "output_gain_db": -6},
+	),
+	"breakbeat_shatter": CreativePreset(
+		name="breakbeat_shatter",
+		label="Breakbeat Shatter",
+		description="Aggressive micro-chop preset for splintered drums, stutters, and beat fills.",
+		output_formats=("csound", "json", "reaper"),
+		options_text=BREAKBEAT_SHATTER_OPTIONS,
+		parameters={"density": 8, "chop_size": 0.18, "chaos": 28, "timbre_bias": 35, "rhythm_lock": 8, "output_gain_db": -4},
+	),
+	"ambient_bed_glue": CreativePreset(
+		name="ambient_bed_glue",
+		label="Ambient Bed Glue",
+		description="Longer overlapping texture bed for smoothing edits and resampling transitions.",
+		output_formats=("csound", "json"),
+		options_text=AMBIENT_BED_GLUE_OPTIONS,
+		parameters={"density": 10, "chop_size": 5.0, "chaos": 38, "timbre_bias": 26, "rhythm_lock": 55, "output_gain_db": -12},
 	),
 }
 

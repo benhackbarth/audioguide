@@ -349,6 +349,22 @@ class MainWindow(QMainWindow):
 		self.output_gain_spin = QSpinBox()
 		self.output_gain_spin.setRange(-48, 12)
 		self.output_gain_spin.setValue(-3)
+		self.density_spin = QSpinBox()
+		self.density_spin.setRange(1, 32)
+		self.density_spin.setValue(4)
+		self.chop_size_spin = QDoubleSpinBox()
+		self.chop_size_spin.setRange(0.05, 16.0)
+		self.chop_size_spin.setSingleStep(0.05)
+		self.chop_size_spin.setValue(0.5)
+		self.chaos_spin = QSpinBox()
+		self.chaos_spin.setRange(1, 100)
+		self.chaos_spin.setValue(25)
+		self.timbre_bias_spin = QSpinBox()
+		self.timbre_bias_spin.setRange(1, 100)
+		self.timbre_bias_spin.setValue(25)
+		self.rhythm_lock_spin = QSpinBox()
+		self.rhythm_lock_spin.setRange(1, 100)
+		self.rhythm_lock_spin.setValue(20)
 
 		preset_picker_layout = QHBoxLayout()
 		preset_picker_layout.addWidget(QLabel("Preset"))
@@ -368,6 +384,18 @@ class MainWindow(QMainWindow):
 		parameter_layout.addWidget(QLabel("Gain"))
 		parameter_layout.addWidget(self.output_gain_spin)
 		preset_layout.addLayout(parameter_layout)
+		macro_layout = QHBoxLayout()
+		macro_layout.addWidget(QLabel("Density"))
+		macro_layout.addWidget(self.density_spin)
+		macro_layout.addWidget(QLabel("Chop"))
+		macro_layout.addWidget(self.chop_size_spin)
+		macro_layout.addWidget(QLabel("Chaos"))
+		macro_layout.addWidget(self.chaos_spin)
+		macro_layout.addWidget(QLabel("Timbre"))
+		macro_layout.addWidget(self.timbre_bias_spin)
+		macro_layout.addWidget(QLabel("Rhythm"))
+		macro_layout.addWidget(self.rhythm_lock_spin)
+		preset_layout.addLayout(macro_layout)
 
 		self.preset_group = QGroupBox("TRANSMISSIONS Preset")
 		self.preset_group.setLayout(preset_layout)
@@ -613,6 +641,11 @@ class MainWindow(QMainWindow):
 			"max_segment": self.max_segment_spin.value(),
 			"max_overlap": self.max_overlap_spin.value(),
 			"output_gain_db": self.output_gain_spin.value(),
+			"density": self.density_spin.value(),
+			"chop_size": self.chop_size_spin.value(),
+			"chaos": self.chaos_spin.value(),
+			"timbre_bias": self.timbre_bias_spin.value(),
+			"rhythm_lock": self.rhythm_lock_spin.value(),
 		}
 
 	def _apply_preset_parameters(self, parameters: dict[str, object]) -> None:
@@ -626,6 +659,11 @@ class MainWindow(QMainWindow):
 		self.max_segment_spin.setValue(float(parameters.get("max_segment", self.max_segment_spin.value())))
 		self.max_overlap_spin.setValue(int(parameters.get("max_overlap", self.max_overlap_spin.value())))
 		self.output_gain_spin.setValue(int(parameters.get("output_gain_db", self.output_gain_spin.value())))
+		self.density_spin.setValue(int(parameters.get("density", self.density_spin.value())))
+		self.chop_size_spin.setValue(float(parameters.get("chop_size", self.chop_size_spin.value())))
+		self.chaos_spin.setValue(int(parameters.get("chaos", self.chaos_spin.value())))
+		self.timbre_bias_spin.setValue(int(parameters.get("timbre_bias", self.timbre_bias_spin.value())))
+		self.rhythm_lock_spin.setValue(int(parameters.get("rhythm_lock", self.rhythm_lock_spin.value())))
 
 	def _corpus_groups_from_inputs(self) -> dict[str, list[str]]:
 		groups: dict[str, list[str]] = {}
