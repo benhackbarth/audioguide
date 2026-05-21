@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
 
 	try:
 		config = load_cli_config(args.config)
-		jobs = _build_jobs(config, args.options_file)
+		jobs = _build_jobs(config, args.options_file, write_files=not args.print_options)
 	except (ConfigFileError, OptionBuilderError, PresetError, ProjectFileError, OSError) as exc:
 		parser.error(str(exc))
 		return 2
@@ -232,7 +232,7 @@ def _default_options_path(config: ProjectConfig) -> Path:
 	return Path(config.output_dir).expanduser() / "audioguide-cli-options.py"
 
 
-def _build_jobs(config: ProjectConfig, options_file: str | None) -> list[tuple[ProjectConfig, Path]]:
+def _build_jobs(config: ProjectConfig, options_file: str | None, *, write_files: bool = True) -> list[tuple[ProjectConfig, Path]]:
 	jobs: list[tuple[ProjectConfig, Path]] = []
 	take_count = max(1, config.take_count)
 	for take_index in range(take_count):
@@ -243,7 +243,8 @@ def _build_jobs(config: ProjectConfig, options_file: str | None) -> list[tuple[P
 			options_path = Path(job_config.output_dir).expanduser() / f"{job_config.output_name}-options.py"
 		else:
 			options_path = _default_options_path(job_config)
-		build_options_file(job_config, options_path)
+		if write_files:
+			build_options_file(job_config, options_path)
 		jobs.append((job_config, options_path))
 	return jobs
 

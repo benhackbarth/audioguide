@@ -30,6 +30,8 @@ class TakeBrowserPanel(QWidget):
 		super().__init__(parent)
 		self._manifest_path: Path | None = None
 		self._entries: list[TakeEntry] = []
+		self._current_output_name: str | None = None
+		self._loading_selection = False
 
 		self.status_label = QLabel("Batch takes will appear here after a render manifest is available.")
 		self.tree = QTreeWidget()
@@ -115,8 +117,10 @@ class TakeBrowserPanel(QWidget):
 
 	def clear(self) -> None:
 		"""Clear the current take list."""
+		self._save_current_annotation(silent=True)
 		self._manifest_path = None
 		self._entries = []
+		self._current_output_name = None
 		self.tree.clear()
 		self.rating_spin.setValue(0)
 		self.keeper_check.setChecked(False)
@@ -136,24 +140,34 @@ class TakeBrowserPanel(QWidget):
 		return None
 
 	def _selection_changed(self) -> None:
+		if self._loading_selection:
+			return
+		self._save_current_annotation(silent=True)
 		entry = self.selected_entry()
 		if entry is not None:
+			self._loading_selection = True
 			self.rating_spin.setValue(entry.rating)
 			self.keeper_check.setChecked(entry.keeper)
 			self.notes_edit.setPlainText(entry.notes)
+			self._loading_selection = False
+			self._current_output_name = entry.output_name
 		self._update_action_state()
 
-	def _save_current_annotation(self) -> None:
-		entry = self.selected_entry()
-		if entry is None or self._manifest_path is None:
+	def _save_current_annotation(self, silent: bool = False) -> None:
+		if self._manifest_path is None or self._current_output_name is None:
 			return
 		save_take_annotation(
 			self._manifest_path,
-			entry.output_name,
+			self._current_output_name,
 			rating=self.rating_spin.value(),
 			keeper=self.keeper_check.isChecked(),
 			notes=self.notes_edit.toPlainText(),
 		)
+		if silent:
+			return
+		entry = self.selected_entry()
+		if entry is None:
+			return
 		self.load_manifest(self._manifest_path)
 		for row in range(self.tree.topLevelItemCount()):
 			item = self.tree.topLevelItem(row)
@@ -168,7 +182,7 @@ class TakeBrowserPanel(QWidget):
 		self.open_audio_button.setEnabled(bool(entry and entry.audio_file))
 		self.open_json_button.setEnabled(bool(entry and entry.json_file))
 		self.open_rpp_button.setEnabled(bool(entry and entry.rpp_file))
-		self.open_options_button.setEnabled(bool(entry and entry.options_file))
+		self.open_options_button.setEnabled(bool(entry and entry.options_file.exists()))
 		self.reveal_button.setEnabled(has_entry)
 		self.copy_button.setEnabled(bool(entry and entry.audio_file))
 		self.rating_spin.setEnabled(has_entry)
@@ -192,14 +206,18 @@ class TakeBrowserPanel(QWidget):
 
 	def _open_options(self) -> None:
 		entry = self.selected_entry()
-		if entry is not None:
+		if entry is not None and entry.options_file.exists():
 			open_path(entry.options_file)
 
 	def _reveal_current(self) -> None:
 		entry = self.selected_entry()
 		if entry is None:
 			return
-		path = entry.audio_file or entry.json_file or entry.rpp_file or entry.options_file
+		path = entry.audio_file or entry.json_file or entry.rpp_file
+		if path is None and entry.options_file.exists():
+			path = entry.options_file
+		if path is None:
+			return
 		reveal_path(path)
 
 	def _copy_audio_path(self) -> None:
