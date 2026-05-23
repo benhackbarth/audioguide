@@ -9,6 +9,9 @@ command-line workflow remains documented in `README.md` and `docs_v1.79.html`.
 The GUI is a PySide6 desktop front end for common AudioGuide tasks:
 
 - build and preview AudioGuide options files from selected target/corpus/output paths;
+- create a clean TRANSMISSIONS project folder that collects target/corpus audio,
+  writes an `.agui` project, creates a render folder, and applies the result to
+  the Render tab.
 - launch `agConcatenate.py` while streaming stdout/stderr into the window;
 - run helper tools such as `agSegmentSf.py`, `agGetSfDescriptors.py`, and `agGranulateSf.py`;
 - browse generated output files from the selected render output directory.
@@ -143,8 +146,8 @@ Supported config keys:
 - `target` or `target_path`: target sound file.
 - `corpus` or `corpus_paths`: one folder/file path or a list of corpus paths.
 - `corpus_groups`: optional role-to-path mapping. Roles such as `drums`,
-  `vocals`, and `noise` are written as separate `csf(...)` entries with
-  `instrTag` and `metadata` set to the role name.
+  `vocals`, `bass`, `texture`, and `noise` are written as separate `csf(...)`
+  entries with `instrTag` and `metadata` set to the role name.
 - `output_dir` or `output_folder`: render output directory.
 - `output_name`: base name for generated outputs.
 - `output_formats` or `selected_output_formats`: any of `csound`, `json`,
@@ -176,31 +179,36 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
    folder.
 3. Choose the output formats you need. Csound audio rendering requires `csound`
    on `PATH`.
-4. Optionally choose role-specific corpus folders for drums, vocals, or noise.
-5. Choose a **TRANSMISSIONS Preset**, adjust Pool %, Max seg, Overlap, Gain, and
+4. For a guided setup, click **Create TRANSMISSIONS Project…** or use
+   **Project > New TRANSMISSIONS Project**. The GUI can copy source audio into a
+   clean project folder, create `source/`, `renders/`, a prep manifest, and an
+   `.agui` project file.
+5. Optionally choose role-specific corpus folders for drums, vocals, bass,
+   texture, or noise.
+6. Choose a **TRANSMISSIONS Preset**, adjust Pool %, Max seg, Overlap, Gain, and
    the Density/Chop/Chaos/Timbre/Rhythm macro controls, then click **Apply
    Preset** when you want the GUI to replace the raw options block with a named
    strategy.
-6. Set **Takes** and **Seed** for batch variations. Batch output names are
+7. Set **Takes** and **Seed** for batch variations. Batch output names are
    suffixed as `name-take-001`, `name-take-002`, and so on.
-7. Use **Preview Generated Options File** to inspect the AudioGuide option file
+8. Use **Preview Generated Options File** to inspect the AudioGuide option file
    the GUI will pass to `agConcatenate.py`.
-8. Use **Save Options File As…** if you want to keep or edit the options file.
-9. Click **Render** to launch AudioGuide. Logs stream in the lower pane.
-10. Use **Cancel** to request process termination if the render should stop.
-11. Use the **Takes** tab to audition batch results with Play/Pause/Stop,
+9. Use **Save Options File As…** if you want to keep or edit the options file.
+10. Click **Render** to launch AudioGuide. Logs stream in the lower pane.
+11. Use **Cancel** to request process termination if the render should stop.
+12. Use the **Takes** tab to audition batch results with Play/Pause/Stop,
    seek through the waveform, mark keepers, rate takes, add tags, filter/sort
    the list, and save notes to `transmissions-take-notes.json`.
-12. Click **Export Keepers** or **Export Rated 4+** to copy selected audio,
+13. Click **Export Keepers** or **Export Rated 4+** to copy selected audio,
    options, JSON/RPP/AAF, logs, and label files into a non-destructive
    `keepers/` folder with `keepers-manifest.json`.
-13. Click **Export Assembly RPP** to build `transmissions-assembly.rpp`, a
+14. Click **Export Assembly RPP** to build `transmissions-assembly.rpp`, a
    combined REAPER session organized by take tags.
-14. Click **Export Ableton** to build an Ableton-friendly project folder with
+15. Click **Export Ableton** to build an Ableton-friendly project folder with
    collected samples in `Samples/Imported` plus JSON/CSV import guides. This is
    not a native `.als` or `.alp`; import the collected samples into Ableton Live
    and use the guide files for suggested tracks, start times, tags, and notes.
-15. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
+16. Use the **Tools** tabs for segmentation, descriptor extraction, and granular
    helper scripts.
 
 ## TRANSMISSIONS DAW workflow
@@ -208,14 +216,16 @@ For a guided walkthrough, open the built-in **Tutorial** tab or read `docs/GUI_T
 The intended workflow is render many variations, audition quickly, tag the useful
 ones, then export a DAW handoff:
 
-1. Use corpus roles such as `drums`, `voice`, `bass`, `texture`, and `noise` to
+1. Start with **Create TRANSMISSIONS Project** when you want a clean folder with
+   copied source audio, render output, a prep manifest, and an `.agui` project.
+2. Use corpus roles such as `drums`, `voice`, `bass`, `texture`, and `noise` to
    keep source material organized.
-2. Batch render with a preset and a fixed seed when you want repeatable
+3. Batch render with a preset and a fixed seed when you want repeatable
    variation.
-3. In **Takes**, mark obvious winners as keepers, rate maybes 4+, and tag each
+4. In **Takes**, mark obvious winners as keepers, rate maybes 4+, and tag each
    take by musical use.
-4. Export a keeper pack before editing so the DAW session is portable.
-5. Open the generated REAPER assembly and start arranging chops, loops, beds, and
+5. Export a keeper pack before editing so the DAW session is portable.
+6. Open the generated REAPER assembly and start arranging chops, loops, beds, and
    transitions there.
 
 ## Optional macOS app packaging with PyInstaller

@@ -35,6 +35,7 @@ from PySide6.QtWidgets import (
 from .option_builder import OptionBuilder, OptionBuilderError
 from .output_browser import OutputBrowserPanel
 from .presets import CreativePreset, PresetError, list_presets, render_preset_options
+from .project_ingest import CorpusSource, ProjectIngestRequest, ProjectIngestResult, create_transmissions_project
 from .project import (
 	PROJECT_FILE_EXTENSION,
 	AudioGuideProject,
@@ -336,6 +337,97 @@ class GuidedTourDialog(QDialog):
 		self.next_button.setEnabled(self._index < len(self._steps) - 1)
 
 
+class ProjectIngestDialog(QDialog):
+	"""Create a structured TRANSMISSIONS project folder."""
+
+	def __init__(self, presets: list[CreativePreset], parent: QWidget | None = None):
+		super().__init__(parent)
+		self.setWindowTitle("Create TRANSMISSIONS Project")
+		self.resize(720, 520)
+
+		self.project_name_edit = QLineEdit("TRANSMISSIONS Session")
+		self.project_dir_picker = PathPicker("Project folder", "Choose project folder", "directory")
+		self.project_dir_picker.path_edit.setReadOnly(False)
+		self.project_dir_picker.path_edit.setPlaceholderText("Existing folder or new project folder path")
+		self.target_picker = PathPicker("Target", "Choose target sound file", "file")
+		self.main_corpus_picker = PathPicker("Main corpus", "Choose main corpus file or folder", "file_or_directory")
+		self.drums_picker = PathPicker("Drums", "Choose drum corpus file or folder", "file_or_directory")
+		self.vocals_picker = PathPicker("Vocals", "Choose vocal corpus file or folder", "file_or_directory")
+		self.bass_picker = PathPicker("Bass", "Choose bass corpus file or folder", "file_or_directory")
+		self.texture_picker = PathPicker("Texture", "Choose texture corpus file or folder", "file_or_directory")
+		self.noise_picker = PathPicker("Noise", "Choose noise corpus file or folder", "file_or_directory")
+		self.copy_files_check = QCheckBox("Copy source files into the project folder")
+		self.copy_files_check.setChecked(True)
+		self.take_count_spin = QSpinBox()
+		self.take_count_spin.setRange(1, 99)
+		self.take_count_spin.setValue(8)
+		self.preset_combo = QComboBox()
+		for preset in presets:
+			self.preset_combo.addItem(preset.label, preset.name)
+		default_index = self.preset_combo.findData("dusty_drum_chop")
+		if default_index >= 0:
+			self.preset_combo.setCurrentIndex(default_index)
+
+		name_layout = QHBoxLayout()
+		name_layout.addWidget(QLabel("Project name"))
+		name_layout.addWidget(self.project_name_edit, stretch=1)
+		preset_layout = QHBoxLayout()
+		preset_layout.addWidget(QLabel("Preset"))
+		preset_layout.addWidget(self.preset_combo, stretch=1)
+		preset_layout.addWidget(QLabel("Takes"))
+		preset_layout.addWidget(self.take_count_spin)
+
+		help_label = QLabel(
+			"Choose a target and at least one corpus source. The GUI creates source/, renders/, "
+			"an .agui project file, and a prep manifest. AudioGuide analysis still happens during render."
+		)
+		help_label.setWordWrap(True)
+
+		buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+		buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Create Project")
+		buttons.accepted.connect(self.accept)
+		buttons.rejected.connect(self.reject)
+
+		layout = QVBoxLayout(self)
+		layout.addWidget(help_label)
+		layout.addLayout(name_layout)
+		layout.addWidget(self.project_dir_picker)
+		layout.addWidget(self.target_picker)
+		layout.addWidget(self.main_corpus_picker)
+		layout.addWidget(self.drums_picker)
+		layout.addWidget(self.vocals_picker)
+		layout.addWidget(self.bass_picker)
+		layout.addWidget(self.texture_picker)
+		layout.addWidget(self.noise_picker)
+		layout.addLayout(preset_layout)
+		layout.addWidget(self.copy_files_check)
+		layout.addStretch(1)
+		layout.addWidget(buttons)
+
+	def ingest_request(self) -> ProjectIngestRequest:
+		"""Return the selected ingest request."""
+		sources = []
+		for role, picker in (
+			("main", self.main_corpus_picker),
+			("drums", self.drums_picker),
+			("vocals", self.vocals_picker),
+			("bass", self.bass_picker),
+			("texture", self.texture_picker),
+			("noise", self.noise_picker),
+		):
+			if picker.path:
+				sources.append(CorpusSource(role, picker.path))
+		return ProjectIngestRequest(
+			project_dir=self.project_dir_picker.path,
+			project_name=self.project_name_edit.text(),
+			target_path=self.target_picker.path,
+			corpus_sources=tuple(sources),
+			copy_files=self.copy_files_check.isChecked(),
+			preset_name=str(self.preset_combo.currentData() or "dusty_drum_chop"),
+			take_count=self.take_count_spin.value(),
+		)
+
+
 class MainWindow(QMainWindow):
 	"""AudioGuide GUI window that builds options and launches renders."""
 
@@ -364,8 +456,12 @@ class MainWindow(QMainWindow):
 		self.corpus_picker = PathPicker("Corpus folder", "Choose corpus folder", "directory")
 		self.drums_picker = PathPicker("Drums", "Choose drum corpus folder", "directory")
 		self.vocals_picker = PathPicker("Vocals", "Choose vocal corpus folder", "directory")
+		self.bass_picker = PathPicker("Bass", "Choose bass corpus folder", "directory")
+		self.texture_picker = PathPicker("Texture", "Choose texture corpus folder", "directory")
 		self.noise_picker = PathPicker("Noise", "Choose noise corpus folder", "directory")
 		self.output_picker = PathPicker("Output folder", "Choose output folder", "directory")
+		self.ingest_project_button = QPushButton("Create TRANSMISSIONS Project…")
+		self.ingest_project_button.clicked.connect(self._create_transmissions_project_clicked)
 
 		self.output_name_edit = QLineEdit("output")
 		output_name_layout = QHBoxLayout()
@@ -523,10 +619,13 @@ class MainWindow(QMainWindow):
 		self.log_output.setPlaceholderText("AudioGuide GUI log output will appear here.")
 
 		render_layout = QVBoxLayout()
+		render_layout.addWidget(self.ingest_project_button)
 		render_layout.addWidget(self.target_picker)
 		render_layout.addWidget(self.corpus_picker)
 		render_layout.addWidget(self.drums_picker)
 		render_layout.addWidget(self.vocals_picker)
+		render_layout.addWidget(self.bass_picker)
+		render_layout.addWidget(self.texture_picker)
 		render_layout.addWidget(self.noise_picker)
 		render_layout.addWidget(self.output_picker)
 		render_layout.addLayout(output_name_layout)
@@ -589,6 +688,10 @@ class MainWindow(QMainWindow):
 	def _create_project_menu(self) -> None:
 		project_menu = self.menuBar().addMenu("Project")
 
+		self.create_transmissions_project_action = QAction("New TRANSMISSIONS Project", self)
+		self.create_transmissions_project_action.triggered.connect(self._create_transmissions_project_clicked)
+		project_menu.addAction(self.create_transmissions_project_action)
+
 		self.new_project_action = QAction("New Project", self)
 		self.new_project_action.triggered.connect(self._new_project_clicked)
 		project_menu.addAction(self.new_project_action)
@@ -616,6 +719,32 @@ class MainWindow(QMainWindow):
 
 	def _show_tutorial_clicked(self) -> None:
 		self.main_tabs.setCurrentWidget(self.tutorial_panel)
+
+	def _create_transmissions_project_clicked(self) -> None:
+		dialog = ProjectIngestDialog(self._presets, self)
+		if dialog.exec() != QDialog.DialogCode.Accepted:
+			return
+		try:
+			result = create_transmissions_project(dialog.ingest_request())
+		except (OSError, ValueError) as exc:
+			self._append_log(f"Cannot create TRANSMISSIONS project: {exc}")
+			return
+		self._apply_ingested_project(result)
+
+	def _apply_ingested_project(self, result: ProjectIngestResult) -> None:
+		self._current_project_path = result.project_file
+		self._apply_config(result.config)
+		self.output_browser.clear()
+		self.take_browser.clear()
+		self._last_render_output_dir = result.config.output_dir
+		self.main_tabs.setCurrentIndex(0)
+		self._append_log(f"Created TRANSMISSIONS project: {result.project_dir}")
+		self._append_log(f"Project file: {result.project_file}")
+		self._append_log(f"Prep manifest: {result.manifest_path}")
+		self._append_log(f"Copied files: {len(result.copied_files)}")
+		for warning in result.warnings:
+			self._append_log(f"Prep warning: {warning}")
+		self._update_window_title()
 
 	def _start_guided_tour(self) -> None:
 		self._tour_dialog = GuidedTourDialog(GUIDED_TOUR_STEPS, self)
@@ -674,6 +803,8 @@ class MainWindow(QMainWindow):
 		self.take_count_spin.setValue(max(1, config.take_count))
 		self.drums_picker.set_path((config.corpus_groups.get("drums") or [""])[0])
 		self.vocals_picker.set_path((config.corpus_groups.get("vocals") or [""])[0])
+		self.bass_picker.set_path((config.corpus_groups.get("bass") or [""])[0])
+		self.texture_picker.set_path((config.corpus_groups.get("texture") or [""])[0])
 		self.noise_picker.set_path((config.corpus_groups.get("noise") or [""])[0])
 
 	def _preset_selection_changed(self, *_args: object) -> None:
@@ -752,6 +883,8 @@ class MainWindow(QMainWindow):
 		for role, picker in (
 			("drums", self.drums_picker),
 			("vocals", self.vocals_picker),
+			("bass", self.bass_picker),
+			("texture", self.texture_picker),
 			("noise", self.noise_picker),
 		):
 			if picker.path:
@@ -1015,8 +1148,11 @@ class MainWindow(QMainWindow):
 		self.corpus_picker.set_enabled(not is_running)
 		self.drums_picker.set_enabled(not is_running)
 		self.vocals_picker.set_enabled(not is_running)
+		self.bass_picker.set_enabled(not is_running)
+		self.texture_picker.set_enabled(not is_running)
 		self.noise_picker.set_enabled(not is_running)
 		self.output_picker.set_enabled(not is_running)
+		self.ingest_project_button.setEnabled(not is_running)
 		self.output_name_edit.setEnabled(not is_running)
 		self.output_formats_group.setEnabled(not is_running)
 		self.preset_group.setEnabled(not is_running)
@@ -1026,6 +1162,7 @@ class MainWindow(QMainWindow):
 		self.save_options_button.setEnabled(not is_running)
 		self.load_options_button.setEnabled(not is_running)
 		self.new_project_action.setEnabled(not is_running)
+		self.create_transmissions_project_action.setEnabled(not is_running)
 		self.open_project_action.setEnabled(not is_running)
 		self.save_project_action.setEnabled(not is_running)
 		self.save_project_as_action.setEnabled(not is_running)

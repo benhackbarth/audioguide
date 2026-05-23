@@ -36,6 +36,7 @@ TUTORIAL_SECTIONS: tuple[TutorialSection, ...] = (
 		(
 			"Collect one target sound and one or more corpus folders before rendering. The target is the rhythm, phrase, beat, or texture AudioGuide will follow; the corpus is the pile of sounds AudioGuide can cut up and reassemble.",
 			"For a simple render, start with short WAV or AIFF files in one corpus folder. For TRANSMISSIONS, keep role folders such as drums, vocals, bass, texture, and noise so the GUI can route them separately.",
+			"Use Project > New TRANSMISSIONS Project or the Create TRANSMISSIONS Project button on the Render tab when you want the GUI to copy files into a clean project folder and fill in the Render tab for you.",
 			"You usually do not need to prep files by hand. AudioGuide analyzes and segments sounds during a render, and the GUI writes the options file that points to the target and corpus folders.",
 			"Use the Tools tab when you want extra control before rendering: Segment can test or create segmentation files, Descriptors can inspect analysis data, and Granulate can make additional source material for the corpus.",
 			"If a render fails because a file is unreadable or unsupported, convert that source to WAV or AIFF outside the app, then choose the converted file or folder in the GUI.",
@@ -117,13 +118,13 @@ TUTORIAL_SECTIONS: tuple[TutorialSection, ...] = (
 GUIDED_TOUR_STEPS: tuple[GuidedTourStep, ...] = (
 	GuidedTourStep(
 		"Prep source files",
-		"Tools",
-		"Collect a target file plus corpus folders first. Most runs do not need manual prep because AudioGuide analyzes files during render, but Tools can segment, inspect descriptors, or granulate source material when you want more control.",
+		"Render",
+		"Click Create TRANSMISSIONS Project to collect a target file plus corpus folders into a clean project folder. Most runs do not need manual prep because AudioGuide analyzes files during render.",
 	),
 	GuidedTourStep(
 		"Choose sounds",
 		"Render",
-		"Go to Render. Pick the target sound file, a main corpus folder, optional role folders such as drums/vocals/noise, an existing output folder, and an output name.",
+		"Check the generated Render paths. You can also fill them manually: target sound, main corpus, optional role folders such as drums/vocals/bass/texture/noise, output folder, and output name.",
 	),
 	GuidedTourStep(
 		"Select outputs",

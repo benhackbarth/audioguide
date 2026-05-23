@@ -31,6 +31,8 @@ Collect one target sound and one or more corpus folders before rendering:
 
 For a first simple render, use short WAV or AIFF files in one corpus folder. For a TRANSMISSIONS beat/collage session, keep material organized by role so the GUI can route those folders separately on the Render tab.
 
+Use **Project > New TRANSMISSIONS Project** or **Create TRANSMISSIONS Project...** on the Render tab when you want the GUI to do the project setup. The wizard copies source audio into a clean folder, creates `source/` and `renders/`, writes an `.agui` project, and fills in the Render tab for you.
+
 You usually do **not** need to prep files by hand. AudioGuide analyzes and segments sounds during a render, and the GUI writes the options file that points to your target and corpus folders.
 
 Use the **Tools** tab when you want extra control before rendering:
@@ -84,7 +86,7 @@ Use **Pool %**, **Max seg**, **Overlap**, **Gain**, and the **Density**, **Chop*
 
 Set **Takes** to create batch variations. Set **Seed** when you want repeatable variation; each take increments the seed by one.
 
-Use role-specific corpus folders such as **Drums**, **Vocals**, and **Noise** when you want AudioGuide to preserve source roles in generated options.
+Use role-specific corpus folders such as **Drums**, **Vocals**, **Bass**, **Texture**, and **Noise** when you want AudioGuide to preserve source roles in generated options.
 
 ## 8. Advanced TRANSMISSIONS: audition and curate takes
 

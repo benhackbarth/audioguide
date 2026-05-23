@@ -11,6 +11,7 @@ class TutorialContentTest(unittest.TestCase):
 		html = render_tutorial_html()
 		self.assertIn("AudioGuide GUI Tutorial", html)
 		self.assertIn("Collect and prep your source files", html)
+		self.assertIn("Create TRANSMISSIONS Project", html)
 		self.assertIn("AudioGuide analyzes and segments sounds during a render", html)
 		self.assertIn("Simple render: choose source and output paths", html)
 		self.assertIn("Advanced TRANSMISSIONS: audition and curate takes", html)
