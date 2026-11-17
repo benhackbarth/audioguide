@@ -237,9 +237,10 @@ class PartialData:
 
 		fh = tempfile.NamedTemporaryFile(mode='w', suffix='.csd', delete=False)
 		tmpCsdFile = fh.name
-		csound.makePartialRendering(tmpCsdFile, renderfilepath, csound_ftables, csound_notes)
+		fh.write(csound.makePartialRendering(renderfilepath, csound_ftables, csound_notes))
+		fh.close()
 		csound.render(tmpCsdFile, len(csound_notes), printerobj=None)
-		os.remove(dataRegistryPathTmp)
+		os.remove(tmpCsdFile)
 
 
 

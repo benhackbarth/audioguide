@@ -396,13 +396,12 @@ e
 
 
 
-def makePartialRendering(outputCsdPath, outputSoundfilePath, scoreftables, scorenotes):
+def makePartialRendering(outputSoundfilePath, scoreftables, scorenotes):
 	scoreText = ''
 	for ft in scoreftables: scoreText += ' '.join([str(f) for f in ft]) + '\n'
 	for n in scorenotes: scoreText += ' '.join([str(f) for f in n]) + '\n'
 
-	fh = open(outputCsdPath, 'w')
-	fh.write( '''<CsoundSynthesizer>
+	return '''<CsoundSynthesizer>
 <CsOptions>
 -o "%s" --format=%s
 </CsOptions>
@@ -455,7 +454,7 @@ endin
 %s
 e
 </CsScore>
-</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], scoreText) )
+</CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], scoreText)
 
 
 
