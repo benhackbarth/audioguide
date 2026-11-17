@@ -1,12 +1,8 @@
 import sys, os, json
 import numpy as np
+import librosa
 import audioguide.util
 import audioguide.fileoutput.csoundinterface as csound
-
-try:
-	import librosa
-except ImportError:
-	audioguide.util.missing_module('librosa')
 
 
 def find_nonzero_runs(a):

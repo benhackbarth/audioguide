@@ -161,7 +161,7 @@ class parseOptionsV2:
 	def createAnalInterface(self, p):
 		import anallinkage
 		p.log("ORDERED SEARCH PATH: %s"%self.SEARCH_PATHS)
-		self.analinterface = anallinkage.AnalInterface(userWinLengthSec=self.DESCRIPTOR_WIN_SIZE_SEC, userHopLengthSec=self.DESCRIPTOR_HOP_SIZE_SEC, userEnergyHopLengthSec=self.DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC, resampleRate=self.IRCAMDESCRIPTOR_RESAMPLE_RATE, windowType=self.IRCAMDESCRIPTOR_WINDOW_TYPE, F0MaxAnalysisFreq=self.IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ, F0MinFrequency=self.IRCAMDESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.IRCAMDESCRIPTOR_F0_MAX_FREQUENCY, F0AmpThreshold=self.IRCAMDESCRIPTOR_F0_AMP_THRESHOLD, numbMfccs=self.IRCAMDESCRIPTOR_NUMB_MFCCS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.internal_search_paths+self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
+		self.analinterface = anallinkage.AnalInterface(resampleRate=self.DESCRIPTOR_RESAMPLE_RATE, userFftSize=self.DESCRIPTOR_FFT_SIZE, userHopSize=self.DESCRIPTOR_HOP_SIZE, userRmsFftSize=self.DESCRIPTOR_RMS_WIN_SIZE_SEC, userRmsHopSize=self.DESCRIPTOR_RMS_HOP_SIZE_SEC,   F0MinFrequency=self.DESCRIPTOR_F0_MIN_FREQUENCY, F0MaxFrequency=self.DESCRIPTOR_F0_MAX_FREQUENCY,  numbMfccs=self.DESCRIPTOR_NUMB_MFCCS, numbMels=self.DESCRIPTOR_NUMB_MELS, forceAnal=self.DESCRIPTOR_FORCE_ANALYSIS, searchPaths=self.internal_search_paths+self.SEARCH_PATHS, p=p, dataDirectoryLocation=self.DESCRIPTOR_OVERRIDE_DATA_PATH)
 		self.analinterface.setupDescriptors(self)
 		return self.analinterface
 	#############################

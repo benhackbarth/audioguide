@@ -358,16 +358,20 @@ def pearsonCorr(x,y):
 	return num / den, None
 
 
+def missing_module(modulename):
+	print("\n\nTo use AudioGuide you need to install Python3's %s package. To install it on OSX, run the following command in Terminal.app:"%modulename)
+	print("\nsudo easy_install pip; %s -m pip install %s\n"%(sys.executable, modulename))
+	sys.exit(1)
 
 def dtwDist(x,y):
 	try:
 		from fastdtw import fastdtw
 	except ImportError:
-		util.missing_module('fastdtw')
+		missing_module('fastdtw')
 	try:
 		from scipy.spatial.distance import euclidean
 	except ImportError:
-		util.missing_module('scipy')
+		missing_module('scipy')
 	"""Dynamic Time Warping Distance"""
 	dist, path_data = fastdtw(x, y, dist=euclidean)
 	#print('\n\n', path_data, '\n\n')

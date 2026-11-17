@@ -1,13 +1,6 @@
 # See the 'Creating Notated Scores' section of the documentation
 
 
-#discuss
-#
-#wholeFileMinStart
-#clipDurationToTarget
-#scaleDb='filenamedyn'
-
-
 
 TARGET = tsf('cage.aiff', thresh=-36, offsetRise=1.5)
 
@@ -51,9 +44,6 @@ CORPUS_GLOBAL_ATTRIBUTES = {
 
 INSTRUMENTS = score(
 instr('violin', polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('violin', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]), # To Go from X to Y delay of Z sec
-instr('viola', clef='Alto', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8,),
-instr('cello', clef='F', minspeed=0.1, polyphony_minspeed=0.4, polyphony_max_voices=2, polyphony_min_range=3, polyphony_max_range=8, technique_switch_delay_map=[('pizz', 'arco', 0.4), ('arco', 'pizz', 0.6)]),
 )
 
 
@@ -63,7 +53,7 @@ spass('closest', d('mfccs-seg')),
 ]
 
 
-
+CSOUND_CHANNEL_RENDER_METHOD = 'oneChannelPerOverlap'
 #CSOUND_CHANNEL_RENDER_METHOD = 'oneChannelPerInstrument' # writes each instrument to its own channel in the output sound file.
 
 

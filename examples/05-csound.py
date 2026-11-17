@@ -41,19 +41,20 @@ CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = None # which does not perform temporal man
 #CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "pv" # phase vocoder (will not change pitch)
 #CSOUND_STRETCH_CORPUS_TO_TARGET_DUR = "transpose" # tape-head transposition (will change pitch, but not as "phasy")
 
-
 ################################################################################
 ## By default Csound creates a soundfile where the number of channels is      ##
 ## equal to the maxmimum number of channels found in the corpus - corpus      ##
 ## files may have different channel counts. This option is called "corpusmax" ##
 ################################################################################
 CSOUND_CHANNEL_RENDER_METHOD = "corpusmax"
+
 ################################################################################
 ## You can also create a stereo file where stereo corpus sounds are put       ##
 ## into L and R and mono sounds are put into the L and R channels equally.    ##
 ## This option is called "stereo":                                            ##
 ################################################################################
 #CSOUND_CHANNEL_RENDER_METHOD = "stereo"
+
 ################################################################################
 ## There are two other posibilities.  "oneChannelPerVoice" creates an         ##
 ## output soundfile where each corpus entry is given its own channel.  Since  ##
@@ -62,6 +63,7 @@ CSOUND_CHANNEL_RENDER_METHOD = "corpusmax"
 ## have as many channels as there are entries in the CORPUS variable:         ##
 ################################################################################
 #CSOUND_CHANNEL_RENDER_METHOD = "oneChannelPerVoice"
+
 ################################################################################
 ## A fourth option is called "oneChannelPerOverlap".  Here corpus sounds are  ##
 ## put into different channels based on how densely corpus sounds overlap.    ##

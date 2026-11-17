@@ -45,7 +45,7 @@ csf('lachenmann.aiff', scaleDb=-6, onsetLen='20%'), # <- scaleDb and onsetLen wi
 SEARCH = [
 spass('ratio_limit', d('effDur-seg'), maxratio=1),
 spass('closest_percent', d('power-seg', norm=1), percent=20),
-spass('closest', d('mfccs'))
+spass('closest', d('contrasts'))
 ]
 
 

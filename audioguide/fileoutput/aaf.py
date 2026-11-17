@@ -7,10 +7,15 @@ import audioguide.util as util
 
 '''Creates an aaf output file for logic / pro tools.'''
 
+def missing_module(modulename):
+	print("\n\nTo use AudioGuide you need to install Python3's %s package. To install it on OSX, run the following command in Terminal.app:"%modulename)
+	print("\nsudo easy_install pip; %s -m pip install %s\n"%(sys.executable, modulename))
+	sys.exit(1)
+
 try:
 	import aaf2
 except ImportError:
-	util.missing_module('pyaaf2')
+	missing_module('pyaaf2')
 
 class output:
 	def __init__(self, aaf_filepath, aaf_sr=44100):

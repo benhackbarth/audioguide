@@ -4,9 +4,6 @@
 ############################################################################
 
 
-# requires librosa, to install:
-# python3 -m pip install --user librosa scipy
-
 import os, json
 import audioguide.util as util
 
@@ -47,18 +44,10 @@ def decomposeTargetSf(filename, startsec, endsec, params, directory=None):
 
 
 
-
-
-
 def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize):
 	'''pitch/noise separation
 		creates an output soundfile that is the length of the inputsoundfile * 2'''
-	try:
-		import librosa
-	except ImportError:
-		util.missing_module('librosa')
-
-	import numpy, scipy
+	import numpy
 	import soundfile as sf
 	print("Decomposing %s into pitch/noise audio streams"%(inputsoundfile))
 	if endsec == None: durationsec = None
@@ -74,17 +63,10 @@ def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize
 
 
 
-
-
 def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fftsize, hopsize, sparseDictLearn=False):
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
-	try:
-		import librosa
-	except ImportError:
-		util.missing_module('librosa')
-
-	import numpy, scipy
+	import numpy
 	import soundfile as sf
 	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	
@@ -107,7 +89,7 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	# ifft for each decomposed signals, write to disk
 	outputsamples = numpy.zeros(len(x)*n_components)
 	for n in range(n_components):
-		Y = scipy.outer(W[:,n], H[n])*numpy.exp(1j*numpy.angle(S))
+		Y = numpy.outer(W[:,n], H[n])*numpy.exp(1j*numpy.angle(S))
 		y = librosa.istft(Y, hop_length=hopsize, win_length=fftsize)
 		outputsamples[n*len(x):(n*len(x))+len(y)] = y
 	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)

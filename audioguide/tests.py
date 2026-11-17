@@ -8,8 +8,9 @@ import audioguide.util as util
 
 
 def testOpsDict(dicty):
-	#print(UserVar_types)
-	for name, value in dicty.items(): testOption(name, value)
+	for name, value in dicty.items():
+		testOption(name, value)
+		
 
 def testOption(name, value):
 	#print (name, value)
@@ -177,17 +178,15 @@ UserVar_types = {
 'DESCRIPTOR_DATABASE_AGE_LIMIT': ['a number greater than zero'],
 'DESCRIPTOR_OVERRIDE_DATA_PATH': ['None', 'a string'],
 'DESCRIPTOR_FORCE_ANALYSIS': ['True or False'],
-'DESCRIPTOR_WIN_SIZE_SEC': ['a number greater than zero'],
-'DESCRIPTOR_HOP_SIZE_SEC': ['a number greater than zero'],
-'DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC': ['a number greater than zero'],
-'IRCAMDESCRIPTOR_RESAMPLE_RATE': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_WINDOW_TYPE': ['blackman', 'hanning', 'hamming', 'hanning2'],
-'IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_F0_MIN_FREQUENCY': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_F0_MAX_FREQUENCY': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_F0_AMP_THRESHOLD': ['an integer greater than zero'],
-'IRCAMDESCRIPTOR_F0_QUALITY': ['an integer greater than zero'], # DEPRECATED
-'IRCAMDESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
+'DESCRIPTOR_FFT_SIZE': ['a number greater than zero'],
+'DESCRIPTOR_HOP_SIZE': ['a number greater than zero'],
+'DESCRIPTOR_RMS_WIN_SIZE_SEC': ['a number greater than zero'],
+'DESCRIPTOR_RMS_HOP_SIZE_SEC': ['a number greater than zero'],
+'DESCRIPTOR_RESAMPLE_RATE': ['an integer greater than zero'],
+'DESCRIPTOR_F0_MIN_FREQUENCY': ['an integer greater than zero'],
+'DESCRIPTOR_F0_MAX_FREQUENCY': ['an integer greater than zero'],
+'DESCRIPTOR_NUMB_MFCCS': ['an integer greater than zero'],
+'DESCRIPTOR_NUMB_MELS': ['an integer greater than zero'],
 'DYNAMIC_TO_DECIBEL': ['None', 'a dictionary'],
 'FILENAMESTRING_TO_DYNAMICS': ['None', 'a dictionary'],
 
@@ -283,18 +282,17 @@ OptionChangeToProgramRun = {
 "DESCRIPTOR_DATABASE_AGE_LIMIT": "concate",
 "DESCRIPTOR_OVERRIDE_DATA_PATH": "reinit",
 "DESCRIPTOR_FORCE_ANALYSIS": "reinit",
-"DESCRIPTOR_WIN_SIZE_SEC": "reinit",
-"DESCRIPTOR_HOP_SIZE_SEC": "reinit",
-"DESCRIPTOR_ENERGY_ENVELOPE_HOP_SEC": "reinit",
 
-"IRCAMDESCRIPTOR_RESAMPLE_RATE": "reinit",
-"IRCAMDESCRIPTOR_WINDOW_TYPE": "reinit",
-"IRCAMDESCRIPTOR_F0_MAX_ANALYSIS_FREQ": "reinit",
-"IRCAMDESCRIPTOR_F0_MIN_FREQUENCY": "reinit",
-"IRCAMDESCRIPTOR_F0_MAX_FREQUENCY": "reinit",
-"IRCAMDESCRIPTOR_F0_AMP_THRESHOLD": "reinit",
-"IRCAMDESCRIPTOR_F0_QUALITY": "reinit",
-"IRCAMDESCRIPTOR_NUMB_MFCCS": "reinit",
+"DESCRIPTOR_RESAMPLE_RATE": "reinit",
+"DESCRIPTOR_FFT_SIZE": "reinit",
+"DESCRIPTOR_HOP_SIZE": "reinit",
+"DESCRIPTOR_RMS_WIN_SIZE_SEC": "reinit",
+"DESCRIPTOR_RMS_HOP_SIZE_SEC": "reinit",
+
+"DESCRIPTOR_F0_MIN_FREQUENCY": "reinit",
+"DESCRIPTOR_F0_MAX_FREQUENCY": "reinit",
+"DESCRIPTOR_NUMB_MFCCS": "reinit",
+"DESCRIPTOR_NUMB_MELS": "reinit",
 
 "DYNAMIC_TO_DECIBEL": "corpus",
 "FILENAMESTRING_TO_DYNAMICS": "corpus",

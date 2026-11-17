@@ -5,13 +5,27 @@
 
 __author__ = "Benjamin Hackbarth, Norbert Schnell, Philippe Esling, Diemo Schwarz, Gilbert Nouno"
 __author_email__ = "hackbarth@gmail.com"
-__version__ = "1.79"
-
-
+__version__ = "1.8"
 
 
 import sys, os, operator, platform, json
-import numpy as np
+
+
+def missing_module(modulename):
+	print("\n\nTo use AudioGuide you need to install Python3's %s package. To install it on OSX, run the following command in Terminal.app:"%modulename)
+	print("\nsudo easy_install pip; %s -m pip install %s\n"%(sys.executable, modulename))
+	sys.exit(1)
+
+try:
+	import numpy as np
+except ImportError:
+	missing_module('numpy')
+try:
+	import librosa
+except ImportError:
+	missing_module('librosa')
+
+
 
 import audioguide.util as util
 import audioguide.sfsegment as sfsegment

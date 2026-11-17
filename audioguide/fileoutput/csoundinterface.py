@@ -342,7 +342,7 @@ endin
 e
 </CsScore>
 </CsoundSynthesizer>'''%(outputSoundfilePath, os.path.splitext(outputSoundfilePath)[1][1:], bitflag, useTargetAmplitude, sr, kr, nchnls, instru2helpstring(), scoreText) )
-
+	fh.close()
 
 
 
@@ -529,7 +529,7 @@ def normalize(file, db=-3):
 
 
 def playFile(file):
-	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'Windows': 'mplay32 \play'}
+	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'Windows': r'mplay32 \play'}
 	command = '%s "%s"'%(commandLinePlayers[platform.system()], file)
 	try:
 		cs = subprocess.call(command, shell=True)

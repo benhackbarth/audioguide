@@ -38,13 +38,13 @@ SUPERIMPOSE = si(maxSegment=1)
 ################################################################################
 
 SEARCH = [
-spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
+spass('closest', d('flatness'), d('effDur-seg', norm=1))
 ]
 
 # try uncommenting below...
 #SEARCH = [
 #spass('closest_percent', d('effDur-seg', norm=1), percent=25),
-#spass('closest', d('mfccs'))
+#spass('closest', d('flatness'))
 #]
 
 
@@ -57,7 +57,7 @@ spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 ################################################################################
 #SEARCH = [
 #spass('closest_percent', d('effDur-seg', norm=1), d('power-seg', norm=1), percent=25), # only the 25% best matching segments make it through to the next spass()
-#spass('closest', d('flatnesses-seg')) # picks a winning segment.
+#spass('closest', d('flatness')) # picks a winning segment.
 #]
 
 
@@ -78,10 +78,10 @@ spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 ## Sometimes duration may not matter at all.  Here, the SEARCH list has a     ##
 ## first spass() which matches pitch (using f0-seg) as a ratio.               ##
 ################################################################################
-#SEARCH = [
-#spass('ratio_limit', d('f0-seg'),  minratio=0.943, maxratio=1.059), # only corpus segments within a semitone of the target segment's f0 get past.
-#spass('closest', d('power-seg'), d('power-slope-seg')) # picks a winning segment.
-#]
+# SEARCH = [
+# spass('ratio_limit', d('centroid-seg'),  minratio=0.943, maxratio=1.059), # only corpus segments within a semitone of the target segment's centroid get past.
+# spass('closest', d('power-seg'), d('power-slope-seg')) # picks a winning segment.
+# ]
 
 
 ################################################################################
@@ -94,8 +94,3 @@ spass('closest', d('flatnesses-seg'), d('effDur-seg', norm=1))
 #]
 
 
-
-
-
-# not yet documented....
-# spass('closest_parse', 'noisiness-seg < 0.6', [d('mfccs-seg')], [d('f0')])

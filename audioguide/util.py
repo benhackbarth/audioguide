@@ -7,7 +7,7 @@ from math import log10, log
 import sys, os, subprocess, random
 import numpy as np
 
-audioguide_lady = '''
+audioguide_lady = r'''
           ,)(8)).
         (()))())()).
        (()"````"::= )
@@ -53,15 +53,6 @@ def error(errorType, errorData, exitcode=1):
 	exit(exitcode)
 
 
-
-def missing_module(modulename, exitcode=1):
-	print("\n\nYou are missing python's %s package. To install with pip, try the following terminal command:"%modulename)
-	print("\n%s -m pip install %s\n"%(sys.executable, modulename))
-	print("\nif you do not have pip, run: sudo easy_install pip\n\n")
-	exit(exitcode)
-
-
-
 def bold(string):
 	return "\033[1m"+str(string)+"\033[0;0m"
 
@@ -87,8 +78,7 @@ def quantize(value, interval):
 
 
 def ampToDb(amp):
-	return (20*log10(max(amp, 0.0000000000001))) # amp to dB
-
+	return 20 * np.log10(np.maximum(amp, 1e-13))
 
 def dbToAmp(db):
 	return pow(10, db/20.0) # dB to amp
@@ -131,6 +121,7 @@ def readAudacityLabelFile(path):
 	timeList = []
 	audacityLabels = open(path, 'r')
 	lines = audacityLabels.readlines()
+	audacityLabels.close()
 	# in case it was made in audacity and has a '\r' for a carriage return!
 	try:
 		if len(lines) == 1 and lines[0].find('\r') != -1:

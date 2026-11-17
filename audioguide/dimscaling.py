@@ -1,6 +1,9 @@
 import numpy as np
-import util
-
+import util, os
+#from scipy.stats import skew
+#from scipy.stats import kurtosis
+#from pydub import AudioSegment
+#from pydub.playback import play
 
 
 
@@ -12,7 +15,7 @@ def buildarray_all_timevarying_descriptors(sfobjlist, descriptorlist, AnalInterf
 	cnt = 0
 	for sf in all_sfs:
 		for didx, d in enumerate(tv_descriptors):
-			dvalues = AnalInterface.rawData[sf]['ircamd'][:,AnalInterface.rawData[sf]['info']['ircamd_columns'][d.name]]
+			dvalues = AnalInterface.rawData[sf]['librosad'][:,AnalInterface.rawData[sf]['info']['librosad_columns'][d.name]]
 			matrix[cnt:cnt+len(dvalues),didx] = dvalues
 		cnt += AnalInterface.rawData[sf]['arraylen']
 	
@@ -20,9 +23,9 @@ def buildarray_all_timevarying_descriptors(sfobjlist, descriptorlist, AnalInterf
 	import umap
 	mapper = umap.UMAP(n_neighbors=20, min_dist=0., n_components=n_dimensions, metric='euclidean')
 	reduceddata = mapper.fit_transform(matrix)
-	print(reduceddata)
+	#print(reduceddata)
 
-	print("adding new columns to ircamd arrays")
+	print("adding new columns to librosad arrays")
 	cnt = 0
 	for sf in all_sfs:
 		AnalInterface.desc_manager.sffile2matrix[sf].add_columns(reduceddata[cnt:cnt+AnalInterface.rawData[sf]['arraylen']], ['X','Y'])
@@ -30,6 +33,31 @@ def buildarray_all_timevarying_descriptors(sfobjlist, descriptorlist, AnalInterf
 
 
 
+
+class vizsegment:
+	def __init__(self, tag, norm, segmentobj, matrixrow):
+		self.tag = tag
+		if norm == None:
+			self.norm = False
+		else:
+			self.norm = True
+		self.segobj = segmentobj
+		self.matrixrow = matrixrow
+		self.lenf = segmentobj.lengthInFrames
+		if hasattr(segmentobj, 'voiceID'):
+			self.voiceId = segmentobj.voiceID
+		else:
+			self.voiceId = -1 # target
+		self.annotation = segmentobj.printName
+		if segmentobj.segmentStartSec > 0:
+			self.annotation += '@%.1f'%segmentobj.segmentStartSec
+	def get_x(self, matrix):
+		return matrix[self.matrixrow][0]
+	def get_y(self, matrix):
+		return matrix[self.matrixrow][1]
+	def get_color(self, filelist, colormap):
+		return colormap((filelist.index(self.segobj.printName))/float(len(filelist)))
+		
 
 ########################
 ## make array for MDS ##
@@ -39,109 +67,43 @@ class dimensionalReduceData:
 	registry = {}
 	cnt = 0
 	previous_transforms = {'scale': 1, 'rotate': 0, 'shift': [0, 0]}
+	gridify_moved_points = {}
 	
 	def __init__(self):
-		pass
-
-	def addsoundsAndBuildV2(self, segmentobjlist, descriptorlist, norm=None, tag=None):
-		from scipy.stats import skew
-		from scipy.stats import kurtosis
-
 		self.cnt = 0 # reset
-		
-		if tag not in self.registry: self.registry[tag] = {'segobjs': [], 'descslice': [], 'matrixloc': [], 'voiceID': [], 'cps_annotations': []}
+		self.cps_filelist = []
+		self.segments = []
+		self.audiosegmentobjs = {}
+
+	def addsoundsV2(self, segmentobjlist, norm=None, tag=None):
 		for segmentobj in segmentobjlist:
-			self.registry[tag]['segobjs'].append(segmentobj)
-			self.registry[tag]['matrixloc'].append(self.cnt)
-			self.registry[tag]['descslice'].append([0, segmentobj.lengthInFrames])
-			self.cnt += 1		
-			if tag == 'cps':
-				self.registry[tag]['voiceID'].append(segmentobj.voiceID)
-				annotation = segmentobj.printName
-				if segmentobj.segmentStartSec > 0:
-					annotation += '@%.1f'%segmentobj.segmentStartSec
-				self.registry[tag]['cps_annotations'].append(annotation)
+			self.segments.append(vizsegment(tag, norm, segmentobj, self.cnt))
+			self.cnt += 1
+			if segmentobj.printName not in self.cps_filelist:
+				self.cps_filelist.append(segmentobj.printName)
+			#	self.audiosegmentobjs[segmentobj.filename] = AudioSegment.from_wav(segmentobj.filename)
 
 
-		MAKE_STATS = False
-		#self.descriptorlist = ['mfcc1', 'mfcc2', 'mfcc3', 'mfcc4', 'mfcc5', 'mfcc6', 'mfcc7', 'mfcc8', 'mfcc9', 'mfcc10', 'mfcc11', 'mfcc12'] #descriptorlist
-		self.descriptorlist = ['chroma0', 'chroma1', 'chroma2', 'chroma3', 'chroma4', 'chroma5', 'chroma6', 'chroma7', 'chroma8', 'chroma9', 'chroma10', 'chroma11'] #descriptorlist
-		matrix_width = len(self.descriptorlist)
-		if MAKE_STATS: matrix_width *= 6
-		self.matrix = np.empty((self.cnt, matrix_width))
-		for tag in self.registry:
-			for segobj, descslice, matrixloc in zip(self.registry[tag]['segobjs'], self.registry[tag]['descslice'], self.registry[tag]['matrixloc']):
-				this_row = []
-				desc_powers = segobj.desc.get('power', start=descslice[0], stop=descslice[1])
-				for didx, dname in enumerate(self.descriptorlist):
-					desc_data = segobj.desc.get(dname, start=descslice[0], stop=descslice[1])
-					this_row.append(np.average(desc_data, weights=desc_powers))
-					if MAKE_STATS:
-						datas = [np.min(desc_data), np.max(desc_data), np.std(desc_data), skew(desc_data), kurtosis(desc_data)]
-						this_row.extend(datas)
-					# diff
-#					desc_data = np.diff(desc_data)
-#					datas = [np.average(desc_data), np.min(desc_data), np.max(desc_data), np.std(desc_data), skew(desc_data), kurtosis(desc_data)]
-#					this_row.extend(datas)
-
-				self.matrix[matrixloc] = this_row
-				print(self.matrix[matrixloc], matrixloc)
-
-
-		# get spans for tag
-		for tag in self.registry:
-			self.registry[tag]['span'] = [self.registry[tag]['matrixloc'][0], self.registry[tag]['matrixloc'][-1]+(self.registry[tag]['descslice'][-1][1]-self.registry[tag]['descslice'][-1][0])]
-
-
-
-	def addsounds(self, segmentobjlist, method='allframes', tag=None):
-		if tag not in self.registry: self.registry[tag] = {'segobjs': [], 'descslice': [], 'matrixloc': [], 'voiceID': [], 'cps_annotations': []}
-		for segmentobj in segmentobjlist:
-			self.registry[tag]['segobjs'].append(segmentobj)
-			self.registry[tag]['matrixloc'].append(self.cnt)
-			if method == 'allframes': # add every frame of this sound
-				self.registry[tag]['descslice'].append([0, segmentobj.lengthInFrames])
-				self.cnt += segmentobj.lengthInFrames
-			elif method == 'peakframe': # add only the peak frame of this sound
-				peakf = np.argmax(list(segmentobj.desc.get('power')))
-				self.registry[tag]['descslice'].append([peakf, peakf+1])
-				self.cnt += 1
-			elif method == 'static_stats': # many stats to represent TV arrays
-				self.registry[tag]['descslice'].append([0, segmentobj.lengthInFrames])
-				self.cnt += 1
-
-			if tag == 'cps':
-				self.registry[tag]['voiceID'].append(segmentobj.voiceID)
-
-				annotation = segmentobj.printName
-				if segmentobj.segmentStartSec > 0:
-					annotation += '@%.1f'%segmentobj.segmentStartSec
-				self.registry[tag]['cps_annotations'].append(annotation)
-
-		
-	def buildarray(self, descriptorlist, type='raw', norm=None):
+	def buildV2(self, descriptorlist, MAKE_STATS=False):
 		self.descriptorlist = descriptorlist
-		self.matrix = np.empty((self.cnt, len(self.descriptorlist)))
-		for tag in self.registry:
-			for segobj, descslice, matrixloc in zip(self.registry[tag]['segobjs'], self.registry[tag]['descslice'], self.registry[tag]['matrixloc']):
-				for didx, d in enumerate(descriptorlist):
-					if type == 'raw':
-						self.matrix[matrixloc:matrixloc+descslice[1]-descslice[0]:,didx] = segobj.desc.get(d.name, start=descslice[0], stop=descslice[1])
-					elif type == 'norm':
-						self.matrix[matrixloc:matrixloc+descslice[1]-descslice[0]:,didx] = segobj.desc.get(d.name, start=descslice[0], stop=descslice[1], norm=True)
-						
-		# get spans for tag
-		for tag in self.registry:
-			self.registry[tag]['span'] = [self.registry[tag]['matrixloc'][0], self.registry[tag]['matrixloc'][-1]+(self.registry[tag]['descslice'][-1][1]-self.registry[tag]['descslice'][-1][0])]
-#  TESTING
-#		for tag in self.registry:
-#			for sobj, descslice, mloc in zip(self.registry[tag]['segobjs'], self.registry[tag]['descslice'], self.registry[tag]['matrixloc']):
-#				print(sobj.filename, descslice,mloc, sobj.lengthInFrames, self.matrix[mloc])
-#
+		self.matrix = np.empty((len(self.segments), len(self.descriptorlist)))
+		for sidx, s in enumerate(self.segments):
+			this_row = []
+			desc_powers = s.segobj.desc.get('power', start=0, stop=s.lenf)
+			for didx, dname in enumerate(self.descriptorlist):
+				desc_data = s.segobj.desc.get(dname, start=0, stop=s.lenf)
+				if sum(desc_powers) > 0:
+					this_row.append(np.average(desc_data, weights=desc_powers))
+				else:
+					this_row.append(np.average(desc_data))
+			self.matrix[sidx] = this_row
+			
+		
+
 
 
 	# for click+play callbacks
-	def scale(self, method='umap', n_neighbors=20, min_dist=0.1, n_dimensions=2, metric='euclidean'):
+	def scale(self, method='umap', n_neighbors=10, min_dist=0.4, n_dimensions=2, metric='euclidean'):
 		self.n_dimensions = n_dimensions
 		if method == 'umap':
 			import umap
@@ -205,71 +167,185 @@ class dimensionalReduceData:
 		cps = self.registry['cps']['segobjs'][segobjidx]
 		#mu.executeCommand("afplay %s"%self.registry['cps']['segobjs'][segobjidx].filename)
 
-	def plot(self, path=None):
-		try:
-			import liblo
-		except ImportError:
-			print(ImportError, "liblo package needs to be installed for OSC max callbacks.")
 
-		# send all messages to port 1234 on the local machine
-		try:
-			 self.osc_target = liblo.Address(1234)
-		except liblo.AddressError:
-			 sys.exit()		
+	def gridify(self, numberpointsxy=(20, 20), plot=True):
+		origmins = np.min(self.reduceddata, axis=0)
+		origmaxs = np.max(self.reduceddata, axis=0)
+		
+		x_slots = np.linspace(origmins[0], origmaxs[0], num=numberpointsxy[0])
+		y_slots = np.linspace(origmins[1], origmaxs[1], num=numberpointsxy[1])
+		
+		slot_assignments = {}
+		for xidx, x in enumerate(x_slots):
+			for yidx, y in enumerate(y_slots):
+				slot_assignments[(xidx, yidx)] = {'x': x, 'y': y, 'list': []}
+
+		for idx, (x, y) in enumerate(self.reduceddata):
+			x_win = np.argmin(np.abs(x_slots-x))
+			y_win = np.argmin(np.abs(y_slots-y))
+			slot_assignments[(x_win, y_win)]['list'].append((x, y, idx))
+					
+		while True:
+			# test for overflowed slot
+			slot = None
+			for (xidx, yidx) in slot_assignments:
+				if len(slot_assignments[(xidx, yidx)]['list']) > 1:
+					slot = (xidx, yidx)
+					break
+			if slot == None: break # we are done
+			worst_matching_in_overflowed_slot = [((slot_assignments[slot]['x']-x)**2) + ((slot_assignments[slot]['y']-y)**2) for (x, y, idx) in slot_assignments[slot]['list']]
+			slot_list_idx_to_move = np.argmax(worst_matching_in_overflowed_slot)
+			movex, movey, moveidx = slot_assignments[slot]['list'][slot_list_idx_to_move]
+			step_cnt = 1
+			while True:
+				free_slots_around_it = [(x, y) for x in range(slot[0]-step_cnt, slot[0]+step_cnt+1) for y in range(slot[1]-step_cnt, slot[1]+step_cnt+1) if (x, y) in slot_assignments and (x, y) != slot and len(slot_assignments[(x, y)]['list']) == 0]
+				if len(free_slots_around_it) > 0: break
+				step_cnt += 1
+			distances_to_free_slot = [((slot_assignments[(x, y)]['x']-movex)**2) + ((slot_assignments[(x, y)]['y']-movey)**2) for (x, y) in free_slots_around_it]
+			closest_free_slot = free_slots_around_it[np.argmin(distances_to_free_slot)]
+			slot_assignments[closest_free_slot]['list'].append((movex, movey, moveidx))
+			slot_assignments[slot]['list'].remove((movex, movey, moveidx))
+			if plot:
+				self.gridify_moved_points[tuple(self.reduceddata[moveidx])] = (slot_assignments[closest_free_slot]['x'], slot_assignments[closest_free_slot]['y'])
+
+		# we are done
+		newdata = []
+		for (slotx, sloty), d in slot_assignments.items():
+			if len(d['list']) == 0: continue
+			assert len(d['list']) == 1
+			newdata.append((d['x'], d['y'], d['list'][0][2]))
+		
+		from operator import itemgetter
+		newdata = sorted(newdata, key=itemgetter(2))
+		self.reduceddata = np.array(newdata)[:,[0, 1]]
+	
+
+	def plottarget(self, axis, x, y, selected, shadow_draw=False, writelabels=False, s=4):
+		minlinwidth = 1.2
+		maxlinewidth = 8
+	
+	
+		if shadow_draw:
+			bluecolor = '0.7' 
+			bluecolorLC = (0.75, 0.75, 0.75, 0.5)
+		else:
+			bluecolor = (0., 0., 1.)
+			bluecolorLC = (0.5, 0.5, 1, 0.5)
+# 		maxpowers = np.array([max(ps) for ps in powers])
+# 		minny = np.min(maxpowers)
+# 		rangy = np.max(maxpowers)-minny
+# 		powerSizes = (maxpowers-minny)/rangy
+# 		powerSizes *= maxlinewidth-minlinwidth
+# 		powerSizes += minlinwidth
+# 		faceCs = []
+# 		powerSizesSelected = []
+	
+		color = []
+		for b in selected: 
+			if b: color.append('limegreen')
+			else: color.append('blue')
+		
+		if shadow_draw:
+			linetype = '--'
+			dashes=[2]
+		else:
+			linetype = '-'
+			dashes=[]
+		axis.plot(x, y, linetype, marker='s', c=bluecolorLC, mfc=bluecolor, mec=bluecolor, markersize=s, dashes=dashes)
+
+		if not shadow_draw and writelabels:
+			for pidx, (xp, yp) in enumerate(zip(x, y)):
+				axis.text(xp, yp, str(pidx))
+	
+
+	def plot(self, path=None, plotTarget=False, tgtmapping=None):		 
 		import matplotlib.pyplot as plt
 		import matplotlib.cm as cm
 		from mpl_toolkits.mplot3d import Axes3D
 		import matplotlib.path as mpath
 		import matplotlib.patches as mpatches
 		
-		self.fig = plt.figure()
+		self.fig = plt.figure(figsize=(8, 5), dpi=200)
 		self.ax = self.fig.add_subplot(111)
 
-		# plot target traj
-		plotTarget = False
+		self.tgtmapping = tgtmapping
+		for tgtidx, cpsdict in self.tgtmapping.items():
+			for simnumber, cpsidx in cpsdict.items():
+				if simnumber == 0: color='black'
+				else: color='yellow'
+				self.ax.annotate("", xy=self.reduceddata[cpsidx], xycoords='data', xytext=self.reduceddata[tgtidx], textcoords='data', arrowprops=dict(facecolor=color, edgecolor=color, shrink=0.05, width=0.1, headwidth=0.5, headlength=0.5),)	
+
+
+
+
+
+		# plot target
 		if plotTarget:
-			for sobj, descslice, mloc in zip(self.registry['tgt']['segobjs'], self.registry['tgt']['descslice'], self.registry['tgt']['matrixloc']):
-				data = self.reduceddata[mloc:mloc+descslice[1]]
-				colors = []
-				alphas = sobj.desc.get('power')/np.max(sobj.desc.get('power'))
-				for a in alphas: colors.append([1, 0, 0, a])
-				self.ax.plot(data[:,0], data[:,1], 'r-')
-
-
-#			tgt_path_data = []
-#			Path = mpath.Path
-#			path_data = [(Path.MOVETO, self.reduceddata[self.registry['tgt']['span'][0]])]
-#			for x, y in self.reduceddata[self.registry['tgt']['span'][0]+1:self.registry['tgt']['span'][1]-1]:
-#				path_data.append((Path.LINETO, (x, y)))
-#			path_data.append((Path.CLOSEPOLY, self.reduceddata[self.registry['tgt']['span'][1]-1]))
-#			codes, verts = zip(*path_data)
-#			pathobj = mpath.Path(verts, codes)
-#			# plot control points and connecting lines
-#			x, y = zip(*pathobj.vertices)
-#			#ax.plot(x, y, 'r-',  alpha=0.1)
-#			ax.plot(x, y, 'r-',  alpha=1)
+			Xs = [s.get_x(self.reduceddata) for s in self.segments if s.tag == 'tgt']
+			Ys = [s.get_y(self.reduceddata) for s in self.segments if s.tag == 'tgt']
+			self.plottarget(self.ax, Xs, Ys, [True *len(Xs)], shadow_draw=False, writelabels=False, s=2)
 
 		
-#		if self.n_dimensions == 1:
-#			ax = self.fig.add_subplot(111)
-#			ax.scatter(self.reduceddata[:,0], range(len(self.reduceddata)))
-#		elif self.n_dimensions == 2:
-		cpscolors = np.array(self.registry['cps']['voiceID'], dtype=float)
-		cpscolors /= np.max(cpscolors)
-		cmap = cm.get_cmap('tab20')
-		cpscolors = [cmap(c) for c in cpscolors]
+		# assign corpus colors
+		cspcolors = []
+		csp_display_names = {}
+		max_voiceID = max([s.segobj.voiceID for s in self.segments if s.tag == 'cps'])
+		for s in self.segments:
+			if s.tag == 'cps':
+				if max_voiceID == 0:
+					s.color='red'
+				else:
+					s.color = cm.get_cmap('tab10')(float(s.segobj.voiceID)/float(max_voiceID))
+				foldername = os.path.split(os.path.split(s.segobj.filename)[0])[1]
+				if foldername not in csp_display_names:
+					csp_display_names[foldername] = {'color': s.color, 'xs': [], 'ys': []}
+				csp_display_names[foldername]['xs'].append(s.get_x(self.reduceddata))
+				csp_display_names[foldername]['ys'].append(s.get_y(self.reduceddata))
+				cspcolors.append(s.color)
+			else:
+				s.color = 'blue'
+				foldername = 'beatbox.aiff'
+				if foldername not in csp_display_names:
+					csp_display_names[foldername] = {'color': s.color, 'xs': [], 'ys': []}
+				csp_display_names[foldername]['xs'].append(s.get_x(self.reduceddata))
+				csp_display_names[foldername]['ys'].append(s.get_y(self.reduceddata))
+			
 
-		self.sc = self.ax.scatter(self.reduceddata[self.registry['cps']['span'][0]:self.registry['cps']['span'][1],0], self.reduceddata[self.registry['cps']['span'][0]:self.registry['cps']['span'][1]:,1], color=cpscolors, s=5)
-		# annotation stuff
+		# plot corpus
+		self.sc = self.ax.scatter([s.get_x(self.reduceddata) for s in self.segments if s.tag == 'cps'], [s.get_y(self.reduceddata) for s in self.segments if s.tag == 'cps'], c=cspcolors, marker='s', s=4)
+
+
+		# CPS annotation stuff
 		self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20), textcoords="offset points", bbox=dict(boxstyle="round", fc="w"), arrowprops=dict(arrowstyle="->"))
 		self.annot.set_visible(False)
+		
+		nameremap = {
+'artificial-harmonic': 'harmonic',
+'fbslap': 'fingerboard slap',
+'mutedpizz': 'muted pizz',
+'pizz': 'pizz',
+'scratch': 'scratch tone',
+'wood': 'hit on wood',
+'staccato': 'arco staccato',
+		}
+		
+		for head, d in csp_display_names.items():
+			numpyarraycoors = np.average(d['xs']), np.average(d['ys'])
+			if head in nameremap:
+				texty = nameremap[head]
+			else:
+				texty=head
+			an = self.ax.annotate(texty, xy=numpyarraycoors, size=7.5, color=d['color']) 
+			an.draggable()
+
+		for xystart, xyend in self.gridify_moved_points.items():
+			self.ax.annotate("", xy=xyend, xycoords='data', xytext=xystart, textcoords='data', arrowprops=dict(facecolor='black', shrink=0.00, width=0.25, headwidth=0.5, headlength=0.5))	
+
+
 		self.annot_last_hover_play = None
 		self.fig.canvas.mpl_connect("motion_notify_event", self.hover)
 		self.fig.canvas.mpl_connect('button_press_event', self)
 		
-#		elif self.n_dimensions == 3:
-#			ax = self.fig.add_subplot(111, projection='3d')
-#			ax.scatter(self.reduceddata[:,0], self.reduceddata[:,1], self.reduceddata[:,2], s=100)
 		plt.title(self.title, fontsize=12)
 		plt.xlim([self.min[0]-1, self.max[0]+1])
 		plt.ylim([self.min[1]-1, self.max[1]+1])
@@ -279,26 +355,37 @@ class dimensionalReduceData:
 
 
 	def hover(self, event):
-		vis = self.annot.get_visible()
+		#vis = self.annot.get_visible()
 		if event.inaxes == self.ax:
 			cont, ind = self.sc.contains(event)
 			if cont and ind["ind"][0] != self.annot_last_hover_play:
-				cps = self.registry['cps']['segobjs'][ind["ind"][0]]
-				atk = cps.envAttackSec*1000
-				dec = cps.envDecaySec*1000
-				liblo.send(self.osc_target, str(cps.soundfileChns), cps.filename, cps.segmentStartSec*1000, cps.segmentEndSec*1000, atk, cps.segmentDurationSec*1000-atk-dec, dec, util.dbToAmp(cps.envDb))
-
-				if False:
-					# make label appear
-					self.annot.xy = self.sc.get_offsets()[ind["ind"][0]]
-					self.annot.set_text("{}".format(self.registry['cps']['cps_annotations'][ind["ind"][0]]))
-					#self.annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-					self.annot.get_bbox_patch().set_alpha(0.4)
-					self.annot.set_visible(True)
-				self.annot_last_hover_play = ind["ind"][0]
-			else:
-				if vis:
-					self.annot.set_visible(False)
+				thissegobj = [s for s in self.segments][ind["ind"][0]]
+				if thissegobj.tag == 'cps':
+					print(thissegobj.segobj.filename)
+# 				elif thissegobj.tag == 'tgt' and self.tgtmapping != None:
+# 					thissegmapping = self.tgtmapping[thissegobj.matrixrow]
+# 					print(thissegobj.matrixrow, thissegmapping)
+# 					
+					
+				#startms = thissegobj.segobj.segmentStartSec*1000
+				#stopms = thissegobj.segobj.segmentEndSec*1000
+				#play(self.audiosegmentobjs[thissegobj.segobj.filename][startms:stopms])
+				# segobj self.audiosegmentobjs[segmentobj.filename]
+# 				cps = self.registry['cps']['segobjs'][ind["ind"][0]]
+# 				atk = cps.envAttackSec*1000
+# 				dec = cps.envDecaySec*1000
+# 		
+# 				if False:
+# 					# make label appear
+# 					self.annot.xy = self.sc.get_offsets()[ind["ind"][0]]
+# 					self.annot.set_text("{}".format(self.registry['cps']['annotations'][ind["ind"][0]]))
+# 					#self.annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+# 					self.annot.get_bbox_patch().set_alpha(0.4)
+# 					self.annot.set_visible(True)
+# 				self.annot_last_hover_play = ind["ind"][0]
+# 			else:
+# 				if vis:
+# 					self.annot.set_visible(False)
 			self.fig.canvas.draw_idle()
 		
 

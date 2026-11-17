@@ -1,3 +1,15 @@
+#################
+## Version 1.8 ##
+#################
+• Dependence on an OSX analysis binary was removed, AudioGuide1.8 is now fully cross-platform.
+• AudioGuide1.8 now requires python3’s librosa package.
+• The following descriptors were removed: crest, decrease, sharpness, slope, spread, variation, any descriptor starting with harmonic*, any descriptor starting with perceptual*.
+• The follow descriptors have been added: contrasts, pfeatures, mels, tonnetz, and ypin (called f0, f0flag, and f0prob); see Appendix 1.
+• The following descriptors are calculated slightly differently: mfccs, noisiness, flatness.
+• Descriptor computation is slightly slower (~20% longer)
+
+
+
 ##################
 ## Version 1.79 ##
 ##################

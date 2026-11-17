@@ -6,7 +6,7 @@ import numpy as np
 np.seterr(invalid='ignore')
 import sys, os
 import audioguide.util as util
-
+import audioguide.descriptoranalysis as descriptoranalysis
 
 
 
@@ -25,7 +25,7 @@ class expandable_matrix:
 			if len(dnames) == 1: cols = self.column_dnames.index(dnames[0])
 			else: cols = [self.column_dnames.index(d) for d in dnames]
 		except ValueError: 
-			print("descriptordata ERROR: No known descriptor", dnames)
+			print("1descriptordata ERROR: No known descriptor", dnames)
 			sys.exit(1)
 		if rowslice == None: return self.matrix[:, cols]
 		else: return self.matrix[rowslice, cols]
@@ -53,8 +53,10 @@ class expandable_matrix:
 
 
 singleNumberDescriptors = ['dur-seg', 'effDur-seg', 'effDurFrames-seg', 'peakTime-seg', 'MIDIPitch-seg', 'percentInFile-seg', 'temporalIncrease-seg', 'temporalDecrease-seg', 'logAttackTime-seg', 'temporalCentroid-seg']
-descriptIsAmp = ["power", "spectralpower", "noiseenergy", "loudness", "harmonicenergy", "energyenvelope"]
-descriptNotMixable = ["f0", "zeroCross", "effDur-seg"]
+descriptIsAmp = ["power", "rms"]
+#descriptIsAmp.extend(['mel%i'%i for i in range(20)])
+descriptNotMixable = ["f0", "zeroCross", "effDur-seg", "yin"]
+descriptNotMixable.extend(['mel%i'%i for i in range(20)])
 
 
 def descriptor_string_parse(dname):
@@ -97,6 +99,7 @@ class descriptor_manager:
 	def __init__(self):
 		self.descriptor_string_to_params = {}
 		self.sffile2matrix = {}
+		self.cols, _ = descriptoranalysis.get_feature_list(20, 13)
 	########################################
 	def descriptor_string_digest(self, dname):
 		if dname not in self.descriptor_string_to_params: self.descriptor_string_to_params[dname] = descriptor_string_parse(dname)
@@ -184,7 +187,7 @@ class descriptor_manager:
 		'''this function gets a new class sf_segment_descriptors and links it to the overlord'''
 		if sfseghandle.filename not in self.sffile2matrix:
 			self.sffile2matrix[sfseghandle.filename] = expandable_matrix()
-			self.sffile2matrix[sfseghandle.filename].add_columns(rawmatrix, ['power', 'chroma0', 'chroma1', 'chroma2', 'chroma3', 'chroma4', 'chroma5', 'chroma6', 'chroma7', 'chroma8', 'chroma9', 'chroma10', 'chroma11', 'f0', 'harmonicenergy', 'harmonicoddevenratio', 'harmoniccentroid', 'harmonicdecrease', 'harmonicdeviation', 'harmonickurtosis', 'harmonicrolloff', 'harmonicskewness', 'harmonicslope', 'harmonicspread', 'harmonicvariation', 'inharmonicity', 'loudness', 'noiseenergy', 'noisiness', 'perceptualoddtoevenratio', 'perceptualcentroid', 'perceptualdecrease', 'perceptualdeviation', 'perceptualkurtosis', 'perceptualrolloff', 'perceptualskewness', 'perceptualslope', 'perceptualspread', 'perceptualvariation', 'sharpness', 'zeroCross', 'centroid', 'crest0', 'crest1', 'crest2', 'crest3', 'decrease', 'flatness0', 'flatness1', 'flatness2', 'flatness3', 'kurtosis', 'rolloff', 'skewness', 'slope', 'spectralspread', 'variation', 'spread', 'spectralpower', 'mfcc0', 'mfcc1', 'mfcc2', 'mfcc3', 'mfcc4', 'mfcc5', 'mfcc6', 'mfcc7', 'mfcc8', 'mfcc9', 'mfcc10', 'mfcc11', 'mfcc12'])
+			self.sffile2matrix[sfseghandle.filename].add_columns(rawmatrix, self.cols)
 		return self.sf_segment_descriptors(self, sfseghandle, startframe_in_matrix, length_in_matrix, tag=tag, envelope=envelope)
 	########################################
 	########################################
@@ -370,6 +373,8 @@ def SegmentedDescriptorComputation(sfdescobj, dname, dparams, handle, start, end
 		output = percentInFile(handle, start, end)
 	elif dname == "f0-seg":
 		output = f0Seg(handle.desc.get('f0', start=start, stop=end), sfdescobj.get('power', start=start, stop=end))
+	elif dname == "f0flag-seg":
+		output = f0FlagSeg(handle.desc.get('f0flag', start=start, stop=end), sfdescobj.get('power', start=start, stop=end))
 	# FLAT MEAN - NOT ENERGY WEIGHTED
 	elif dparams['type']  == 'mean':
 		output = np.average(sfdescobj.get(dparams['parent'], start=start, stop=end))
@@ -487,6 +492,15 @@ def f0Seg(f0s, powers):
 		tmp.append(f0)
 	if len(tmp) == 0: return 0. # 0 means f0 didn't find an estimate!
 	return np.median(tmp)
+
+
+
+def f0FlagSeg(f0flags, powers):
+	sums = [0., 0.]
+	for pidx, p in enumerate(powers):
+		sums[int(f0flags[pidx])] += p
+	if sums[1] > sums[0]: return 1
+	else: return 0
 
 
 

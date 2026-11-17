@@ -535,7 +535,6 @@ class instruments:
 			slotname = slotname.replace('instr_', '')
 			initslots.append('[%i [type %s] [name %s] %s]'%(slotdict['idx'], slotdict['type'], slotname, slotdict['range']) )
 		bachstring += '[slotinfo %s]'%' '.join(initslots)
-
 		# write notes
 		for voice in bs.voice_to_notes:
 			bachstring += '[ ' # instrument start
