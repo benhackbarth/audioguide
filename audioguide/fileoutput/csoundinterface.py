@@ -5,7 +5,7 @@
 
 import subprocess, platform, sys, os
 import audioguide.util as util
-
+import platform
 
 
 def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, instruments, numberClasses, bits=32, useTargetAmplitude=0):	
@@ -485,8 +485,12 @@ def makeFtableFromDescriptor(descriptorArray, descriptorName, f2s, csoundSr, cso
 def render(file, totalEvents, printerobj=None):
 	eventCounter = 0
 	if printerobj != None: printerobj.startPercentageBar(upperLabel="RENDERING with CSOUND", total=totalEvents)
-	csoundCommand = ['ulimit -n 2000 ;', 'csound', '"%s"'%file]
-	cs = subprocess.Popen(' '.join(csoundCommand), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+	if platform.system() in ['Darwin', 'Linux']:
+		cs = subprocess.Popen('ulimit -n 2000; csound "%s"' % file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	else:
+		cs = subprocess.Popen(['csound', file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
 	while True:
 		o = cs.stderr.readline().decode("utf-8")
 		if o == '' and cs.poll() != None: break
@@ -529,7 +533,7 @@ def normalize(file, db=-3):
 
 
 def playFile(file):
-	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'Windows': r'mplay32 \play'}
+	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'win32': r'mplay32 \play'}
 	command = '%s "%s"'%(commandLinePlayers[platform.system()], file)
 	try:
 		cs = subprocess.call(command, shell=True)

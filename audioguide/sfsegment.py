@@ -214,7 +214,7 @@ class target: # the target
 			'partial_limit_db': (-60, 0),
 			'partial_max_overlaps': 20,
 			'partial_min_confidence': 0, # 0->100
-			'partial_resynthsis_file': '/Users/ben/Desktop/partials/p.wav',
+			'partial_resynthsis_file': 'p.wav',
 			'forceAnalysis': False,
 			'use_partials_for_segmentation': False,
 			}

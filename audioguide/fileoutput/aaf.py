@@ -2,7 +2,7 @@
 ## This software is distributed for free, without warranties of any kind. ##
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
-import os
+import os, sys
 import audioguide.util as util
 
 '''Creates an aaf output file for logic / pro tools.'''
@@ -68,11 +68,5 @@ class output:
 			print("Wrote %i target tracks and %i corpus tracks to %s"%(tgt_track_count, self.alltrackcnt-tgt_track_count, self.path))
 	
 		if autolaunchbool:
-			import subprocess
-			command = ['open', self.path]
-			try:
-				p = subprocess.Popen(command)
-			except OSError:
-				print('commandline', 'Command line call failed: \n\n"%s"'%' '.join(command))
-
+			util.openFileCrossPlatform(self.path)
 

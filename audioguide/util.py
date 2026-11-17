@@ -4,7 +4,7 @@
 ############################################################################
 
 from math import log10, log
-import sys, os, subprocess, random
+import sys, os, subprocess, random, platform
 import numpy as np
 
 audioguide_lady = r'''
@@ -58,7 +58,7 @@ def bold(string):
 
 
 def getTimeStamp(file):
-	return os.stat(file).st_ctime
+	return os.stat(file).st_mtime
 
 
 def checkIfFileIsNewer(file1, file2):
@@ -132,8 +132,10 @@ def readAudacityLabelFile(path):
 			start = float(line[0])
 			end = float(line[1])
 			if start == end: # then we'll assume these are start times and infer end time...
-				if idx != len(lines): end = None
-				else: end = float(lines[idx+1].split()[1])-0.05
+				if idx < len(lines) - 1:
+					end = float(lines[idx+1].split()[1])-0.05
+				else:
+					end = None
 			writeLine = [start, end]
 			writeLine.extend(line[2:])
 			timeList.append( writeLine )
@@ -147,42 +149,6 @@ def printDict(heading, dict, postLevel, p):
 	for key, val in dict.items():
 		p.post("%s -> ${RED}%s${NORMAL}"%(key, val), postLevel)
 	p.post("", postLevel)
-
-
-def executeCommand(args):
-	import subprocess, os
-	sub = subprocess.Popen(args, shell=True)
-	exitStatus = os.waitpid(sub.pid, 0)[1]
-	if exitStatus != 0:
-		p.post(' '.join(args) + " died with " + str(exitStatus), 1)
-		exit(10)
-
-
-def popen_execute_command(commandArgs, exitOnError=True, stdoutReturnDict=None):
-	import subprocess, os
-	try:
-		p = subprocess.Popen(commandArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	except OSError:
-		error('commandline', 'Command line call failed: \n\n"%s"'%' '.join(commandArgs))
-	out, err = p.communicate()
-	#print out
-	#print err
-	# test for bad exit status
-	if exitOnError and err not in [0, '']:
-		error('commandline', 'AudioGuide command line call failed: \n"%s"%s%s'%(' '.join(commandArgs), '\n--------\n\n', ''.join(out)))	
-	if stdoutReturnDict == None: return out
-	dictStore = {}
-	# fill output dict if requested
-	for o in out.split('\n'):
-		o = o.split()
-		if len(o) > 1:
-			for (str, loc), (key, valloc, valtype) in stdoutReturnDict.items():
-				if o[loc] == str:
-					dictStore[key] = o[valloc]
-					if valtype == int: dictStore[key] = int(dictStore[key])
-					if valtype == float: dictStore[key] = float(dictStore[key])
-	return out, dictStore
-
 
 
 
@@ -201,33 +167,25 @@ def histogram(l):
 
 
 
-
-#def getDirListOnlyExt(path, recur, extensions):
-#	import os
-#	# if recursive..
-#	if recur:
-#		output = []
-#		for dirname, dirnames, filenames in os.walk(path):
-#			for filename in filenames:
-#				output.append( os.path.abspath(os.path.join(dirname, filename)) )
-#	else:
-#		# if just whats in that folder..
-#		output = os.listdir(path)
-#	# filter files by extension - case insensative!
-#	validFiles = []
-#	for outty in output:
-#		isValid = False
-#		fileExt = os.path.splitext(outty)[1]
-#		for ext in extensions:
-#			if ext.lower() == fileExt.lower():
-#				isValid = True
-#				break
-#		if isValid: validFiles.append(outty)
-#	return validFiles
-	
+def openFileCrossPlatform(path):
+    try:
+        if sys.platform == 'darwin':
+            command = ['open', path]
+            subprocess.Popen(command)
+        elif sys.platform == 'win32':
+            command = ['start', '', path]
+            os.startfile(path)
+        else:
+            command = ['xdg-open', path]
+            subprocess.Popen(command)
+    except OSError:
+        print('commandline', 'Command line call failed: \n\n"%s"' % ' '.join(command))
 
 
-def getDirListOnlyExt(path, recur, invalid_lowercase_prefixes=['._'], valid_lowercase_extensions=['.wav']):
+
+
+
+def getDirListOnlyExt(path, recur, invalid_lowercase_prefixes=('._',), valid_lowercase_extensions=('.wav',)):
 	if recur:
 		output = []
 		for dirname, dirnames, filenames in os.walk(path):
@@ -277,34 +235,6 @@ def cpsPathToTrackName(fileordir):
 	return output
 
 
-
-#def initStretchedSoundfile(sffile, start, end, stretchcoeff, svpbin, p=None):
-#	supervp_flags = '''-Afft -Np0 -M0.092879802s -oversamp 8 -Whamming -P1 -td_thresh 1.2 -td_G 2.5 -td_band 0,22050 -td_nument 10 -td_minoff 0.02s -td_mina 9.9999997e-06 -td_minren 0 -td_evstre 1 -td_ampfac 1.5 -td_relax 100 -td_relaxto 1 -FCombineMul -shape 1 -Vuf -4'''
-#	
-#	stretcheddir = os.path.join(os.path.dirname(__file__), 'data_stretched_sfs')
-#	if not os.path.exists(stretcheddir): os.makedirs(stretcheddir)
-#	# get filename
-#	sfroot, sfhead = os.path.split(sffile)
-#	sfheadroot, sfheadext = os.path.splitext(sfhead)
-#	checksum = listToCheckSum([sffile, start, end, stretchcoeff])
-#	stretchedfilename = os.path.join(stretcheddir, '%sx%.2f-%s%s'%(sfheadroot, stretchcoeff, checksum, sfheadext))
-#	if os.path.exists(stretchedfilename): return stretchedfilename
-#	#################################
-#	## do supervp time stretching! ##
-#	#################################
-#	# make temporary stretch coeff file (needed by supervp)
-#	stretchParamFile = os.path.join(stretcheddir, 'stretchtmpfile.txt')
-#	fh = open(stretchParamFile, 'w')
-#	fh.write("-10 1\n0 %s\n"%(stretchcoeff))
-#	fh.close()
-#	# add start time and end time offsets to flags if needed
-#	if start != None: supervp_flags += ' -B%f'%start
-#	if end != None: supervp_flags += ' -E%f'%end
-#	# make supervp command!
-#	command = '%s -t -Z -U -S"%s" %s -D"%s" "%s"'%(svpbin, sffile, supervp_flags, stretchParamFile, stretchedfilename)
-#	#print 'TARGET TIME STRETCH - "%s"'%command
-#	executeCommand( command )
-#	return stretchedfilename
 
 
 def parseEquationString(mstr, symbs):

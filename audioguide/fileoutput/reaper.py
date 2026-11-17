@@ -39,9 +39,4 @@ class output:
 			print("Wrote %i target tracks and %i corpus tracks to %s"%(tgt_track_count, len(self.tracks)-tgt_track_count, self.path))
 		# autolaunch?
 		if autolaunchbool:
-			import subprocess
-			command = ['open', self.path]
-			try:
-				p = subprocess.Popen(command)
-			except OSError:
-				print('Auto launch command line call failed: \n\n"%s"'%' '.join(command))
+			util.openFileCrossPlatform(self.path)

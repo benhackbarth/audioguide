@@ -165,7 +165,6 @@ class dimensionalReduceData:
 		segobjidx = np.argmin(cpsdistances) + self.registry['cps']['span'][0]
 		# send message "/foo/message1" with int, float and string arguments
 		cps = self.registry['cps']['segobjs'][segobjidx]
-		#mu.executeCommand("afplay %s"%self.registry['cps']['segobjs'][segobjidx].filename)
 
 
 	def gridify(self, numberpointsxy=(20, 20), plot=True):

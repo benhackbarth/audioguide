@@ -10,7 +10,7 @@ TARGET = tsf('cage.aiff', partials={
 'partial_limit_midi': (20, 110),
 'partial_limit_db': (-60, 0),
 'partial_max_overlaps': 20,
-'partial_resynthsis_file': '/Users/ben/Desktop/p.wav', # None or filepath
+'partial_resynthsis_file': 'p.wav', # None or filepath
 })
 
 
