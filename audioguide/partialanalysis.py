@@ -239,10 +239,10 @@ class PartialData:
 		tmpCsdFile = fh.name
 		fh.write(csound.makePartialRendering(renderfilepath, csound_ftables, csound_notes))
 		fh.close()
-		csound.render(tmpCsdFile, len(csound_notes), printerobj=None)
-		os.remove(tmpCsdFile)
-
-
+		try:
+			csound.render(tmpCsdFile, len(csound_notes), printerobj=None)
+		finally:
+			os.remove(tmpCsdFile)
 
 
 
