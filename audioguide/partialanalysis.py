@@ -1,4 +1,4 @@
-import sys, os, json
+import sys, os, json, tempfile
 import numpy as np
 import librosa
 import audioguide.util
@@ -234,8 +234,17 @@ class PartialData:
 			for stoptime, (starttime, listoshit) in self.partial_search_candidates.items():
 				for amp, frq in listoshit:
 					csound_notes.append(['i2', starttime, stoptime-starttime, amp, frq] )
-		csound.makePartialRendering('/tmp/partials.csd', renderfilepath, csound_ftables, csound_notes)
-		csound.render('/tmp/partials.csd', len(csound_notes), printerobj=None)
+
+		fh = tempfile.NamedTemporaryFile(mode='w', suffix='.csd', delete=False)
+		tmpCsdFile = fh.name
+		csound.makePartialRendering(tmpCsdFile, renderfilepath, csound_ftables, csound_notes)
+		csound.render(tmpCsdFile, len(csound_notes), printerobj=None)
+		os.remove(dataRegistryPathTmp)
+
+
+
+
+
 
 		
 

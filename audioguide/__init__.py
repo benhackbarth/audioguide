@@ -551,8 +551,6 @@ spass('closest', d('X', norm=1), d('Y', norm=1))
 				self.p.log( "Rendered csound soundfile output %s\n"%self.ops.get_outputfile('CSOUND_RENDER_FILEPATH') )
 				dict_of_files_written['CSOUND_RENDER_FILEPATH'] = self.ops.get_outputfile('CSOUND_RENDER_FILEPATH')
 	
-			if self.ops.CSOUND_NORMALIZE:
-				csd.normalize(self.ops.get_outputfile('CSOUND_RENDER_FILEPATH'), db=self.ops.CSOUND_NORMALIZE_PEAK_DB)
 		################################
 		## csound simple score output ##
 		################################

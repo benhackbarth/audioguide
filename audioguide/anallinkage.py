@@ -3,7 +3,7 @@
 ## Send bug reports or suggestions to hackbarth@gmail.com                 ##
 ############################################################################
 
-import sys, os, subprocess, time, json
+import sys, os, subprocess, time, json, tempfile
 sys.path.insert(0, os.path.dirname(__file__)) # look here first
 import numpy as np
 import audioguide.util as util
@@ -279,15 +279,16 @@ class AnalInterface:
 			totalBytes += bytes
 		if removedCount > 0:
 			print("deleted %i outdated analysis files"%removedCount)
-		dataRegistryPathTmp = '/tmp/tmp.json'
-		fh = open(dataRegistryPathTmp, 'w')
+		fh = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+		dataRegistryPathTmp = fh.name
 		json.dump(self.dataRegistry, fh)
 		fh.close()
-		# move into place
-		#os.rename(dataRegistryPathTmp, self.dataRegistryPath) <- yikes, this doesn't work across different volumes!
-		import shutil
-		shutil.copy(dataRegistryPathTmp, self.dataRegistryPath)
-		os.remove(dataRegistryPathTmp)
+		try:
+			import shutil
+			shutil.copy(dataRegistryPathTmp, self.dataRegistryPath)
+		finally:
+			os.remove(dataRegistryPathTmp)
+
 ########################################################
 ########################################################
 

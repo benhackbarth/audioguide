@@ -5,7 +5,6 @@
 
 import subprocess, platform, sys, os
 import audioguide.util as util
-import platform
 
 
 def makeConcatenationCsdFile(outputCsdPath, outputSoundfilePath, channelRenderMethod, sr, kr, scoreText, cpsLength, listOfSfchannelsInScore, maxOverlaps, instruments, numberClasses, bits=32, useTargetAmplitude=0):	
@@ -486,7 +485,7 @@ def render(file, totalEvents, printerobj=None):
 	eventCounter = 0
 	if printerobj != None: printerobj.startPercentageBar(upperLabel="RENDERING with CSOUND", total=totalEvents)
 
-	if platform.system() in ['Darwin', 'Linux']:
+	if sys.platform != 'win32':
 		cs = subprocess.Popen('ulimit -n 2000; csound "%s"' % file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	else:
 		cs = subprocess.Popen(['csound', file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -504,46 +503,22 @@ def render(file, totalEvents, printerobj=None):
 
 
 
-
-
-
-
-def normalize(file, db=-3):
-	cs = subprocess.Popen('scale -F 0.0 %s'%file, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	scalefactor = 'notfound'
-	while True:
-		o = cs.stderr.readline().decode("utf-8")
-		if o == '' and cs.poll() != None: break
-		if o.startswith('Max scale factor'):
-			scalefactor = float(o.split()[4]) * util.dbToAmp(db)
-	if scalefactor == 'notfound':
-		print ("ERROR in csound normalization algorithm")
-		return
-	# scale to temporary file
-	cs = subprocess.Popen("scale -o /tmp/%s -F %f %s"%(os.path.split(file)[1], scalefactor, file), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	while True:
-		o = cs.stderr.readline().decode("utf-8")
-		if o == '' and cs.poll() != None: break
-	# replace file with new file
-	cs = subprocess.call("mv /tmp/%s %s"%(os.path.split(file)[1], file), shell=True)
-
-
-
-
-
-
 def playFile(file):
-	commandLinePlayers = {'Darwin': 'afplay', 'Linux': 'aplay', 'win32': r'mplay32 \play'}
-	command = '%s "%s"'%(commandLinePlayers[platform.system()], file)
 	try:
-		cs = subprocess.call(command, shell=True)
+		if sys.platform == 'darwin':
+			command = ['afplay', file]
+		elif sys.platform == 'win32':
+			command = ['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', file]
+		else:
+			command = ['aplay', file]
+
+		subprocess.run(command)
+
 	except KeyboardInterrupt:
 		print('\n\n')
 		sys.exit(0)
 
-
-
-
-	
+	except OSError as e:
+		print('Csound play command failed:', e)
 
 

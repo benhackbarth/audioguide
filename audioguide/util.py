@@ -4,7 +4,7 @@
 ############################################################################
 
 from math import log10, log
-import sys, os, subprocess, random, platform
+import sys, os, subprocess, random
 import numpy as np
 
 audioguide_lady = r'''

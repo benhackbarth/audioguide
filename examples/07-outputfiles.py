@@ -28,14 +28,6 @@ BACH_FILEPATH = None
 
 
 ################################################################################
-## Note that CSOUND_CSD_FILEPATH _must_ be created in order for               ##
-## CSOUND_RENDER_FILEPATH to be made. But you can put this file somewhere     ##
-## non-visable if you want                                                    ##
-################################################################################
-CSOUND_CSD_FILEPATH = '/tmp/hideme.csd'
-
-
-################################################################################
 ## You can also use the special string $TIME in your filenames to ensure that ##
 ## output files do not get overwritten                                        ##
 ################################################################################
