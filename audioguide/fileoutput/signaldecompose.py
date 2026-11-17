@@ -6,7 +6,7 @@
 
 import os, json
 import audioguide.util as util
-
+import librosa
 
 
 def decomposeTargetSf(filename, startsec, endsec, params, directory=None):

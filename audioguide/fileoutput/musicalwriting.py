@@ -146,7 +146,7 @@ class notetracker:
 				if constrainingtech not in self.instrdata[i]['tech']:
 					print("ERROR, %s doesn't have a technique called %s"%(i, constrainingtech))
 					sys.exit()
-				if np.max(self.instrdata[i]['tech'][constrainingtech][testf[0]:testf[1]]) > 0:
+				if len(self.instrdata[i]['tech'][constrainingtech][testf[0]:testf[1]]) != 0 and np.max(self.instrdata[i]['tech'][constrainingtech][testf[0]:testf[1]]) > 0:
 					instrumentInvalidTechniques[i].append(testtech)
 		return instrumentInvalidTechniques
 	########################################

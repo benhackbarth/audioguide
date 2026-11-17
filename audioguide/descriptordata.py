@@ -25,10 +25,11 @@ class expandable_matrix:
 			if len(dnames) == 1: cols = self.column_dnames.index(dnames[0])
 			else: cols = [self.column_dnames.index(d) for d in dnames]
 		except ValueError: 
-			print("1descriptordata ERROR: No known descriptor", dnames)
+			print("get_columns() descriptordata ERROR: No known descriptor", dnames)
 			sys.exit(1)
 		if rowslice == None: return self.matrix[:, cols]
-		else: return self.matrix[rowslice, cols]
+		else:
+			return self.matrix[rowslice, cols]
 
 	def add_columns(self, values, dnames):
 		# reshape array to make 2D
@@ -56,7 +57,7 @@ singleNumberDescriptors = ['dur-seg', 'effDur-seg', 'effDurFrames-seg', 'peakTim
 descriptIsAmp = ["power", "rms"]
 #descriptIsAmp.extend(['mel%i'%i for i in range(20)])
 descriptNotMixable = ["f0", "zeroCross", "effDur-seg", "yin"]
-descriptNotMixable.extend(['mel%i'%i for i in range(20)])
+descriptNotMixable.extend(['mel%i'%i for i in range(14)])
 
 
 def descriptor_string_parse(dname):
@@ -96,10 +97,10 @@ def descriptor_string_parse(dname):
 
 
 class descriptor_manager:
-	def __init__(self):
+	def __init__(self, numbMfccs=13, numbMels=20):
 		self.descriptor_string_to_params = {}
 		self.sffile2matrix = {}
-		self.cols, _ = descriptoranalysis.get_feature_list(20, 13)
+		self.cols, _ = descriptoranalysis.get_feature_list(numbMels, numbMfccs)
 	########################################
 	def descriptor_string_digest(self, dname):
 		if dname not in self.descriptor_string_to_params: self.descriptor_string_to_params[dname] = descriptor_string_parse(dname)
@@ -250,7 +251,7 @@ class descriptor_manager:
 				mat = self.overlord.sffile2matrix[self.sfseghandle.filename]
 				if not mat.has_column(dname):
 					if dparams['parent'] == None:
-						print("\nDescriptordata Error: No known descriptor", dname, "\n\n")
+						print("\nget_matrix_location() Descriptordata Error: No known descriptor", dname, "\n\n")
 						sys.exit(1)
 					# on demand calculation of new columns - delta, deltadelta, odf
 					mat.calculate_new_column(dname, dparams['type'], dparams['parent'])
@@ -336,7 +337,7 @@ class descriptor_manager:
 				self._edit_tv_data(d.name, mixture, mix_dur, start=tgtseek, mixture=True)
 		#####################################	
 		def getdict(self, dobjlist):
-			return {d.name: list(self.get(d.name)) if not d.seg else self.get(d.name) for d in dobjlist}
+			return {d.name: self.get(d.name).tolist() if not d.seg else self.get(d.name) for d in dobjlist}
 		#####################################	
 		def writedict(self, outputfile, AnalInterface):
 			import json

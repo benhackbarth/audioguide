@@ -34,7 +34,7 @@ def get_feature_list(n_mels_feature, n_mfcc):
 	cnt = 0
 	cols = []
 	column_dict = {}
-	for feat, num in [('rms', 1), ('zeroCross', 1), ('power', 1), ('centroid', 1), ('bandwidth', 1), ('contrast', 7), ('flatness', 1), ('rolloff', 1), ('skewness', 1), ('kurtosis', 1), ('noisiness', 1), ('pfeatures', 2), ('tonnetz', 6), ('f0', 1), ('f0flag', 1), ('f0prob', 1), ('mfcc', n_mfcc), ('mel', n_mels_feature), ('chroma', 12), ('partialfrq', 5), ('partialdb', 5)]:
+	for feat, num in [('rms', 1), ('zeroCross', 1), ('power', 1), ('centroid', 1), ('bandwidth', 1), ('contrast', 7), ('flatness', 1), ('rolloff', 1), ('skewness', 1), ('kurtosis', 1), ('noisiness', 1), ('pfeatures', 2), ('tonnetz', 6), ('f0', 1), ('f0flag', 1), ('f0prob', 1), ('mfcc', n_mfcc), ('mel', n_mels_feature), ('chroma', 12)]:
 		if num == 1:
 			column_dict[feat] = cnt
 			cols.append(feat)
@@ -125,26 +125,26 @@ def extract_all_descriptors(audio_file, resampled_sr=22050, n_fft_features=512, 
 	feature_array[:, info_dict['librosad_columns']['noisiness']] = noisinesses.flatten()
 
 	# partials
-	partial_midis = np.zeros((S.shape[1], partial_store_len))
-	partial_dbs = np.zeros((S.shape[1], partial_store_len))
-	pitches, magnitudes = librosa.piptrack(S=H, sr=resampled_sr, n_fft=n_fft_features, hop_length=hop_length_features, fmin=20, fmax=resampled_sr / 2, threshold=0.1)
-
-	for frame in range(S.shape[1]):
-		valid = pitches[:, frame] > 0
-		freqs = pitches[valid, frame]
-		mags = magnitudes[valid, frame]
-		# Sort by frequency
-		order = np.argsort(freqs)
-		frame_partials = []
-		for freq, mag in zip(freqs[order], mags[order]):
-			frame_partials.append((librosa.amplitude_to_db(mag), librosa.hz_to_midi(freq)))
-		frame_partials.sort(reverse=True)
-		for pidx, (db, midi) in enumerate(frame_partials):
-			if pidx == partial_store_len: break
-			partial_midis[frame,pidx] = midi
-			partial_dbs[frame,pidx] = db
-	feature_array[:, info_dict['librosad_columns']['partialfrq0']:info_dict['librosad_columns']['partialfrq0']+partial_store_len] = partial_midis
-	feature_array[:, info_dict['librosad_columns']['partialdb0']:info_dict['librosad_columns']['partialdb0']+partial_store_len] = partial_dbs
+# 	partial_midis = np.zeros((S.shape[1], partial_store_len))
+# 	partial_dbs = np.zeros((S.shape[1], partial_store_len))
+# 	pitches, magnitudes = librosa.piptrack(S=H, sr=resampled_sr, n_fft=n_fft_features, hop_length=hop_length_features, fmin=20, fmax=resampled_sr / 2, threshold=0.1)
+# 
+# 	for frame in range(S.shape[1]):
+# 		valid = pitches[:, frame] > 0
+# 		freqs = pitches[valid, frame]
+# 		mags = magnitudes[valid, frame]
+# 		# Sort by frequency
+# 		order = np.argsort(freqs)
+# 		frame_partials = []
+# 		for freq, mag in zip(freqs[order], mags[order]):
+# 			frame_partials.append((librosa.amplitude_to_db(mag), librosa.hz_to_midi(freq)))
+# 		frame_partials.sort(reverse=True)
+# 		for pidx, (db, midi) in enumerate(frame_partials):
+# 			if pidx == partial_store_len: break
+# 			partial_midis[frame,pidx] = midi
+# 			partial_dbs[frame,pidx] = db
+# 	feature_array[:, info_dict['librosad_columns']['partialfrq0']:info_dict['librosad_columns']['partialfrq0']+partial_store_len] = partial_midis
+# 	feature_array[:, info_dict['librosad_columns']['partialdb0']:info_dict['librosad_columns']['partialdb0']+partial_store_len] = partial_dbs
 
 	# MFCCs
 	mel = librosa.feature.melspectrogram(S=S, sr=resampled_sr, n_fft=n_fft_features, n_mels=n_mels_for_mfccs, hop_length=hop_length_features)

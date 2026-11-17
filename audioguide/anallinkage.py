@@ -34,7 +34,7 @@ class AnalInterface:
 	tgtOnsetDescriptors = {'power-odf-7': 1}
 
 	def __init__(self, resampleRate=11025, userFftSize=512, userHopSize=128, userRmsFftSize=256, userRmsHopSize=64, F0MinFrequency=200, F0MaxFrequency=5000, numbMfccs=13, numbMels=20, forceAnal=False, p=None, searchPaths=[], dataDirectoryLocation=None):
-		self.desc_manager = descriptors.descriptor_manager()
+		self.desc_manager = descriptors.descriptor_manager(numbMfccs=numbMfccs, numbMels=numbMels)
 		# establish data directory
 		if dataDirectoryLocation == None:
 			self.dataDirectory = os.path.dirname(__file__)
@@ -80,10 +80,10 @@ class AnalInterface:
 		from userclasses import SingleDescriptor as d
 		_, cols = descriptoranalysis.get_feature_list(self.numbMels, self.numbMfccs)
 		for desc in cols:
-			dobj = d(desc[0])
+			dobj = d(desc)
 			self.allDescriptors.append( dobj )
-			if not dobj.seg: self.allDescriptors.append( d(desc[0]+'-seg') )
-		
+			if not dobj.seg:
+				self.allDescriptors.append( d(desc+'-seg') )
 		for desc in self.internalDescriptorNames:
 			self.allDescriptors.append( d(desc) )
 		# write log
