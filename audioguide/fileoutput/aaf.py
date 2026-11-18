@@ -11,8 +11,9 @@ import audioguide.util as util
 try:
 	import aaf2
 except ImportError:
-	print("\n\nTo use AudioGuide you need to install Python3's aaf2 package. To install it on OSX, run the following command in Terminal.app:"%modulename)
-	print("\nsudo easy_install pip; %s -m pip install aaf2\n"%(sys.executable))
+	print("\nAudioGuide's AAF output requires the Python package 'pyaaf2'.")
+	print("Install it using:")
+	print('"%s" -m pip install pyaaf2\n' % sys.executable)
 	sys.exit(1)
 
 

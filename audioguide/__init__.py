@@ -17,7 +17,7 @@ for package in ['numpy', 'scipy', 'librosa', 'soundfile']:
 	if importlib.util.find_spec(package) is None:
 		missing.append(package)
 if missing:
-	requirements = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'requirements.txt')
+	requirements = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'requirements.txt')
 	print("\nAudioGuide is missing the following dependencies:")
 	print(', '.join(missing))
 	print("\nInstall them using the following command:")
