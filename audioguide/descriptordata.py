@@ -390,16 +390,10 @@ def SegmentedDescriptorComputation(sfdescobj, dname, dparams, handle, start, end
 	elif dparams['type'] == 'slope-regression':
 		output = descriptorSlope(handle, dparams['parent'], start)
 	elif dparams['type'] == 'skew':
-		try:
-			from scipy.stats import skew
-		except ImportError:
-			print(ImportError, "scipy package needs to be installed to compute skewness.")
+		from scipy.stats import skew
 		output = skew(sfdescobj.get(dparams['parent'], start=start, stop=end))
 	elif dparams['type'] == 'kurt':
-		try:
-			from scipy.stats import kurtosis
-		except ImportError:
-			print(ImportError, "scipy package needs to be installed to compute kurtosis.")
+		from scipy.stats import kurtosis
 		output = kurtosis(sfdescobj.get(dparams['parent'], start=start, stop=end))
 		
 	else: # 'weighted_mean'

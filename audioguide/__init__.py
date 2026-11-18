@@ -11,22 +11,23 @@ __version__ = "1.8"
 import sys, os, operator, platform, json
 
 
-def missing_module(modulename):
-	print("\n\nTo use AudioGuide you need to install Python3's %s package. To install it on OSX, run the following command in Terminal.app:"%modulename)
-	print("\nsudo easy_install pip; %s -m pip install %s\n"%(sys.executable, modulename))
+import importlib.util
+missing = []
+for package in ['numpy', 'scipy', 'librosa', 'soundfile']:
+	if importlib.util.find_spec(package) is None:
+		missing.append(package)
+if missing:
+	requirements = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'requirements.txt')
+	print("\nAudioGuide is missing the following dependencies:")
+	print(', '.join(missing))
+	print("\nInstall them using the following command:")
+	print('"%s" -m pip install -r "%s"\n' % (sys.executable, requirements))
 	sys.exit(1)
 
-try:
-	import numpy as np
-except ImportError:
-	missing_module('numpy')
-try:
-	import librosa
-except ImportError:
-	missing_module('librosa')
 
 
 
+import numpy as np
 import audioguide.util as util
 import audioguide.sfsegment as sfsegment
 import audioguide.userinterface as userinterface
@@ -37,8 +38,6 @@ import audioguide.fileoutput.musicalwriting as musicalwriting
 import audioguide.simcalc as simcalc
 import audioguide.tests as tests
 import audioguide.dimscaling as dimscaling
-
-
 
 
 class main:

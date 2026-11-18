@@ -9,6 +9,15 @@ import audioguide.util as util
 import librosa
 
 
+try:
+	import soundfile
+except ImportError:
+	print("\n\nTo use AudioGuide's signal decomposition you need to install Python3's soundfile package. To install it on OSX, run the following command in Terminal.app:")
+	print("\nsudo easy_install pip; %s -m pip install soundfile\n"%(sys.executable))
+	sys.exit(1)
+
+
+
 def decomposeTargetSf(filename, startsec, endsec, params, directory=None):
 	# create directory if needed
 	assert directory != None
@@ -48,7 +57,6 @@ def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize
 	'''pitch/noise separation
 		creates an output soundfile that is the length of the inputsoundfile * 2'''
 	import numpy
-	import soundfile as sf
 	print("Decomposing %s into pitch/noise audio streams"%(inputsoundfile))
 	if endsec == None: durationsec = None
 	else: durationsec = endsec-startsec
@@ -56,8 +64,8 @@ def __HPSS__(inputsoundfile, startsec, endsec, outputsoundfile, fftsize, hopsize
 	x_harmonic, x_percussive = librosa.effects.hpss(x)
 	outputsamples = numpy.append(x_harmonic, x_percussive)
 	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
-	# Write out audio as 24bit PCM WAV
-	sf.write(outputsoundfile, outputsamples, sr)
+	# Write out audio as a WAV
+	soundfile.write(outputsoundfile, outputsamples, sr)
 	return len(x)/float(sr)
 
 
@@ -67,7 +75,6 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	'''non-negative matrix signal decomposition
 	creates an output soundfile that is the length of the inputsoundfile * n_components'''
 	import numpy
-	import soundfile as sf
 	print("Decomposing %s into %i audio streams"%(inputsoundfile, n_components))
 	
 	# To preserve the native sampling rate of the file, use sr=None
@@ -90,10 +97,10 @@ def __NMF__(inputsoundfile, startsec, endsec, n_components, outputsoundfile, fft
 	outputsamples = numpy.zeros(len(x)*n_components)
 	for n in range(n_components):
 		Y = numpy.outer(W[:,n], H[n])*numpy.exp(1j*numpy.angle(S))
-		y = librosa.istft(Y, hop_length=hopsize, win_length=fftsize)
+		y = librosa.istft(Y, hop_length=hopsize, win_length=fftsize, length=len(x))
 		outputsamples[n*len(x):(n*len(x))+len(y)] = y
 	#librosa.output.write_wav(outputsoundfile, outputsamples, sr, norm=False)
-	sf.write(outputsoundfile, outputsamples, sr)
+	soundfile.write(outputsoundfile, outputsamples, sr)
 	return len(x)/float(sr)
 
 

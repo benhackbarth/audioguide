@@ -1,9 +1,6 @@
 import numpy as np
 import util, os
-#from scipy.stats import skew
-#from scipy.stats import kurtosis
-#from pydub import AudioSegment
-#from pydub.playback import play
+
 
 
 

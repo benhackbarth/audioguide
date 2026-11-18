@@ -8,28 +8,12 @@
 ################################################################################
 
 ################################################################################
-## NOTE You must install librosa and scipy for the following example to work. ##
-## Depending on which version of Python you're using, either run:             ##
-## python2 -m pip install --user librosa scipy                                ##
-## or                                                                         ##
-## python3 -m pip install --user librosa scipy                                ##
-##                                                                            ##
-## ALSO NOTE: as of 20/1/2020 (Biden day), some users have had problems       ##
-## installing librosa on osx. Many are having a problem with pip & llvmlite   ##
-## and have needed to downgrade to python3.6 until it the issue is resolved.  ##
-## Check out this thread for the deets:                                       ##
-## https://github.com/librosa/librosa/issues/1270                             ##
-################################################################################
-
-################################################################################
 ## Sometimes target sounds are polyphonic (as is the case with the target     ##
 ## file examples/bone.aiff).  With soundfiles where there are simultanously   ##
 ## (or near-simultanously) overlapping sound streams, if can be useful to     ##
 ## separate these streams before the concatenative process.  Separation aids  ##
 ## in segmentation and can better represent polyphonic timbral content.       ##
-################################################################################
-
-################################################################################
+##                                                                            ##
 ## You can do this by adding the 'decompose' keyword to the tsf() variable.   ##
 ## This will break the target sound in the a number of independant streams.   ##
 ## At the moment only NMF and HPSS signal decomposition are supported.  This  ##
